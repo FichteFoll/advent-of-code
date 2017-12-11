@@ -29,7 +29,6 @@ impl Tower {
     fn subtower_names(&self) -> Vec<String> {
         let subtowers: Ref<Vec<Weak<Tower>>> = self.subtowers.borrow();
         subtowers.iter().map(|x| x.upgrade().unwrap().name.clone()).collect()
-        // subtower_names
     }
     fn supertower_name(&self) -> Option<String> {
         let supertower: Ref<Option<Weak<Tower>>> = self.supertower.borrow();
@@ -74,7 +73,6 @@ fn parse_input(input: &str) -> HashMap<String, Rc<Tower>> {
             None => (),
         };
     }
-    // println!("associations: {:?}", associations);
 
     // set associations in structs
     for (supertower_name, subtower_names) in associations {
@@ -115,19 +113,20 @@ fn find_root(tower_map: &HashMap<String, Rc<Tower>>) -> Rc<Tower> {
 
 
 fn find_unbalanced(tower: &Rc<Tower>) -> usize {
-    // recursive algorithm for finding unbalanced discs
+    // do recursive depth-first algorithm for finding unbalanced discs
     let subtowers = tower.subtowers.borrow();
     let subweights: Vec<usize> = subtowers.iter().map(|weak_subtower| {
         let subtower = weak_subtower.upgrade().unwrap();
         find_unbalanced(&subtower)
     }).collect();
-    let (min, max) = (subweights.iter().min(), subweights.iter().max());
-    if min != max {
+
+    if subweights.iter().min() != subweights.iter().max() {
         println!("One of these is unbalanced: {:?}", tower.subtower_names());
         println!("Weights: {:?}", subweights);
         let mut sorted_subweights = subweights.clone();
         sorted_subweights.sort_unstable();
         let majority_size = sorted_subweights[subweights.len() / 2];
+
         for (i, &weight) in subweights.iter().enumerate() {
             if weight != majority_size {
                 let subtower = subtowers[i].upgrade().unwrap();
@@ -138,6 +137,7 @@ fn find_unbalanced(tower: &Rc<Tower>) -> usize {
             }
         }
     }
+
     let subweight_total: usize = subweights.iter().sum();
     subweight_total + tower.weight
 }
@@ -160,5 +160,4 @@ fn main() {
     let total_weight = find_unbalanced(&root);
 
     println!("The entire stack weights {:?}", total_weight);
-    // do recursive depth-first search through
 }
