@@ -5,24 +5,13 @@ use std::slice::Iter;
 
 
 fn get_input() -> String {
-    // let input_filename = "input.txt";
-    let input_filename = "test_input.txt";
+    let input_filename = "input.txt";
+    // let input_filename = "test_input.txt";
     let mut f = File::open(input_filename).expect("file not found");
     let mut contents = String::new();
     f.read_to_string(&mut contents).expect("something went wrong reading the file");
     contents
 }
-
-
-fn make_grid(input: &str) -> Vec<Vec<char>> {
-    let mut lines: Vec<Vec<char>> = Vec::new();
-    for line in input.split("\n") {
-        let chars: Vec<char> = line.chars().collect();
-        lines.push(chars);
-    }
-    lines
-}
-
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 struct Point {
@@ -90,11 +79,9 @@ impl Direction {
 fn main() {
     let input_str = get_input();
     let input = &input_str[..];
-    // let input = input_str.trim();
 
     // grid uses y, x coordinates
-    let grid = make_grid(input);
-    // println!("grid: {:?}", grid);
+    let grid: Vec<Vec<char>> = input.split("\n").map(|l| l.chars().collect()).collect();
 
     // find start cell
     let mut pos = Point{x: 0, y: 0};
@@ -129,7 +116,6 @@ fn main() {
         // need to determine new direction
         for dir in Direction::iterator() {
             if dir.value() == -direction.value() {
-                // don't check opposite direction
                 continue
             }
             let test_pos = dir.next_point(pos);
