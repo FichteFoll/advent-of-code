@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::io::prelude::*;
-use std::ops::Add;
 use std::slice::Iter;
 
 
@@ -17,17 +16,6 @@ fn get_input() -> String {
 struct Point {
     x: usize,
     y: usize,
-}
-
-impl Add for Point {
-    type Output = Point;
-
-    fn add(self, other: Point) -> Point {
-        Point {
-            x: self.x + other.x,
-            y: self.y + other.y,
-        }
-    }
 }
 
 #[derive(Debug)]
