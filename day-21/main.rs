@@ -72,7 +72,7 @@ impl Mosaic {
     }
 
     fn with_fields_reordered(&self, order: &[usize]) -> Mosaic {
-        assert_eq!(order.len(), self.size);
+        assert_eq!(order.len(), self.size.pow(2));
         let new_fields: Vec<_> = order.iter().map(|&i| self.fields[i]).collect();
         Mosaic{size: self.size, fields: new_fields}
     }
@@ -89,9 +89,10 @@ impl MosaicSet {
     fn from_fields(fields: &Fields) -> MosaicSet {
         let size = fields_size(fields);
         let chunk_size =
-            if size % 2 == 0 { 2 }
-            else if size % 3 == 0 { 3 }
-            else { unimplemented!() };
+            (if size % 2 == 0 { 2 }
+             else if size % 3 == 0 { 3 }
+             else { unimplemented!() } as usize)
+            .pow(2);
 
         let mosaics: Vec<_> =
             fields
@@ -122,6 +123,7 @@ impl MosaicSet {
         let new_mosaics: Vec<_> =
             self.mosaics
             .iter()
+            // TODO debug this
             .map(|mut mosaic| {
                 'outer_loop:
                 for flip_map in FLIP_INDICIES.iter() {
@@ -155,7 +157,7 @@ impl RuleBook {
         let mut rules: Vec<(Mosaic, Mosaic)> = Vec::new();
         for line in input.split("\n") {
             let mosaics: Vec<_> = line.split(" => ").map(Mosaic::from_str).collect();
-            println!("mosaics {:?}", mosaics);
+            println!("rule {:?}", mosaics);
             assert_eq!(mosaics.len(), 2);
             let mut mosa_iter = mosaics.into_iter();
             let (to, from) = (mosa_iter.next().unwrap(), mosa_iter.next().unwrap());
@@ -172,20 +174,17 @@ fn main() {
     let input = input_str.trim();
     let base_str = ".##/..#/.##";
 
-    // grid uses y, x coordinates
+    let rules = RuleBook::new(&input);
     input.split("\n");
     let base = Mosaic::from_str(base_str);
-    println!("base mosaic: {}", base);
-
-    let rules = RuleBook::new(&input);
 
     let mut current_mosaic = base;
-
     for i in 1..4 {
         let mut set = MosaicSet::from_fields(&current_mosaic.fields);
         set.translate(&rules);
         current_mosaic = Mosaic::new(set.to_fields());
         let num_active = current_mosaic.fields.iter().filter(|x| **x).count();
-        println!("Step {}; #active fields: {}", i, num_active);
+        println!("Step {}; #active fields: {}; full mosaic: {}",
+                 i, num_active, current_mosaic);
     }
 }
