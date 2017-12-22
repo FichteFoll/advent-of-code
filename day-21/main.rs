@@ -241,12 +241,14 @@ fn main() {
 
     let mut current_mosaic = base_mosaic;
     // for i in 1..3 { // 2 steps for test input
-    for i in 1..6 {
+    // for i in 1..6 { // 5 steps for first part
+    for i in 1..19 {
         let mut set = MosaicSet::from_fields(&current_mosaic.fields);
         set = set.translate(&rules);
         current_mosaic = Mosaic::new(set.to_fields());
         let num_active = current_mosaic.fields.iter().filter(|x| **x).count();
-        println!("Step {}; #active fields: {}; set size: {}; mosaic size: {}; full mosaic: {}",
-                 i, num_active, set.size, set.mosaic_size, current_mosaic);
+        println!("Step {}; #active fields: {}; set size: {}; mosaic size: {}",
+                 i, num_active, set.size, set.mosaic_size);
+        // println!("full mosaic: {}", current_mosaic);
     }
 }
