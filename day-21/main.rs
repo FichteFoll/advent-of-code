@@ -3,6 +3,7 @@
 use std::fs::File;
 use std::io::prelude::*;
 use std::fmt;
+use std::collections::HashSet;
 
 
 fn get_input() -> String {
@@ -24,7 +25,7 @@ fn fields_size(fields: &Fields) -> usize {
     root as usize
 }
 
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 struct Mosaic {
     size: usize,
     fields: Fields,
@@ -78,6 +79,11 @@ impl Mosaic {
     }
 }
 
+enum Lookup<T: Clone> {
+    Found(T),
+    New(T)
+}
+
 
 struct MosaicSet {
     mosaics: Vec<Mosaic>,
@@ -124,25 +130,56 @@ impl MosaicSet {
             self.mosaics
             .iter()
             // TODO debug this
-            .map(|mut mosaic| {
-                'outer_loop:
+            .map(|mosaic| {
+                // TODO use a macro
+                let mut all = Vec::new(); // must live longer than cache
+                let mut cache = HashSet::new();
+                if let Some(m) = rules.lookup(&mosaic) {
+                    return m;
+                }
+                cache.insert(mosaic.clone());
                 for flip_map in FLIP_INDICIES.iter() {
-                    let flipped_mosaic = mosaic.with_fields_reordered(flip_map);
+                    let flipped_mosaic = {
+                        let mos = mosaic.with_fields_reordered(flip_map);
+                        match self.cache(&mut cache, mos) {
+                            Some(mos_ref) => mos_ref,
+                            None => continue,
+                        }
+                        if let Some(mos_ref) =  {
+                            return mos_ref
+                        }
+                    println!("base: {} flipped: {}", mosaic, flipped_mosaic);
+                    let flipped_mosaic = &all[all.len() - 1];
+                    if let Some(m) = self.cached_lookup(&rules, &mut cache, &flipped_mosaic) {
+                        return m;
+                    }
                     for rotate_map in ROTATE_INDICIES.iter() {
                         let rotated_mosaic = flipped_mosaic.with_fields_reordered(rotate_map);
+                        println!("base: {} rotated: {}", flipped_mosaic, rotated_mosaic);
                         for &(ref from, ref to) in rules.rules.iter() {
                             if *from == rotated_mosaic {
-                                mosaic = to;
-                                break 'outer_loop;
+                                println!("translating to {}", to);
+                                return to;
                             }
                         }
                     }
                 }
-                mosaic
+                panic!("no match in ruleset for {}", mosaic);
             })
             .cloned()
             .collect();
         self.mosaics = new_mosaics;
+    }
+
+    fn cache<'a>(cache: &'a mut HashSet<Mosaic>, needle: Mosaic) -> Lookup<&'a Mosaic> {
+        match cache.get(&needle) {
+            Some(found) => Lookup::Found(found),
+            None => {
+                let ref need = needle;
+                cache.insert(needle);
+                Lookup::New(need)
+            }
+        }
     }
 }
 
@@ -165,6 +202,16 @@ impl RuleBook {
         }
         RuleBook{rules}
     }
+
+    fn lookup(&self, needle: &Mosaic) -> Option<&Mosaic> {
+        for &(ref from, ref to) in self.rules.iter() {
+            if *from == *needle {
+                println!("translating to {}", to);
+                return Some(to);
+            }
+        }
+        None
+    }
 }
 
 
@@ -172,7 +219,7 @@ impl RuleBook {
 fn main() {
     let input_str = get_input();
     let input = input_str.trim();
-    let base_str = ".##/..#/.##";
+    let base_str = "###/..#/.#.";
 
     let rules = RuleBook::new(&input);
     input.split("\n");
