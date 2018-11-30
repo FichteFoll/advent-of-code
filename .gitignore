@@ -1,5 +1,5 @@
 # exclude files without known extensions (i.e. binaries)
-day*/*
-!day*/*/
-!day*/*.rs
-!day*/*.txt
+*/day*/*
+!*/day*/*/
+!*/day*/*.rs
+!*/day*/*.txt
