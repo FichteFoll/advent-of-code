@@ -1,0 +1,8 @@
+[package]
+name = "day-02"
+version = "0.1.0"
+authors = ["FichteFoll <fichtefoll2@googlemail.com>"]
+edition = "2018"
+
+[dependencies]
+itertools = "0.7.11"
