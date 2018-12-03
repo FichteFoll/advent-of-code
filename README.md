@@ -18,8 +18,10 @@ For **2018**, I will *again* use **Rust**
 because I like the language a lot
 but don't have any real uses for it
 considering my day-to-day language is Python.
-I'm unsure whether I'll allow external crates this time,
-but unstable is definitely allowed.
+~~I'm unsure whether I'll allow external crates this time,
+but unstable is definitely allowed.~~
+Crates are too useful.
+Also, tests are nice.
 
 
 [Advent of Code]: https://adventofcode.com/
