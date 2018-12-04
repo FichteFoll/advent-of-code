@@ -1,7 +1,0 @@
-# exclude files without known extensions (i.e. binaries)
-2017/day*/*
-!2017/day*/*/
-!*/day*/*.rs
-!*/day*/*.txt
-
-/*/*/target/
