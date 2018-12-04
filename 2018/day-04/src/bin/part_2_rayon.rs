@@ -3,6 +3,7 @@
 extern crate chrono;
 #[macro_use] extern crate error_chain;
 #[macro_use] extern crate lazy_static;
+extern crate rayon;
 extern crate regex;
 extern crate test;
 
@@ -11,7 +12,9 @@ use std::collections::hash_map::HashMap;
 use std::rc::Rc;
 
 use chrono::{Duration, NaiveDate, NaiveDateTime, Timelike};
+use rayon::prelude::*;
 use regex::Regex;
+
 
 // TYPES //
 type Input = Vec<Rc<RefCell<Duty>>>;
@@ -105,11 +108,14 @@ fn get_minutes(time: NaiveDateTime) -> u32 {
 
 
 fn parse_input(input: &str) -> Input {
-    let mut events: Vec<Event> = input.trim().lines()
+    let lines: Vec<&str> = input.trim().lines().collect();
+    // major speedup through concurrency here
+    let mut events: Vec<Event> = lines.par_iter()
         .map(|line| Event::parse(line).unwrap())
         .collect();
 
-    events.sort_unstable_by(|a, b| a.time().cmp(b.time()));
+    // but not here
+    events.par_sort_unstable_by(|a, b| a.time().cmp(b.time()));
     let mut out: Input= Vec::new();
     let mut current_duty: Option<Rc<RefCell<Duty>>> = None;
     let mut last_start: Option<u32> = None;
@@ -153,7 +159,8 @@ fn process(input: Input) -> Output {
         }
     }
 
-    let (sleepy_guard, (minute, _)) = guard_time.iter()
+    // this par_iter has almost no effect
+    let (sleepy_guard, (minute, _)) = guard_time.par_iter()
         .map(|(k, vs)| (k, vs.iter().enumerate().max_by_key(|(_, v)| *v).unwrap()))
         .max_by_key(|(_, (_, num))| *num).unwrap();
 
@@ -162,7 +169,7 @@ fn process(input: Input) -> Output {
 
 
 fn main() {
-    let input_str = std::fs::read_to_string("input.txt").expect("can’t read file");
+    let input_str = std::fs::read_to_string("big_input.txt").expect("can’t read file");
     let input = parse_input(&input_str);
     println!("The result is {:?}", process(input));
 }
