@@ -83,10 +83,10 @@ impl Event {
         if let Some(guard) = caps.get(2) {
             Ok(Event::Begin(time, guard.as_str().parse::<Guard>()?))
         }
-        else if let Some(_) = caps.get(3) {
+        else if caps.get(3).is_some() {
             Ok(Event::Sleep(time))
         }
-        else if let Some(_) = caps.get(4) {
+        else if caps.get(4).is_some() {
             Ok(Event::Wake(time))
         }
         else {
@@ -151,7 +151,7 @@ fn process(input: Input) -> Output {
     let mut guard_time: HashMap<Guard, Vec<u32>> = HashMap::new();
     for duty in input {
         let duty = duty.borrow();
-        let minutes = guard_time.entry(duty.guard).or_insert(vec![0u32; 60]);
+        let minutes = guard_time.entry(duty.guard).or_insert_with(|| vec![0u32; 60]);
         for (a, b) in duty.sleep_periods.iter() {
             for i in *a..=*b {
                 minutes[i as usize] += 1;

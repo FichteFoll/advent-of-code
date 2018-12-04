@@ -80,10 +80,10 @@ impl Event {
         if let Some(guard) = caps.get(2) {
             Ok(Event::Begin(time, guard.as_str().parse::<Guard>()?))
         }
-        else if let Some(_) = caps.get(3) {
+        else if caps.get(3).is_some() {
             Ok(Event::Sleep(time))
         }
-        else if let Some(_) = caps.get(4) {
+        else if caps.get(4).is_some() {
             Ok(Event::Wake(time))
         }
         else {
@@ -147,7 +147,7 @@ fn process(input: Input) -> Output {
     for duty in input {
         // Move duties out of Rc<RefCell> while iterating
         let duty = Rc::try_unwrap(duty).expect("there's a still a reference").into_inner();
-        let duties = guards.entry(duty.guard).or_insert(Vec::new());
+        let duties = guards.entry(duty.guard).or_insert_with(Vec::new);
         duties.push(duty)
     }
     let (lazy_guard, _) = guards.iter().max_by_key(|(_, duties)| -> u32 {
@@ -155,7 +155,7 @@ fn process(input: Input) -> Output {
             duty.sleep_periods.iter().map(|(a, b)| b - a).sum()
         }).sum()
     }).expect("no maximum?");
-    let lazy_duties = guards.get(lazy_guard).unwrap();
+    let lazy_duties = &guards[lazy_guard];
 
     let (minute, _) = (0..60u32).map(|minute| -> (u32, usize){
         let count: usize = lazy_duties.iter().map(|duty| {
