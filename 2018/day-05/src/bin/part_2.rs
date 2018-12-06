@@ -1,38 +1,32 @@
 #![feature(test)]
 
 extern crate test;
+extern crate rayon;
+
+use rayon::prelude::*;
 
 
-fn reduce_len(array: &[u8]) -> usize {
-    let out: Vec<u8> = array.iter().fold(
-        Vec::with_capacity(array.len() / 2),
-        |mut vec, &c| {
-            if let Some(&last_c) = vec.last() {
-                if (last_c as i8 - c as i8).abs() == 32 { // 'a' - 'A'
-                    vec.pop();
-                    return vec;
-                }
+fn react_len(array: &[u8]) -> usize {
+    let mut vec: Vec<&u8> = Vec::with_capacity(array.len() / 2);
+    for c in array {
+        if let Some(&last_c) = vec.last() {
+            if last_c ^ c == 32 { // abs(last_c - c) == 32
+                vec.pop();
+                continue;
             }
-            vec.push(c);
-            vec
-        });
-    out.len()
+        }
+        vec.push(c);
+    }
+    vec.len()
 }
 
 fn process(input: &str) -> usize {
     let array: Vec<_> = input.bytes().collect();
-    (0..26u8).map(|i| {
-        let unit = 65 + i;
-        // let filtered_array: Vec<u8> = array.iter().filter(|&&x| x == unit || x == unit + 32).collect();
-        let filtered_array: Vec<u8> = array.iter()
-            .filter_map(|&x| {
-                if x == unit || x == unit + 32 {
-                    None
-                } else {
-                    Some(x)
-                }
-            }).collect();
-        reduce_len(&filtered_array)
+    (0..26u8).into_par_iter().map(|i| {
+        let unit = 0x61 + i; // lower case
+        let filtered_array: Vec<u8> = array.clone().into_iter()
+            .filter(|&x| x | 32 != unit).collect();
+        react_len(&filtered_array)
     }).min().unwrap()
 }
 
