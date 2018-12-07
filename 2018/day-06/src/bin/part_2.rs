@@ -4,9 +4,7 @@
 extern crate test;
 
 use rayon::prelude::*;
-use std::fmt::Debug;
 use std::cmp::{min, max};
-use std::iter::Enumerate;
 use std::iter::Iterator;
 
 const DISTANCE: usize = 10000;
@@ -14,7 +12,7 @@ const DISTANCE: usize = 10000;
 struct Pt(i32, i32);
 
 impl Pt {
-    fn diff(&self, other: &Pt) -> i32 {
+    fn distance(&self, other: &Pt) -> i32 {
         (self.0 - other.0).abs() + (self.1 - other.1).abs()
     }
 }
@@ -51,7 +49,7 @@ fn process(points: &[Pt], max_total: usize) -> usize {
     let test_points: Vec<_> = iproduct!(start.0..=end.0, start.1..=end.1).map(|(x, y)| Pt(x, y)).collect();
     test_points.par_iter()
         .filter_map(|pt| {
-            let sum: i32 = points.iter().map(|pt_| pt.diff(pt_)).sum();
+            let sum: i32 = points.iter().map(|pt_| pt.distance(pt_)).sum();
             let sum = sum as usize; // idk why I need this
             match sum < max_total {
                 true => Some(sum),
