@@ -3,6 +3,7 @@
 #[macro_use] extern crate itertools;
 extern crate test;
 
+use rayon::prelude::*;
 use std::fmt::Debug;
 use std::cmp::{min, max};
 use std::iter::Enumerate;
@@ -82,19 +83,26 @@ fn process(points: &[Pt]) -> usize {
     let mut exclude = vec![false; points.len()];
 
     let (start, end) = get_dimensions(points);
-    for (x, y) in iproduct!(start.0..=end.0, start.1..=end.1) {
-        let current = Pt(x, y);
-        let result = points.iter()
-            .map(|pt| current.diff(pt))
-            .enumerate().sole_min_by_key(|&(_, item)| item);
-        if let Some((index, _)) = result {
+    let test_points: Vec<_> = iproduct!(start.0..=end.0, start.1..=end.1).map(|(x, y)| Pt(x, y)).collect();
+    test_points.par_iter()
+        .filter_map(|pt| {
+            let result = points.iter()
+                .map(|pt_| pt.diff(pt_))
+                .enumerate().sole_min_by_key(|&(_, item)| item);
+            if let Some((index, _)) = result {
+                let is_outer = pt.0 == start.0 || pt.0 == end.0 || pt.1 == start.1 || pt.1 == end.1;
+                Some((index, is_outer))
+            } else {
+                None
+            }
+        })
+        .collect::<Vec<_>>().into_iter() // join the parallelized vector
+        .for_each(|(index, is_outer)| {
             counts[index] += 1;
-            let is_outer = x == start.0 || x == end.0 || y == start.1 || y == end.1;
             if is_outer {
                 exclude[index] = true;
             }
-        }
-    }
+        });
 
     let (&max_point, _) = counts.iter().zip(exclude)
         .max_by_key(|(&c, exclude)| {
