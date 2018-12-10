@@ -3,55 +3,50 @@
 #[macro_use] extern crate itertools;
 extern crate test;
 
-use std::collections::LinkedList;
+use std::collections::VecDeque;
 
-trait BetterLL<T> {
-    fn insert_at(&mut self, i: usize, x: T);
-    fn pop_at(&mut self, i: usize) -> Option<T>;
+trait Rotate<T> {
+    fn rotate(&mut self, i: isize);
 }
 
-impl<T> BetterLL<T> for LinkedList<T> {
-    // split_off is O(n), the rest O(1)
-    fn insert_at(&mut self, i: usize, x: T) {
-        let mut ll2 = self.split_off(i);
-        self.push_back(x);
-        self.append(&mut ll2);
-    }
-
-    fn pop_at(&mut self, i: usize) -> Option<T> {
-        let mut ll2 = self.split_off(i);
-        let ret = ll2.pop_front();
-        self.append(&mut ll2);
-        ret
+impl<T> Rotate<T> for VecDeque<T> {
+    fn rotate(&mut self, i: isize) {
+        if self.len() == 0 {
+            return;
+        }
+        let left = i < 0;
+        for _ in 0..i.abs() {
+            if left {
+                let x = self.pop_front().unwrap();
+                self.push_back(x);
+            } else {
+                let x = self.pop_back().unwrap();
+                self.push_front(x);
+            }
+        }
     }
 }
 
 
 fn process(players: usize, last_marble: usize) -> usize {
     let mut points = vec![0usize; players];
-    let mut marbles: LinkedList<usize> = LinkedList::new();
+    let mut marbles: VecDeque<usize> = VecDeque::new();
     marbles.push_back(0);
-    let mut current = 0usize;
     for (n, player) in izip!(1..=last_marble, (0..players).cycle()) {
         if n % 23 == 0 {
-            current = (current + marbles.len() - 7) % marbles.len();
-            points[player] += n + marbles.pop_at(current).expect("index error");
+            marbles.rotate(7);
+            points[player] += n + marbles.pop_front().expect("index error");
         } else {
-            current = (current + 2) % marbles.len();
-            if current == 0 {
-                current = marbles.len();
-                marbles.push_back(n);
-            } else {
-                marbles.insert_at(current, n);
-            }
+            marbles.rotate(-2);
+            marbles.push_front(n);
         }
     }
     points.into_iter().max().expect("no maximum")
 }
 
 fn main() {
-    // println!("The result is {:?}", process(465, 71498));
-    println!("The result is {:?}", process(465, 71498 * 100));
+    println!("part 1: {:?}", process(465, 71498));
+    println!("part 2: {:?}", process(465, 71498 * 100));
 }
 
 
@@ -74,19 +69,17 @@ mod tests {
         assert_eq!(process(30, 5807), 37305);
     }
 
-    #[test]
-    #[ignore]
-    fn part2() {
-        // runs for 2800s, probably (that's 47min)
-        assert_eq!(process(465, 71498 * 100), 3148209772);
+    #[bench]
+    fn bench_real_input(b: &mut Bencher) {
+        b.iter(|| {
+            assert_eq!(process(465, 71498), 383475);
+        });
     }
 
     #[bench]
-    #[ignore]
-    fn bench_real_input(b: &mut Bencher) {
-        // this takes ~28s to run
+    fn bench_part_2(b: &mut Bencher) {
         b.iter(|| {
-            assert_eq!(process(465, 71498), 383475);
+            assert_eq!(process(465, 71498 * 100), 3148209772);
         });
     }
 }
