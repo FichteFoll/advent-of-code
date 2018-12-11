@@ -72,7 +72,7 @@ fn process(input_str: &str, max_heigth: isize) -> usize {
                 part.1 += vel.1;
             });
     }
-    0
+    unreachable!();
 }
 
 
