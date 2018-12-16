@@ -2,12 +2,12 @@
 
 extern crate test;
 
-use std::error::Error;
-
 use core::str::FromStr;
+use std::error::Error;
+use std::collections::{HashMap, HashSet};
 
 // TOCHECK can these be negative?
-type Value = u8;
+type Value = usize;
 
 // registers A->D; 0->3
 type State = [Value; 4];
@@ -27,6 +27,7 @@ fn state_from_str(s: &str) -> State {
     [nums[0], nums[1], nums[2], nums[3]]
 }
 
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 enum Opcode {
     Addr,
     Addi,
@@ -69,41 +70,38 @@ impl Opcode {
         }
     }
 
-    fn all() -> [Opcode; 16] {
-        use self::Opcode::*;
-        [
-            Addr,
-            Addi,
-            Mulr,
-            Muli,
-            Banr,
-            Bani,
-            Borr,
-            Bori,
-            Setr,
-            Seti,
-            Gtir,
-            Gtri,
-            Gtrr,
-            Eqir,
-            Eqri,
-            Eqrr,
-        ]
-    }
+    const ALL: [Opcode; 16] = [
+        Opcode::Addr,
+        Opcode::Addi,
+        Opcode::Mulr,
+        Opcode::Muli,
+        Opcode::Banr,
+        Opcode::Bani,
+        Opcode::Borr,
+        Opcode::Bori,
+        Opcode::Setr,
+        Opcode::Seti,
+        Opcode::Gtir,
+        Opcode::Gtri,
+        Opcode::Gtrr,
+        Opcode::Eqir,
+        Opcode::Eqri,
+        Opcode::Eqrr,
+    ];
 }
 
 #[derive(Debug)]
 struct Instruction {
-    opcode: u8,
-    a: u8,
-    b: u8,
-    c: u8,
+    opcode: Value,
+    a: Value,
+    b: Value,
+    c: Value,
 }
 
 impl FromStr for Instruction {
     type Err = Box<Error>;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let nums: Vec<u8> = s.split_whitespace()
+        let nums: Vec<Value> = s.split_whitespace()
             .map(|x| x.parse().expect("Not a Number"))
             .collect();
         Ok(Instruction{opcode: nums[0],
@@ -126,7 +124,6 @@ fn parse_input(input_str: &str) -> Vec<(State, Instruction, State)> {
             let before: State       = state_from_str(lines[0]);
             let instr:  Instruction = lines[1].parse().expect("Malformed instr line");
             let after:  State       = state_from_str(lines[2]);
-            println!("{:?}", (&before, &instr, &after));
             (before, instr, after)
         })
         .collect()
@@ -136,7 +133,7 @@ fn part_1(input_str: &str) -> usize {
     let input = parse_input(input_str);
     input.into_iter()
         .map(|(before, instr, after)| {
-            Opcode::all().into_iter()
+            Opcode::ALL.iter()
                 .filter(|op| {
                     let mut state = before.clone();
                     instr.run(op, &mut state);
@@ -148,9 +145,67 @@ fn part_1(input_str: &str) -> usize {
         .count()
 }
 
+fn find_opcode_map(input: &[(State, Instruction, State)]) -> HashMap<Value, Opcode> {
+    let mut opcode_map = input.iter()
+        .map(|(before, instr, after)| {
+            (instr.opcode,
+             Opcode::ALL.iter()
+                .filter(|op| {
+                    let mut state = before.clone();
+                    instr.run(op, &mut state);
+                    state == *after
+                }).collect::<HashSet<_>>()
+            )
+        })
+        .fold(HashMap::new(), |mut map: HashMap<Value, HashSet<Opcode>>, (icode, ops)| {
+            // println!("{} => {:?}", icode, ops);
+            map.entry(icode)
+                .and_modify(|other_ops| {
+                    other_ops.retain(|op| ops.contains(op));
+                })
+                .or_insert(ops.into_iter().cloned().collect());
+            map
+        });
+    // reduce the map
+    let mut final_map: HashMap<Value, Opcode> = HashMap::new();
+    loop {
+        let singles: HashMap<_, _> = opcode_map.iter().filter(|(_, ops)| ops.len() == 1)
+            .map(|(code, ops)| (*code, ops.iter().next().unwrap().clone()))
+            .collect();
+        if singles.len() == 0 {
+            break;
+        }
+        for (icode, op) in singles {
+            opcode_map.remove(&icode);
+            for (other_icode, other_ops) in &mut opcode_map {
+                if *other_icode != icode {
+                    other_ops.retain(|other_op| *other_op != op);
+                }
+            }
+            final_map.insert(icode, op);
+        }
+    }
+    assert_eq!(final_map.len(), 16);
+    final_map
+}
+
+fn part_2(input_str: &str, input2_str: &str) -> Value {
+    let input = parse_input(input_str);
+    let opcode_map = find_opcode_map(&input);
+    // println!("{:?}", opcode_map);
+    let instructions = input2_str.lines().map(|line| line.parse::<Instruction>().unwrap());
+    let mut state: State = [0; 4];
+    for instr in instructions {
+        instr.run(opcode_map.get(&instr.opcode).unwrap(), &mut state);
+    }
+    state[0]
+}
+
 fn main() {
     let input_str = std::fs::read_to_string("input_1.txt").expect("can’t read file");
+    let input2_str = std::fs::read_to_string("input_2.txt").expect("can’t read file");
     println!("Part 1: {:?}", part_1(&input_str));
+    println!("Part 2: {:?}", part_2(&input_str, &input2_str));
 }
 
 
@@ -174,6 +229,15 @@ mod tests {
         let input_str = std::fs::read_to_string("input_1.txt").expect("can’t read file");
         b.iter(|| {
             assert_eq!(part_1(&input_str), 614);
+        });
+    }
+
+    #[bench]
+    fn bench_part_2(b: &mut Bencher) {
+        let input_str = std::fs::read_to_string("input_1.txt").expect("can’t read file");
+        let input2_str = std::fs::read_to_string("input_2.txt").expect("can’t read file");
+        b.iter(|| {
+            assert_eq!(part_2(&input_str, &input2_str), 656);
         });
     }
 }
