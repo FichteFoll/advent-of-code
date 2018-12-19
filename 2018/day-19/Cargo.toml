@@ -1,0 +1,8 @@
+[package]
+name = "day-19"
+version = "0.1.0"
+authors = ["FichteFoll <fichtefoll2@googlemail.com>"]
+edition = "2018"
+
+[dependencies]
+derive-error = "0.0.4"
