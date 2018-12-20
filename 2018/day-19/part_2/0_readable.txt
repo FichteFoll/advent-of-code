@@ -1,0 +1,36 @@
+addi e 16 P | JMP +16
+seti 1 b    | b = 1
+seti 1 c    | c = 1
+mulr b c d  | d = b * c
+eqrr d f d  |
+addr d e P  | JMP +d
+addi e 1 P  | JMP +1
+addr b a a  | a += b
+addi c 1 c  | c += 1
+gtrr c f d  |
+addr e d P  | JMP +d
+seti 2 P    | JMP 2
+addi b 1 b  | b += 1
+gtrr b f d  |
+addr d e P  | JMP +d
+seti 1 P    | JMP 1
+mulr e e P  | JMP = e * e
+addi f 2 f  | f += 2
+mulr f f f  | f *= f
+mulr e f f  | f *= e
+muli f 11 f | f *= 11
+addi d 4 d  | d += 4
+mulr d e d  | d *= e
+addi d 21 d | d += 21
+addr f d f  | f += d
+addr e a P  | JMP +a
+seti 0 P    | JMP 0
+setr e d    | d = e
+mulr d e d  | d *= e
+addr e d d  | d += e
+mulr e d d  | d *= e
+muli d 14 d | d *= 14
+mulr d e d  | d *= e
+addr f d f  | f += d
+seti 0 a    | a = 0
+seti 0 P    | JMP 0
