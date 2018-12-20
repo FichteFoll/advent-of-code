@@ -96,7 +96,6 @@ fn parse_input(input_str: &str) -> Program {
         .map(|line| line.parse().expect("Malformed instr line"))
         .collect();
     Program { ip_reg, instructions, state: [0; 6] }
-    // Program::new(ip_reg, instructions)
 }
 
 
@@ -144,13 +143,4 @@ mod tests {
             assert_eq!(part_1(&input_str), 1920);
         });
     }
-
-    // #[bench]
-    // fn bench_part_2(b: &mut Bencher) {
-    //     let input_str = std::fs::read_to_string("input_1.txt").expect("can’t read file");
-    //     let input2_str = std::fs::read_to_string("input_2.txt").expect("can’t read file");
-    //     b.iter(|| {
-    //         assert_eq!(part_2(&input_str, &input2_str), 656);
-    //     });
-    // }
 }

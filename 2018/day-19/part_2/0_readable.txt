@@ -1,36 +1,36 @@
-addi e 16 P | JMP +16
-seti 1 b    | b = 1
-seti 1 c    | c = 1
-mulr b c d  | d = b * c
-eqrr d f d  |
-addr d e P  | JMP +d
-addi e 1 P  | JMP +1
-addr b a a  | a += b
-addi c 1 c  | c += 1
-gtrr c f d  |
-addr e d P  | JMP +d
-seti 2 P    | JMP 2
-addi b 1 b  | b += 1
-gtrr b f d  |
-addr d e P  | JMP +d
-seti 1 P    | JMP 1
-mulr e e P  | JMP = e * e
-addi f 2 f  | f += 2
-mulr f f f  | f *= f
-mulr e f f  | f *= e
-muli f 11 f | f *= 11
-addi d 4 d  | d += 4
-mulr d e d  | d *= e
-addi d 21 d | d += 21
-addr f d f  | f += d
-addr e a P  | JMP +a
-seti 0 P    | JMP 0
-setr e d    | d = e
-mulr d e d  | d *= e
-addr e d d  | d += e
-mulr e d d  | d *= e
-muli d 14 d | d *= 14
-mulr d e d  | d *= e
-addr f d f  | f += d
-seti 0 a    | a = 0
-seti 0 P    | JMP 0
+ 0 addi e 16 P | JMP +16
+ 1 seti 1 b    | b = 1
+ 2 seti 1 c    | c = 1
+ 3 mulr b c d  | d = b * c
+ 4 eqrr d f d  | d = (d == f)
+ 5 addr d e P  | JMP +d
+ 6 addi e 1 P  | JMP +1
+ 7 addr b a a  | a += b
+ 8 addi c 1 c  | c += 1
+ 9 gtrr c f d  | d = (c > f)
+10 addr e d P  | JMP +d
+11 seti 2 P    | JMP 2
+12 addi b 1 b  | b += 1
+13 gtrr b f d  | d = (b > f)
+14 addr d e P  | JMP +d
+15 seti 1 P    | JMP 1
+16 mulr e e P  | JMP = e * e
+17 addi f 2 f  | f += 2
+18 mulr f f f  | f *= f
+19 mulr e f f  | f *= e
+20 muli f 11 f | f *= 11
+21 addi d 4 d  | d += 4
+22 mulr d e d  | d *= e
+23 addi d 21 d | d += 21
+24 addr f d f  | f += d
+25 addr e a P  | JMP +a
+26 seti 0 P    | JMP 0
+27 setr e d    | d = e
+28 mulr d e d  | d *= e
+29 addr e d d  | d += e
+30 mulr e d d  | d *= e
+31 muli d 14 d | d *= 14
+32 mulr d e d  | d *= e
+33 addr f d f  | f += d
+34 seti 0 a    | a = 0
+35 seti 0 P    | JMP 0
