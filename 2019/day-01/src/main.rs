@@ -16,9 +16,9 @@ fn part_1(input: &[u64]) -> u64 {
 }
 
 fn fuel_recursive(m: u64) -> u64 {
-    match m / 3 {
-        n if n > 2 => n - 2 + fuel_recursive(n - 2),
-        _ => 0,
+    match (m / 3).saturating_sub(2) {
+        0 => 0,
+        n => n + fuel_recursive(n),
     }
 }
 
