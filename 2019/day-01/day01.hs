@@ -14,11 +14,10 @@ costRec :: Int -> Int
 costRec n
     | m <= 0 = 0
     | otherwise = m + costRec m
-    where m = n `div` 3 - 2
+    where m = cost n
 
-
+main :: IO ()
 main = do
-    contents <- getContents
-    let input = (parse contents)
+    input <- parse <$> getContents
     putStrLn $ "Part 1: " ++ (show $ part1 input)
     putStrLn $ "Part 2: " ++ (show $ part2 input)
