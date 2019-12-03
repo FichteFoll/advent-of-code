@@ -62,10 +62,8 @@ part1 :: [[Cmd]] -> Int
 part1 input = Set.findMin $ Set.map dist $ intersections input
 
 part2 :: [[Cmd]] -> Int
-part2 input = head $ List.sort $ stepList
-  where
-    stepList = [sum $ [steps target wire | wire <- input]
-               | target <- Set.toList $ intersections input]
+part2 input = List.minimum [sum $ [steps target wire | wire <- input]
+                           | target <- Set.toList $ intersections input]
 
 main :: IO ()
 main = do
