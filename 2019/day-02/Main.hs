@@ -1,3 +1,5 @@
+module Main where
+
 import Debug.Trace (trace)
 import Data.List.Split (splitOn)
 
