@@ -13,24 +13,24 @@ main = do
     describe "parse" $ do
       it "parses input" $
         parse "R8,U5,L5,D3\nU7,R6,D4,L4" `shouldBe`
-          [[Pt 8 0,Pt 0 (-5),Pt (-5) 0,Pt 0 3],[Pt 0 (-7),Pt 6 0,Pt 0 4,Pt (-4) 0]]
+          [[('R',8),('U',5),('L',5),('D',3)],[('U',7),('R',6),('D',4),('L',4)]]
 
     describe "used" $ do
-      let used' = used (Pt 0 0)
-      it "determines used fields 1" $
-        used' [Pt 8 0] `shouldBe` Set.fromList [Pt i 0 | i <- [1..8]]
-      it "determines used fields 2" $
-        used (Pt 0 0) [Pt 0 (-3)] `shouldBe` Set.fromList [Pt 0 i | i <- [(-3)..(-1)]]
-      it "determines used fields with sequence" $
-        used' [Pt 0 1, Pt 1 0] `shouldBe` Set.fromList [Pt 0 1, Pt 1 1]
+      let used' = used (Pt 0 0) . head . parse
+      it "determines used fields right" $
+        used' "R8" `shouldBe` Set.fromList [Pt i 0 | i <- [1..8]]
+      it "determines used fields up" $
+        used' "U3" `shouldBe` Set.fromList [Pt 0 i | i <- [(-3)..(-1)]]
+      it "determines used fields from sequence" $
+        used' "D1,R1,U1" `shouldBe` Set.fromList [Pt 0 1, Pt 1 1, Pt 1 0]
 
     describe "steps" $ do
+      let steps' target cmds = steps target (head $ parse cmds)
       it "counts required steps 1" $
-        steps (Pt 0 6) [Pt 0 8] `shouldBe` 6
+        steps' (Pt 0 6) "D8" `shouldBe` 6
 
-    describe "steps" $ do
       it "counts required steps 2" $
-        steps (Pt 1 1) [Pt 0 8,Pt 1 0,Pt 0 (-8)] `shouldBe` 16
+        steps' (Pt 1 1) "D8,R1,U8" `shouldBe` 16
 
     let example1 = parse "R8,U5,L5,D3\nU7,R6,D4,L4"
         example2 = parse "R75,D30,R83,U83,L12,D49,R71,U7,L72\nU62,R66,U55,R34,D71,R55,D58,R83"
