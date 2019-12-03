@@ -46,7 +46,7 @@ used start (cmd:cmds) = (Set.fromList line) `Set.union` used newStart cmds
 steps :: Point -> [Cmd] -> Int
 steps target wire = stepCount (Pt 0 0) target wire 0
   where
-    stepCount start target (cmd:cmds) count = case List.findIndex (== target) line of
+    stepCount start target (cmd:cmds) count = case List.elemIndex target line of
       Just i -> count + i + 1
       Nothing -> stepCount newStart target cmds (count + (snd cmd))
       where
@@ -55,15 +55,15 @@ steps target wire = stepCount (Pt 0 0) target wire 0
         newStart = pairwise (+) start (last lineZero)
 
 intersections :: [[Cmd]] -> Set Point
-intersections input = foldl Set.intersection (head points) (tail points)
+intersections input = foldl1 Set.intersection points
   where points = map (used (Pt 0 0)) input
 
 part1 :: [[Cmd]] -> Int
-part1 input = Set.findMin $ Set.map dist $ intersections input
+part1 input = minimum $ Set.map dist $ intersections input
 
 part2 :: [[Cmd]] -> Int
-part2 input = List.minimum [sum $ [steps target wire | wire <- input]
-                           | target <- Set.toList $ intersections input]
+part2 input = minimum [sum $ [steps target wire | wire <- input]
+                      | target <- Set.toList $ intersections input]
 
 main :: IO ()
 main = do
