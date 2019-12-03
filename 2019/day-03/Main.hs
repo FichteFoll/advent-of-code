@@ -2,12 +2,12 @@ module Main where
 
 import Debug.Trace (trace)
 import Data.List.Split (splitOn)
-import Data.List (sort, intersect)
--- import Data.Set (Set)
--- import qualified Data.Set as Set
+import Data.List (sort)
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 
-data Point a = Pt a a deriving (Eq, Show)
+data Point a = Pt a a deriving (Eq, Ord, Show)
 
 instance Functor Point where
   fmap f (Pt x y) = Pt (f x) (f y)
@@ -38,11 +38,11 @@ parse = map parseLines . lines
     tocoord ('L', n) = Pt (-n)  0
 
 -- build a list of points the wire covers
-used :: IPoint -> [IPoint] -> [IPoint]
-used start [] = []
-used start (cmd:cmds) = line ++ used new_start cmds
+used :: IPoint -> [IPoint] -> Set IPoint
+used start [] = Set.empty
+used start (cmd:cmds) = line `Set.union` used new_start cmds
   where
-    line = map (pairwise (+) start) $ iterLine cmd
+    line = Set.fromList $ map (pairwise (+) start) $ iterLine cmd
     new_start = pairwise (+) start cmd
 
     iterLine :: IPoint -> [IPoint]
@@ -57,8 +57,10 @@ used start (cmd:cmds) = line ++ used new_start cmds
       | otherwise = []
 
 part1 :: [[IPoint]] -> Int
-part1 input = head $ sort $ map dist $ foldl intersect (head points) (tail points)
-  where points = map (used (Pt 0 0)) input
+part1 input = head . sort $ dist <$> Set.toList intersections
+  where
+    intersections = foldl Set.intersection (head points) (tail points)
+    points = map (used (Pt 0 0)) input
 
 main :: IO ()
 main = do

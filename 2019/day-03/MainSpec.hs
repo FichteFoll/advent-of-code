@@ -1,7 +1,10 @@
 module MainSpec where
 
 import Test.Hspec
+import qualified Data.Set as Set
+
 import Main hiding (main)
+
 
 main :: IO ()
 main = do
@@ -14,11 +17,11 @@ main = do
 
     describe "used" $ do
       it "determines used fields 1" $
-        used (Pt 0 0) [Pt 8 0] `shouldBe` [Pt i 0 | i <- [1..8]]
+        used (Pt 0 0) [Pt 8 0] `shouldBe` Set.fromList [Pt i 0 | i <- [1..8]]
       it "determines used fields 2" $
-        used (Pt 0 0) [Pt 0 (-3)] `shouldBe` [Pt 0 i | i <- [(-3)..(-1)]]
+        used (Pt 0 0) [Pt 0 (-3)] `shouldBe` Set.fromList [Pt 0 i | i <- [(-3)..(-1)]]
       it "determines used fields with sequence" $
-        used (Pt 0 0) [Pt 0 1, Pt 1 0] `shouldBe` [Pt 0 1, Pt 1 1]
+        used (Pt 0 0) [Pt 0 1, Pt 1 0] `shouldBe` Set.fromList [Pt 0 1, Pt 1 1]
 
     describe "part 1" $ do
       it "computes simple example" $
