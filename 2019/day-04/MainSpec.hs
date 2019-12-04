@@ -8,13 +8,8 @@ import Main hiding (main)
 
 main :: IO ()
 main = do
-  let instr = "264793-803935"
-      input = parse instr
+  let input = [264793..803935]
   hspec $ do
-    describe "parse" $ do
-      it "parses input" $
-        parse "264793-803935" `shouldBe` [264793..803935]
-
     describe "isPass" $ do
       it "accepts all 1" $
         isPass (show 111111) `shouldSatisfy` id
