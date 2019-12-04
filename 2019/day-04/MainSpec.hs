@@ -17,19 +17,19 @@ main = do
 
     describe "isPass" $ do
       it "accepts all 1" $
-        isPass 111111 `shouldSatisfy` id
+        isPass (show 111111) `shouldSatisfy` id
       it "fails non-steady" $
-        isPass 223450 `shouldSatisfy` not
+        isPass (show 223450) `shouldSatisfy` not
       it "fails no double" $
-        isPass 123789 `shouldSatisfy` not
+        isPass (show 123789) `shouldSatisfy` not
 
     describe "isPass2" $ do
       it "accepts three pairs" $
-        isPass2 112233 `shouldSatisfy` id
+        isPass2 (show 112233) `shouldSatisfy` id
       it "fails single triple" $
-        isPass2 123444 `shouldSatisfy` not
+        isPass2 (show 123444) `shouldSatisfy` not
       it "accepts 111122" $
-        isPass2 111122 `shouldSatisfy` id
+        isPass2 (show 111122) `shouldSatisfy` id
 
     describe "part1" $ do
       it "computes accepted result" $

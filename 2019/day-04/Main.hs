@@ -9,22 +9,22 @@ parse :: String -> [Int]
 parse str = [a..b]
   where (a:b:_) = map read $ splitOn "-" str
 
-isPass :: Int -> Bool
-isPass n = all id [(List.sort digits) == digits
-                  , (length $ Set.fromList digits) < length digits]
-  where digits = show n
+isPass :: [Char] -> Bool
+isPass digits = and [(List.sort digits) == digits
+                    , (length $ Set.fromList digits) < length digits]
 
-isPass2 :: Int -> Bool
-isPass2 n = all id [(List.sort digits) == digits
-                  , (length $ Set.fromList digits) < length digits
-                  , any (== 2) $ map (\d -> length $ List.elemIndices d digits) ['1'..'9']]
-  where digits = show n
+isPass2 :: [Char] -> Bool
+isPass2 digits = and [isPass digits
+                     , any (== 2) $ map (\c -> length $ List.elemIndices c digits) ['1'..'9']]
+
+numMatches :: ([Char] -> Bool) -> [Int] -> Int
+numMatches test input = length [True | n <- [head input..last input], test $ show n]
 
 part1 :: [Int] -> Int
-part1 input = length [True | n <- [head input..last input], isPass n]
+part1 = numMatches isPass
 
 part2 :: [Int] -> Int
-part2 input = length [True | n <- [head input..last input], isPass2 n]
+part2 = numMatches isPass2
 
 
 main :: IO ()
