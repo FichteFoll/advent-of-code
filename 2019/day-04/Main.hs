@@ -1,8 +1,7 @@
 module Main where
 
 import Data.List.Split (splitOn)
-import qualified Data.List as List
-import qualified Data.Set as Set
+import Data.List
 
 
 parse :: String -> [Int]
@@ -10,12 +9,12 @@ parse str = [a..b]
   where (a:b:_) = map read $ splitOn "-" str
 
 isPass :: [Char] -> Bool
-isPass digits = and [(List.sort digits) == digits
-                    , (length $ Set.fromList digits) < length digits]
+isPass digits = and [(sort digits) == digits
+                    , (length $ nub digits) /= length digits]
 
 isPass2 :: [Char] -> Bool
-isPass2 digits = and [isPass digits
-                     , any (== 2) $ map (\c -> length $ List.elemIndices c digits) ['1'..'9']]
+isPass2 digits = and [(sort digits) == digits
+                     , elem 2 $ map length $ group digits]
 
 numMatches :: ([Char] -> Bool) -> [Int] -> Int
 numMatches test input = length [True | n <- [head input..last input], test $ show n]
