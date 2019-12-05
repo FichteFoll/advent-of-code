@@ -9,30 +9,28 @@ parse :: String -> [Int]
 parse = map read . splitOn ","
 
 run :: Int -> [Int] -> [Int] -> ([Int], [Int])
-run i state out = case runInstr opcode modes params state of
+run i state out = case runInstr opcode dmodes params state of
   (0, _, _) -> (state, out)
   (offset, newState, addOut) -> run (i + offset) newState (addOut ++ out)
   where
     (opmode:params) = drop i state
-    (modes, opcode) = quotRem opmode 100
+    (dmodes, opcode) = quotRem opmode 100
 
 runInstr :: Int -> Int -> [Int] -> [Int] -> (Int, [Int], [Int])
-runInstr opcode modes params state
-  | opcode == 99 = (0, state, [])
-  | elem opcode [1..2] =
-    let newState = replace state (writeParam 2) $ (binop opcode) (param 0) (param 1)
-        binop 1 = (+)
-        binop 2 = (*)
-    in (4, newState, [])
-  | opcode == 3 = (2, replace state (writeParam 0) theInput, [])
-  | opcode == 4 = (2, state, [param 0])
+runInstr opcode dmodes params state = case opcode of
+  1  -> (4, write 2 $ foldl1 (+) $ take 2 values, [])
+  2  -> (4, write 2 $ foldl1 (*) $ take 2 values, [])
+  3  -> (2, write 0 theInput, [])
+  4  -> (2, state, [head values])
+  99 -> (0, state, [])
   where
-    mode pi = flip rem 10 $ modes `div` (iterate (*10) 1 !! pi)
-    param pi = case mode pi of
-      0 -> (!!) state . (!!) params $ pi
-      1 -> (!!) params $ pi
-    writeParam = (!!) params
+    modes = map (flip rem 10 . div dmodes) (iterate (*10) 1)
+    values = zipWith loadMode modes params
+    loadMode 0 = (!!) state
+    loadMode 1 = id
+    write = replace state . ((!!) params)
 
+replace :: [a] -> Int -> a -> [a]
 replace xs i v = fst ss ++ [v] ++ drop 1 (snd ss)
   where ss = splitAt i xs
 
