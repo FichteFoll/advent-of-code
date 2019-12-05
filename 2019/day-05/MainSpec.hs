@@ -8,7 +8,7 @@ main = do
   input <- parse <$> readFile "input.txt"
   hspec $ do
     describe "run" $ do
-      let run' = fst . flip (run 0) []
+      let run' = snd . fst . run
       it "computes simple example 1" $
          run' [1,0,0,0,99] `shouldBe` [2,0,0,0,99]
       it "computes simple example 2" $
