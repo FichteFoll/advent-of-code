@@ -16,19 +16,29 @@ run state = head . dropWhile ((/=) (-1) . fst . fst) $ iterate step ((0, state),
 
 step :: IntcodeState -> IntcodeState
 step ((i, state), out) = case opcode of
-  1  -> ((i+4, write 2 $ foldl1 (+) $ take 2 values), out)
-  2  -> ((i+4, write 2 $ foldl1 (*) $ take 2 values), out)
-  3  -> ((i+2, write 0 theInput), [])
-  4  -> ((i+2, state), head values:out)
-  99 -> ((-1,  state), out)
+  1  -> ((i+4, write 2 $ binOp (+)), out) -- ADD
+  2  -> ((i+4, write 2 $ binOp (*)), out) -- MUL
+  3  -> ((i+2, write 0 theInput), []) -- IN
+  4  -> ((i+2, state), head params:out) -- OUT
+  5  -> ((jumpIf ((/=) 0), state), out) -- JNZ
+  6  -> ((jumpIf ((==) 0), state), out) -- JZ
+  7  -> ((i+4, write 2 $ cmp (<)), out) -- LT
+  8  -> ((i+4, write 2 $ cmp (==)), out) -- EQ
+  99 -> ((-1,  state), out) -- HALT
   where
-    (opmode:params) = drop i state
+    (opmode:rawParams) = drop i state
     (dmodes, opcode) = quotRem opmode 100
     modes = map (flip rem 10 . div dmodes) (iterate (*10) 1)
-    values = zipWith loadMode modes params
+    params = zipWith loadMode modes rawParams
     loadMode 0 = (!!) state
     loadMode 1 = id
-    write = replace state . ((!!) params)
+    write = replace state . ((!!) rawParams)
+
+    binOp op = foldl1 op $ take 2 params
+    jumpIf pred
+      | (operand:target:_) <- params, pred operand = target
+      | otherwise = i+3
+    cmp f = let (a:b:_) = params in fromEnum $ f a b
 
 replace :: [a] -> Int -> a -> [a]
 replace xs i v = fst ss ++ [v] ++ drop 1 (snd ss)
