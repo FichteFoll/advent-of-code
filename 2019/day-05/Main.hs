@@ -3,22 +3,20 @@ module Main where
 import Debug.Trace (trace)
 import Data.List.Split (splitOn)
 
-theInput = 1
-
 -- ((instr_pointer, code), output)
 type IntcodeState = ((Int, [Int]), [Int])
 
 parse :: String -> [Int]
 parse = map read . splitOn ","
 
-run :: [Int] -> IntcodeState
-run state = head . dropWhile ((/=) (-1) . fst . fst) $ iterate step ((0, state), [])
+run :: Int -> [Int] -> IntcodeState
+run input state = head . dropWhile ((/=) (-1) . fst . fst) $ iterate (step input) ((0, state), [])
 
-step :: IntcodeState -> IntcodeState
-step ((i, state), out) = case opcode of
+step :: Int -> IntcodeState -> IntcodeState
+step input ((i, state), out) = case opcode of
   1  -> ((i+4, write 2 $ binOp (+)), out) -- ADD
   2  -> ((i+4, write 2 $ binOp (*)), out) -- MUL
-  3  -> ((i+2, write 0 theInput), []) -- IN
+  3  -> ((i+2, write 0 input), []) -- IN
   4  -> ((i+2, state), head params:out) -- OUT
   5  -> ((jumpIf ((/=) 0), state), out) -- JNZ
   6  -> ((jumpIf ((==) 0), state), out) -- JZ
@@ -32,8 +30,8 @@ step ((i, state), out) = case opcode of
     params = zipWith loadMode modes rawParams
     loadMode 0 = (!!) state
     loadMode 1 = id
-    write = replace state . ((!!) rawParams)
 
+    write = replace state . ((!!) rawParams)
     binOp op = foldl1 op $ take 2 params
     jumpIf pred
       | (operand:target:_) <- params, pred operand = target
@@ -45,12 +43,13 @@ replace xs i v = fst ss ++ [v] ++ drop 1 (snd ss)
   where ss = splitAt i xs
 
 part1 :: [Int] -> Int
-part1 = head . snd . run
+part1 = head . snd . (run 1)
 
--- part2 :: [Int] -> Int
+part2 :: [Int] -> Int
+part2 = head . snd . (run 5)
 
 main :: IO ()
 main = do
   input <- parse <$> getContents
   putStrLn $ "Part 1: " ++ (show $ part1 input)
-  -- putStrLn $ "Part 2: " ++ (show $ part2 input)
+  putStrLn $ "Part 2: " ++ (show $ part2 input)
