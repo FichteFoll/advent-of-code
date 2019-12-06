@@ -16,7 +16,7 @@ step :: Int -> IntcodeState -> IntcodeState
 step input ((i, state), out) = case opcode of
   1  -> ((i+4, write 2 $ binOp (+)), out) -- ADD
   2  -> ((i+4, write 2 $ binOp (*)), out) -- MUL
-  3  -> ((i+2, write 0 input), []) -- IN
+  3  -> ((i+2, write 0 input), out) -- IN
   4  -> ((i+2, state), head params:out) -- OUT
   5  -> ((jumpIf ((/=) 0), state), out) -- JNZ
   6  -> ((jumpIf ((==) 0), state), out) -- JZ
