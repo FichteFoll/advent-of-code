@@ -20,7 +20,7 @@ needsInput ((i, code), (inp, _)) = (code !! i) == 3 && null inp
 run :: IntcodeState -> [Int] -> IntcodeState
 run (state, (oldInp, out)) input =
   head . dropWhile (not . liftA2 (||) hasTerminated needsInput)
-  $ iterate (step) (state, (oldInp ++ input, []))
+  $ iterate step (state, (oldInp ++ input, []))
 
 step :: IntcodeState -> IntcodeState
 step ((i, code), state@(inp, out)) = case opcode of
@@ -58,13 +58,14 @@ newAmp code input = ((0, code), (input, []))
 initAmps :: [Int] -> [Int] -> [IntcodeState]
 initAmps code phases = [newAmp code [phase] | phase <- phases]
 
+-- First part of the tuple carries over output
 runSeq :: ([Int], [IntcodeState]) -> ([Int], [IntcodeState])
 runSeq (input, []) = (input, [])
-runSeq (input, (amp:amps)) = (newOut, (clearOutput nextAmp):newAmps)
+runSeq (input, (amp:amps)) = (nextInput, (clearOutput nextAmp):newAmps)
   where
     nextAmp@(_, (_, out)) = run amp input
     clearOutput (ab, (c, _)) = (ab, (c, []))
-    (newOut, newAmps) = runSeq (out, amps)
+    (nextInput, newAmps) = runSeq (out, amps)
 
 computeSeqLoop :: [Int] -> [Int] -> Int
 computeSeqLoop code phases = last $ fst $ head
