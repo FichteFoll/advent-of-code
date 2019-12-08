@@ -30,8 +30,8 @@ step ((i, code), state@(inp, out)) = case opcode of
   4  -> ((i+2, code), (inp, out ++ [head params])) -- OUT
   5  -> ((jumpIf ((/=) 0), code), state) -- JNZ
   6  -> ((jumpIf ((==) 0), code), state) -- JZ
-  7  -> ((i+4, write 2 $ cmp (<)), state) -- LT
-  8  -> ((i+4, write 2 $ cmp (==)), state) -- EQ
+  7  -> ((i+4, write 2 $ binCmp (<)), state) -- LT
+  8  -> ((i+4, write 2 $ binCmp (==)), state) -- EQ
   99 -> ((-1, code), state) -- HALT
   where
     (opmode:rawParams) = drop i code
@@ -46,7 +46,7 @@ step ((i, code), state@(inp, out)) = case opcode of
     jumpIf pred
       | (operand:target:_) <- params, pred operand = target
       | otherwise = i+3
-    cmp f = fromEnum $ f a b where (a:b:_) = params
+    binCmp f = fromEnum $ f a b where (a:b:_) = params
 
 replace :: [a] -> Int -> a -> [a]
 replace xs i v = fst ss ++ [v] ++ drop 1 (snd ss)
@@ -61,10 +61,10 @@ initAmps code phases = [newAmp code [phase] | phase <- phases]
 -- First part of the tuple carries over output
 runSeq :: ([Int], [IntcodeState]) -> ([Int], [IntcodeState])
 runSeq (input, []) = (input, [])
-runSeq (input, (amp:amps)) = (nextInput, (clearOutput nextAmp):newAmps)
+runSeq (input, (amp:amps)) = (nextInput, nextAmp:newAmps)
   where
-    nextAmp@(_, (_, out)) = run amp input
-    clearOutput (ab, (c, _)) = (ab, (c, []))
+    afterRun@(_, (_, out)) = run amp input
+    nextAmp = fmap ([] <$) afterRun
     (nextInput, newAmps) = runSeq (out, amps)
 
 computeSeqLoop :: [Int] -> [Int] -> Int

@@ -101,6 +101,6 @@ main = do
         it "part2 finds correct result" $
           part2 code `shouldBe` result
 
-    -- describe "part2" $ do
-    --   it "computes accepted result" $
-    --      part2 input `shouldBe` 9265694
+    describe "part2" $ do
+      it "computes accepted result" $
+         part2 input `shouldBe` 79846026
