@@ -1,29 +1,24 @@
 module Main where
 
 import Data.List
-import Data.Maybe (fromJust)
+import Data.List.Split (chunksOf)
 import GHC.Exts (sortWith)
 
 parse :: String -> [Char]
 parse = head . lines
 
-layerize :: (Int, Int) -> [Char] -> [[Char]]
-layerize size [] = []
-layerize size@(w,h) inp = (take len inp):(layerize size $ drop len inp)
-  where len = w*h
-
 part1 :: [Char] -> Int
 part1 input = (*) <$> count '1' <*> count '2'
-  $ head $ sortWith (count '0') $ layerize (25,6) input
+  $ head $ sortWith (count '0') $ chunksOf (25*6) input
   where
     count :: Char -> [Char] -> Int
     count c s = length $ elemIndices c s
 
 delayer :: [[Char]] -> [Char]
-delayer layers = map (fromJust . find ('2' /=)) $ transpose layers
+delayer layers = map (head . filter ('2' /=)) $ transpose layers
 
 part2 :: [Char] -> [Char]
-part2 = delayer . layerize (25,6)
+part2 = delayer . chunksOf (25*6)
 
 showImg :: Int -> [Char] -> [Char]
 showImg w [] = []
