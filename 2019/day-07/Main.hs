@@ -4,10 +4,11 @@ import Data.List.Split (splitOn)
 import Data.List
 import Control.Applicative (liftA2)
 
--- ((instr_pointer, code), (input, output))
-type IntcodeState = ((Int, [Int]), ([Int], [Int]))
+type Tape = [Int]
+-- ((instr_pointer, tape), (input, output))
+type IntcodeState = ((Int, Tape), ([Int], [Int]))
 
-parse :: String -> [Int]
+parse :: String -> Tape
 parse = map read . splitOn ","
 
 hasTerminated :: IntcodeState -> Bool
@@ -15,7 +16,7 @@ hasTerminated ((-1, _), _) = True
 hasTerminated _ = False
 
 needsInput :: IntcodeState -> Bool
-needsInput ((i, code), (inp, _)) = (code !! i) == 3 && null inp
+needsInput ((i, tape), (inp, _)) = (tape !! i) == 3 && null inp
 
 run :: IntcodeState -> [Int] -> IntcodeState
 run (state, (oldInp, out)) input =
@@ -23,25 +24,25 @@ run (state, (oldInp, out)) input =
   $ iterate step (state, (oldInp ++ input, []))
 
 step :: IntcodeState -> IntcodeState
-step ((i, code), state@(inp, out)) = case opcode of
-  1  -> ((i+4, write 2 $ binOp (+)), state) -- ADD
-  2  -> ((i+4, write 2 $ binOp (*)), state) -- MUL
+step ((i, tape), io@(inp, out)) = case opcode of
+  1  -> ((i+4, write 2 $ binOp (+)), io) -- ADD
+  2  -> ((i+4, write 2 $ binOp (*)), io) -- MUL
   3  -> ((i+2, write 0 $ head inp), (tail inp, out)) -- IN
-  4  -> ((i+2, code), (inp, out ++ [head params])) -- OUT
-  5  -> ((jumpIf ((/=) 0), code), state) -- JNZ
-  6  -> ((jumpIf ((==) 0), code), state) -- JZ
-  7  -> ((i+4, write 2 $ binCmp (<)), state) -- LT
-  8  -> ((i+4, write 2 $ binCmp (==)), state) -- EQ
-  99 -> ((-1, code), state) -- HALT
+  4  -> ((i+2, tape), (inp, out ++ [head params])) -- OUT
+  5  -> ((jumpIf ((/=) 0), tape), io) -- JNZ
+  6  -> ((jumpIf ((==) 0), tape), io) -- JZ
+  7  -> ((i+4, write 2 $ binCmp (<)), io) -- LT
+  8  -> ((i+4, write 2 $ binCmp (==)), io) -- EQ
+  99 -> ((-1, tape), io) -- HALT
   where
-    (opmode:rawParams) = drop i code
+    (opmode:rawParams) = drop i tape
     (dmodes, opcode) = quotRem opmode 100
     modes = map (flip rem 10 . div dmodes) (iterate (*10) 1)
     params = zipWith loadMode modes rawParams
-    loadMode 0 = (!!) code
+    loadMode 0 = (!!) tape
     loadMode 1 = id
 
-    write = replace code . ((!!) rawParams)
+    write = replace tape . ((!!) rawParams)
     binOp op = foldl1 op $ take 2 params
     jumpIf pred
       | (operand:target:_) <- params, pred operand = target
@@ -52,11 +53,11 @@ replace :: [a] -> Int -> a -> [a]
 replace xs i v = fst ss ++ [v] ++ drop 1 (snd ss)
   where ss = splitAt i xs
 
-newAmp :: [Int] -> [Int] -> IntcodeState
-newAmp code input = ((0, code), (input, []))
+newAmp :: Tape -> [Int] -> IntcodeState
+newAmp tape input = ((0, tape), (input, []))
 
-initAmps :: [Int] -> [Int] -> [IntcodeState]
-initAmps code phases = [newAmp code [phase] | phase <- phases]
+initAmps :: Tape -> [Int] -> [IntcodeState]
+initAmps tape phases = [newAmp tape [phase] | phase <- phases]
 
 -- First part of the tuple carries over output
 runSeq :: ([Int], [IntcodeState]) -> ([Int], [IntcodeState])
@@ -67,16 +68,16 @@ runSeq (input, (amp:amps)) = (nextInput, nextAmp:newAmps)
     nextAmp = fmap ([] <$) afterRun
     (nextInput, newAmps) = runSeq (out, amps)
 
-computeSeqLoop :: [Int] -> [Int] -> Int
-computeSeqLoop code phases = last $ fst $ head
+computeSeqLoop :: Tape -> [Int] -> Int
+computeSeqLoop tape phases = last $ fst $ head
   $ dropWhile (not . hasTerminated . last . snd)
-  $ iterate runSeq ([0], initAmps code phases)
+  $ iterate runSeq ([0], initAmps tape phases)
 
-part1 :: [Int] -> Int
-part1 code = maximum $ map (computeSeqLoop code) $ permutations [0..4]
+part1 :: Tape -> Int
+part1 tape = maximum $ map (computeSeqLoop tape) $ permutations [0..4]
 
-part2 :: [Int] -> Int
-part2 code = maximum $ map (computeSeqLoop code) $ permutations [5..9]
+part2 :: Tape -> Int
+part2 tape = maximum $ map (computeSeqLoop tape) $ permutations [5..9]
 
 main :: IO ()
 main = do
