@@ -41,50 +41,39 @@ step s@IState{ pointer = i, tape = tape } = case opcode of
   6  -> s { pointer = jumpIf ((==) 0) } -- JZ
   7  -> s { pointer = i+4, tape = write 2 $ binCmp (<) } -- LT
   8  -> s { pointer = i+4, tape = write 2 $ binCmp (==) } -- EQ
-  -- 9  -> TODO -- RBO (relative base offset)
+  9  -> s { pointer = i+2, relOffset = relOffset s + head params } -- SET_RBO
   99 -> s { pointer = -1 } -- HALT
   where
     (opmode:rawParams) = drop i tape
     (dmodes, opcode) = quotRem opmode 100
     modes = map (flip rem 10 . div dmodes) (iterate (*10) 1)
     params = zipWith loadMode modes rawParams
-    loadMode 0 = (!!) tape
+    writeParams = zipWith loadWriteMode modes rawParams
+    loadMode 0 = read
     loadMode 1 = id
+    loadMode 2 = read . (+) (relOffset s)
+    loadWriteMode 0 = id
+    loadWriteMode 2 = (+) (relOffset s)
 
-    -- TODO increase size if not big enough
-    write = replace tape . ((!!) rawParams)
+    read pos | pos < length tape = tape !! pos
+             | otherwise = 0
+    write pIdx val | pos < length tape = replace tape pos val
+                  | otherwise = tape ++ replicate (pos - length tape) 0 ++ [val]
+                  where pos = writeParams !! pIdx
     binOp op = foldl1 op $ take 2 params
-    jumpIf pred
-      | (operand:target:_) <- params, pred operand = target
-      | otherwise = i+3
+    jumpIf pred | (operand:target:_) <- params, pred operand = target
+                | otherwise = i+3
     binCmp f = fromEnum $ f a b where (a:b:_) = params
 
 replace :: [a] -> Int -> a -> [a]
 replace xs i v = fst ss ++ [v] ++ drop 1 (snd ss)
   where ss = splitAt i xs
 
-initAmps :: Tape -> [Int] -> [IntcodeState]
-initAmps tape phases = [newAmp {tape = tape, input = [phase]} | phase <- phases]
+part1 :: Tape -> [Int]
+part1 intape = output $ run (newAmp {tape = intape}) [1]
 
--- First part of the tuple carries over output
-runSeq :: ([Int], [IntcodeState]) -> ([Int], [IntcodeState])
-runSeq (input, []) = (input, [])
-runSeq (input, (amp:amps)) = (newInput, newAmp:newAmps)
-  where
-    afterRun = run amp input
-    (newInput, newAmps) = runSeq (output afterRun, amps)
-    newAmp = afterRun {output = []}
-
-computeSeqLoop :: Tape -> [Int] -> Int
-computeSeqLoop tape phases = last $ fst $ head
-  $ dropWhile (not . hasTerminated . last . snd)
-  $ iterate runSeq ([0], initAmps tape phases)
-
-part1 :: Tape -> Int
-part1 tape = maximum $ map (computeSeqLoop tape) $ permutations [0..4]
-
-part2 :: Tape -> Int
-part2 tape = maximum $ map (computeSeqLoop tape) $ permutations [5..9]
+part2 :: Tape -> [Int]
+part2 intape = output $ run (newAmp {tape = intape}) [2]
 
 main :: IO ()
 main = do

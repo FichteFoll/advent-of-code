@@ -6,7 +6,7 @@ import Main hiding (main)
 
 main :: IO ()
 main = do
-  -- input <- parse <$> readFile "input.txt"
+  input <- parse <$> readFile "input.txt"
   hspec $ do
     let runAmp tape inp = run (newAmp {tape = tape}) inp
     describe "run" $ do
@@ -47,3 +47,22 @@ main = do
                          1002,21,125,20,4,20,1105,1,46,104, 999,1105,1,46,1101,1000,1,20,4,20,
                          1105,1,46,98,99] in
           \n -> runInput n program == 1000 + fromEnum (n > 8) - fromEnum (n < 8)
+
+      context "with the examples of day 9" $ do
+        let runOutput intape = output $ run (newAmp {tape = intape}) []
+        it "produces a copy of itself" $
+          let intape = [109,1,204,-1,1001,100,1,100,1008,100,16,101,1006,101,0,99] in
+          runOutput intape `shouldBe` intape
+
+        it "outputs large number" $
+          runOutput [104,1125899906842624,99] `shouldBe` [1125899906842624]
+
+    describe "part1" $ do
+        it "computes accepted result" $
+          part1 input `shouldBe` [3335138414]
+
+    -- Takes too long to compute in a test
+    -- describe "part2" $ do
+    --     it "computes accepted result" $
+    --       part1 input `shouldBe` [49122]
+
