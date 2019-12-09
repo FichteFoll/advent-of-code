@@ -20,7 +20,7 @@ main = do
 
     describe "part2" $ do
       it "computes example" $
-         (showImg 25 $ part2 input) `shouldBe` concat
+         part2 input `shouldBe` concat
             [" ██  █   ██  █  ██  █  █ \n"
             ,"█  █ █   ██  █ █  █ █  █ \n"
             ,"█     █ █ █  █ █  █ ████ \n"

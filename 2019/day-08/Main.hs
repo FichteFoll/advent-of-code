@@ -2,27 +2,21 @@ module Main where
 
 import Data.List
 import Data.List.Split (chunksOf)
-import GHC.Exts (sortWith)
+import Data.Ord (comparing)
 
 parse :: String -> [Char]
 parse = head . lines
 
 part1 :: [Char] -> Int
 part1 input = (*) <$> count '1' <*> count '2'
-  $ head $ sortWith (count '0') $ chunksOf (25*6) input
-  where
-    count :: Char -> [Char] -> Int
-    count c s = length $ elemIndices c s
+  $ minimumBy (comparing $ count '0') $ chunksOf (25*6) input
+  where count c s = length $ elemIndices c s
 
 delayer :: [[Char]] -> [Char]
 delayer layers = map (head . filter ('2' /=)) $ transpose layers
 
 part2 :: [Char] -> [Char]
-part2 = delayer . chunksOf (25*6)
-
-showImg :: Int -> [Char] -> [Char]
-showImg w [] = []
-showImg w img = (map char $ take w img) ++ "\n" ++ (showImg w $ drop w img)
+part2 = unlines . chunksOf 25 . map char . delayer . chunksOf (25*6)
   where
     char '0' = ' '
     char '1' = '█'
@@ -31,4 +25,4 @@ main :: IO ()
 main = do
   input <- parse <$> getContents
   putStrLn $ "Part 1: " ++ (show $ part1 input)
-  putStrLn $ "Part 2:\n" ++ (showImg 25 $ part2 input)
+  putStrLn $ "Part 2:\n" ++ (part2 input)
