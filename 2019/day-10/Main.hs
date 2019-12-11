@@ -32,9 +32,7 @@ angles origin pts =
      Ast pt (cAngle relPt) (manhattan relPt)
     | pt <- pts, pt /= origin]
   where
-    cAngle (x,y) = asc $ atan2 x (-y)
-    asc a | a < 0 = a + 2*pi
-          | otherwise = a
+    cAngle (x,y) = negate $ atan2 x y
     manhattan (x,y) = (abs x) + (abs y)
 
 vaporize :: [[AsteroidRel]] -> [AsteroidRel]
