@@ -82,9 +82,9 @@ type Point = V2 Int
 data Color = Black | White deriving (Enum, Eq)
 
 toV2 :: Direction -> V2 Int
-toV2 DUp = V2 0 1
+toV2 DUp = V2 0 (-1)
 toV2 DRight = V2 1 0
-toV2 DDown = V2 0 (-1)
+toV2 DDown = V2 0 1
 toV2 DLeft = V2 (-1) 0
 
 turn :: Direction -> Direction -> Direction

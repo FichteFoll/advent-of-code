@@ -12,7 +12,12 @@ main = do
         it "computes accepted result" $
           part1 input `shouldBe` 2373
 
-    -- describe "part2" $ do
-    --     it "computes accepted result" $
-    --       part1 input `shouldBe` [49122]
-
+    describe "part2" $ do
+      it "prints accepted result" $
+         part2 input `shouldBe` concat
+            ["███   ██  █  █ ███  █    ███  █  █ █  █\n"
+            ,"█  █ █  █ █ █  █  █ █    █  █ █  █ █ █ \n"
+            ,"█  █ █    ██   █  █ █    █  █ █  █ ██  \n"
+            ,"███  █    █ █  ███  █    ███  █  █ █ █ \n"
+            ,"█    █  █ █ █  █ █  █    █    █  █ █ █ \n"
+            ,"█     ██  █  █ █  █ ████ █     ██  █  █\n"]
