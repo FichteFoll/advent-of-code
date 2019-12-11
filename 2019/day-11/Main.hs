@@ -5,7 +5,6 @@ import Data.List
 import Data.List.Split (splitOn)
 import Data.Map (Map)
 import qualified Data.Map as Map
-import Data.Maybe
 
 import Linear.V2
 
@@ -80,7 +79,7 @@ replace xs i v = fst ss ++ [v] ++ drop 1 (snd ss)
 -- Prefix with D to prevent collision with Either constructors
 data Direction = DUp | DRight | DDown | DLeft deriving (Bounded, Eq, Enum)
 type Point = V2 Int
-data Color = Black | White deriving (Enum)
+data Color = Black | White deriving (Enum, Eq)
 
 toV2 :: Direction -> V2 Int
 toV2 DUp = V2 0 1
@@ -98,7 +97,7 @@ paint amp pos dir painted
   | hasTerminated amp = painted
   | otherwise = paint newAmp newPos newDir newPainted
   where
-    inColor = fromEnum $ fromMaybe Black $ Map.lookup pos painted
+    inColor = fromEnum $ Map.findWithDefault Black pos painted
     ampWithOutput = run amp [inColor]
     newAmp = ampWithOutput { output = [] }
     (outColor:outTurn:_) = output ampWithOutput
@@ -109,11 +108,17 @@ paint amp pos dir painted
 part1 :: Tape -> Int
 part1 intape = length $ paint (newAmp {tape = intape}) (pure 0) DUp Map.empty
 
--- part2 :: Tape -> [Int]
--- part2 intape = output $ run (newAmp {tape = intape}) [2]
+part2 :: Tape -> String
+part2 intape = unlines [[if elem (V2 x y) whites then '█' else ' '
+                        | x <- [minimum xs..maximum xs]]
+                       | y <- [minimum ys..maximum ys]]
+  where
+    painted = paint (newAmp {tape = intape}) (pure 0) DUp $ Map.singleton (pure 0) White
+    whites = Map.keys $ Map.filter (== White) painted
+    (xs, ys) = unzip $ map (\(V2 x y) -> (x,y)) whites
 
 main :: IO ()
 main = do
   input <- parse <$> getContents
   putStrLn $ "Part 1: " ++ (show $ part1 input)
-  -- putStrLn $ "Part 2: " ++ (show $ part2 input)
+  putStrLn $ "Part 2:\n" ++ part2 input
