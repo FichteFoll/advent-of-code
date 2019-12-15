@@ -1,7 +1,6 @@
 module Main where
 
 import Data.List
-import Control.Applicative (liftA2)
 
 type Asteroid = (Double, Double)
 data AsteroidRel = Ast {
