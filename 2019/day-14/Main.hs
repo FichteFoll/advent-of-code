@@ -60,14 +60,25 @@ addMaybe n mm | Just m <- mm, m + n /= 0 = Just (m + n)
 saturatingSub :: (Num a, Ord a) => a -> a -> a
 saturatingSub a b = if b > a then 0 else a - b
 
+makeFuel :: Nanofactory -> MatView -> Int -> Int
+makeFuel nf mv i | Just _ <- Map.lookup "ORE" (storage resolvedMv) = makeFuel nf newMv (i+addCounter)
+                 | otherwise = i - fuelCreated
+  where
+    resolvedMv = resolveMats nf mv
+    oreUsed = (storage mv ! "ORE") - (storage resolvedMv ! "ORE")
+    fuelCreated = (needed mv ! "FUEL")
+    iterationsRemaining = (storage resolvedMv ! "ORE") `div` (oreUsed `div` fuelCreated)
+    addCounter = max 1 (iterationsRemaining `div` 2)
+    newMv = resolvedMv { needed = insert "FUEL" addCounter (needed resolvedMv) }
+
 part1 :: Nanofactory -> Int
 part1 = flip (!) "ORE" . needed . flip resolveMats (MV empty $ singleton "FUEL" 1)
 
--- part2 :: Nanofactory -> Int
+part2 :: Nanofactory -> Int
+part2 nf = makeFuel nf (MV (singleton "ORE" 1000000000000) (singleton "FUEL" 1)) 1
 
 main :: IO ()
 main = do
   input <- parse <$> getContents
   putStrLn $ "Part 1: " ++ (show $ part1 input)
-  -- putStrLn $ "Part 2: " ++ (show $ part2 input)
-
+  putStrLn $ "Part 2: " ++ (show $ part2 input)
