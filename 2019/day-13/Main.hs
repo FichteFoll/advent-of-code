@@ -62,9 +62,6 @@ render game = "Score: " ++ (show $ score game) ++ "\n"
 
 -------------------------------------------------------------------------------
 
-parse :: String -> Tape
-parse = map read . splitOn ","
-
 part1 :: Tape -> Int
 part1 intape = length $ tilePos (runGame game []) Block
   where game = newGame { machine = newIM { tape = intape } }

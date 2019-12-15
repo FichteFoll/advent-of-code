@@ -2,7 +2,9 @@ module MainSpec where
 
 import Test.Hspec
 import Test.QuickCheck hiding (output)
+
 import Main hiding (main)
+import Intcode (parse)
 
 main :: IO ()
 main = do

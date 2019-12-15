@@ -62,10 +62,6 @@ fillOxygen droid
   where
     directions = newDirections $ lastDirection droid
 
-
-parse :: String -> Tape
-parse = map read . splitOn ","
-
 part1 :: Tape -> Int
 part1 intape = steps $ fromJust $ findOxygen $ newDroid { machine = newIM { tape = intape } }
 

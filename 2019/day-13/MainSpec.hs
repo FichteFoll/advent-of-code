@@ -2,7 +2,9 @@ module MainSpec where
 
 import Test.Hspec
 import Test.QuickCheck hiding (output)
+
 import Main hiding (main)
+import Intcode (parse)
 
 main :: IO ()
 main = do
@@ -14,4 +16,4 @@ main = do
 
     describe "part2" $ do
         it "computes accepted result" $
-          part1 input `shouldBe` 12954
+          part2 input `shouldBe` 12954
