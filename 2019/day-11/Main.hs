@@ -42,7 +42,7 @@ part1 :: Tape -> Int
 part1 intape = length $ paint (newIM {tape = intape}) (pure 0) DUp Map.empty
 
 part2 :: Tape -> String
-part2 intape = unlines [[if elem (V2 x y) whites then '█' else ' '
+part2 intape = unlines [[if V2 x y `elem` whites then '█' else ' '
                         | x <- [minimum xs..maximum xs]]
                        | y <- [minimum ys..maximum ys]]
   where
@@ -53,5 +53,5 @@ part2 intape = unlines [[if elem (V2 x y) whites then '█' else ' '
 main :: IO ()
 main = do
   input <- parse <$> getContents
-  putStrLn $ "Part 1: " ++ (show $ part1 input)
+  putStrLn $ "Part 1: " ++ show (part1 input)
   putStrLn $ "Part 2:\n" ++ part2 input

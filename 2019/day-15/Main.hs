@@ -36,7 +36,7 @@ droidStep droid dir = droid { machine = newMachine { output = [] }
                             }
   where
     newMachine = run (machine droid) [toInput dir]
-    newTile = toEnum $ head $ output $ newMachine
+    newTile = toEnum $ head $ output newMachine
 
 newDirections :: Maybe Direction -> [Direction]
 newDirections mPDir | Just prevDir <- mPDir = filter (/= backwards prevDir) $ enumFrom North
@@ -73,5 +73,5 @@ part2 intape = fillOxygen $ droidAtOxygen { steps = 0, lastDirection = Nothing}
 main :: IO ()
 main = do
   input <- parse <$> getContents
-  putStrLn $ "Part 1: " ++ (show $ part1 input)
-  putStrLn $ "Part 2: " ++ (show $ part2 input)
+  putStrLn $ "Part 1: " ++ show (part1 input)
+  putStrLn $ "Part 2: " ++ show (part2 input)

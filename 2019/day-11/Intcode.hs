@@ -22,7 +22,7 @@ hasTerminated IM{pointer = (-1)} = True
 hasTerminated _ = False
 
 needsInput :: IntcodeMachine -> Bool
-needsInput s = ((tape s) !! (pointer s)) == 3 && null (input s)
+needsInput s = (tape s !! pointer s) == 3 && null (input s)
 
 run :: IntcodeMachine -> [Int] -> IntcodeMachine
 run s newInput =
@@ -35,8 +35,8 @@ step s@IM{ pointer = i, tape = tape } = case opcode of
   2  -> s { pointer = i+4, tape = write 2 $ binOp (*) } -- MUL
   3  -> s { pointer = i+2, tape = write 0 $ head (input s), input = tail $ input s } -- IN
   4  -> s { pointer = i+2, output = output s ++ take 1 params } -- OUT
-  5  -> s { pointer = jumpIf ((/=) 0) } -- JNZ
-  6  -> s { pointer = jumpIf ((==) 0) } -- JZ
+  5  -> s { pointer = jumpIf (/= 0) } -- JNZ
+  6  -> s { pointer = jumpIf (== 0) } -- JZ
   7  -> s { pointer = i+4, tape = write 2 $ binCmp (<) } -- LT
   8  -> s { pointer = i+4, tape = write 2 $ binCmp (==) } -- EQ
   9  -> s { pointer = i+2, relOffset = relOffset s + head params } -- SET_RBO
