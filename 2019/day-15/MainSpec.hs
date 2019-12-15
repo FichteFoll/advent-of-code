@@ -12,6 +12,6 @@ main = do
         it "computes accepted result" $
           part1 input `shouldBe` 234
 
-    -- describe "part2" $ do
-    --     it "computes accepted result" $
-    --       part1 input `shouldBe` 12954
+    describe "part2" $ do
+        it "computes accepted result" $
+          part2 input `shouldBe` 292

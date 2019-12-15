@@ -1,7 +1,9 @@
 module Main where
 
+import Data.List
 import Data.List.Split (splitOn)
 import Data.Maybe
+import Data.Ord (comparing)
 
 import Intcode
 
@@ -40,31 +42,40 @@ newDirections :: Maybe Direction -> [Direction]
 newDirections mPDir | Just prevDir <- mPDir = filter (/= backwards prevDir) $ enumFrom North
                     | otherwise = enumFrom North
 
-findPath :: Droid -> Maybe Int
-findPath droid
-  | Just Oxygen <- tile droid = Just $ steps droid
+findOxygen :: Droid -> Maybe Droid
+findOxygen droid
+  | Just Oxygen <- tile droid = Just droid
   | Just Wall <- tile droid = Nothing
-  | otherwise = maybeMin [findPath $ droidStep droid newDir | newDir <- directions]
+  | otherwise = maybeMin [findOxygen $ droidStep droid newDir | newDir <- directions]
   where
     directions = newDirections $ lastDirection droid
+    -- TODO try composing this using `min`
+    maybeMin :: [Maybe Droid] -> Maybe Droid
+    maybeMin xs = case catMaybes xs of
+      [] -> Nothing
+      ds -> Just $ minimumBy (comparing steps) ds
 
--- TODO try composing this using `min`
-maybeMin :: Ord a => [Maybe a] -> Maybe a
-maybeMin xs = case catMaybes xs of
-  [] -> Nothing
-  as -> Just $ minimum as
+fillOxygen :: Droid -> Int
+fillOxygen droid
+  | Just Wall <- tile droid = steps droid - 1
+  | otherwise = maximum [fillOxygen $ droidStep droid newDir | newDir <- directions]
+  where
+    directions = newDirections $ lastDirection droid
 
 
 parse :: String -> Tape
 parse = map read . splitOn ","
 
 part1 :: Tape -> Int
-part1 intape = fromJust $ findPath $ newDroid { machine = newIM { tape = intape } }
+part1 intape = steps $ fromJust $ findOxygen $ newDroid { machine = newIM { tape = intape } }
 
--- part2 :: Tape -> Int
+part2 :: Tape -> Int
+part2 intape = fillOxygen $ droidAtOxygen { steps = 0, lastDirection = Nothing}
+  where
+    droidAtOxygen = fromJust $ findOxygen $ newDroid { machine = newIM { tape = intape } }
 
 main :: IO ()
 main = do
   input <- parse <$> getContents
   putStrLn $ "Part 1: " ++ (show $ part1 input)
-  -- putStrLn $ "Part 2: " ++ (show $ part2 input)
+  putStrLn $ "Part 2: " ++ (show $ part2 input)
