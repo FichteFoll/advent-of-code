@@ -11,7 +11,7 @@ fft list = map (abs . flip rem 10 . sum) $ zipWith (zipWith (*)) (replicate (len
     patterns = map (drop 1) [concatMap (replicate i) $ cycle [0,1,0,-1] | i <- [1..]]
 
 part1 :: [Int] -> String
-part1 input = concatMap show $ take 8 $ iterate fft input !! 100
+part1 = concatMap show . take 8 . (!! 100) . iterate fft
 
 part2 :: [Int] -> String
 part2 input
