@@ -27,7 +27,16 @@ main = do
         it "computes example 3" $
           part1 (parse "69317163492948606335995924319873") `shouldBe` "52432133"
 
+        -- it "computes accepted result" $
+        --   part1 input `shouldBe` "37153056"
 
-    -- describe "part2" $ do
-    --     it "computes accepted result" $
-    --       part2 input `shouldBe` 292
+    describe "part2" $ do
+        it "computes example 1" $
+          part2 (parse "03036732577212944063491565474664") `shouldBe` "84462026"
+        it "computes example 2" $
+          part2 (parse "02935109699940807407585447034323") `shouldBe` "78725270"
+        it "computes example 3" $
+          part2 (parse "03081770884921959731165446850517") `shouldBe` "53553731"
+
+        -- it "computes accepted result" $
+        --   part2 input `shouldBe` "60592199"
