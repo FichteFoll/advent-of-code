@@ -1,7 +1,7 @@
 module Main where
 
 import Data.List.Split (chunksOf)
-import Data.Char (chr)
+import Data.Char
 
 import Intcode
 
@@ -18,10 +18,16 @@ part1 :: Tape -> Int
 part1 intape = sum $ map (uncurry (*)) [pt | pt <- pts, all (`elem` pts) $ neighbours pt]
   where pts = parseMap $ map chr $ output $ run (newIM { tape = intape }) []
 
--- part2 :: Tape -> Int
+part2 :: Tape -> Int
+part2 intape = last $ output $ run (newIM { tape = 2:drop 1 intape }) inp
+  where inp = map ord $ concat ["A,A,C,B,C,A,B,C,B,A\n"
+                               ,"L,6,R,12,L,6,L,8,L,8\n"
+                               ,"L,4,L,4,L,6\n"
+                               ,"L,6,R,12,R,8,L,8\n"
+                               ,"n\n"]
 
 main :: IO ()
 main = do
   input <- parse <$> getContents
   putStrLn $ "Part 1: " ++ show (part1 input)
-  -- putStrLn $ "Part 2: " ++ part2 input
+  putStrLn $ "Part 2: " ++ show (part2 input)
