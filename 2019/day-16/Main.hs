@@ -7,11 +7,9 @@ parse :: String -> [Int]
 parse = map read . chunksOf 1 . (head . lines)
 
 fft :: [Int] -> [Int]
-fft list = map (getDigit . sum) $ zipWith (zipWith (*)) (replicate (length list) list) patterns
+fft list = map (abs . flip rem 10 . sum) $ zipWith (zipWith (*)) (replicate (length list) list) patterns
   where
-    getDigit = abs . flip rem 10
-    basePattern = [0,1,0,-1]
-    patterns = map (drop 1) [concatMap (replicate i) $ cycle basePattern | i <- [1..]]
+    patterns = map (drop 1) [concatMap (replicate i) $ cycle [0,1,0,-1] | i <- [1..]]
 
 part1 :: [Int] -> String
 part1 input = concatMap show $ take 8 $ iterate fft input !! 100
