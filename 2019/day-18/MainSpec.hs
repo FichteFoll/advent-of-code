@@ -12,12 +12,20 @@ main = do
   input <- parse <$> readFile "input.txt"
   hspec $ do
     let example1 = parse "#########\n#b.A.@.a#\n#########"
-        findKey m key = shortestPath m (dkeys m ! key)
         example2 = parse $ concat ["########################\n"
                                   ,"#f.D.E.e.C.b.A.@.a.B.c.#\n"
                                   ,"######################.#\n"
                                   ,"#d.....................#\n"
                                   ,"########################\n"]
+        example4 = parse $ concat ["#################\n"
+                                  ,"#i.G..c...e..H.p#\n"
+                                  ,"########.########\n"
+                                  ,"#j.A..b...f..D.o#\n"
+                                  ,"########@########\n"
+                                  ,"#k.E..a...g..B.n#\n"
+                                  ,"########.########\n"
+                                  ,"#l.F..d...h..C.m#\n"
+                                  ,"#################\n"]
         example5 = parse $ concat ["########################\n"
                                   ,"#@..............ac.GI.b#\n"
                                   ,"###d#e#f################\n"
@@ -25,24 +33,19 @@ main = do
                                   ,"###g#h#i################\n"
                                   ,"########################\n"]
 
-    describe "shortestPath" $
-      context "for example 1" $ do
-        it "finds distance to 'a'" $
-          findKey example1 'a' `shouldBe` Just 2
-        it "does not find distance to 'b'" $
-          findKey example1 'b' `shouldBe` Nothing
-        it "finds distance to 'b' without 'A'" $
-          findKey (example1 {doors = Map.empty}) 'b' `shouldBe` Just 4
-
-    describe "collectKeys" $ do
+    describe "part1" $ do
       it "collects keys for example 1" $
-        collectKeys example1 `shouldBe` 8
+        part1 example1 `shouldBe` 8
 
       it "collects keys for example 2" $
-        collectKeys example2 `shouldBe` 86
+        part1 example2 `shouldBe` 86
+
+      -- Takes 60 seconds (17 if compiled)
+      -- it "collects keys for example 4" $
+      --   part1 example4 `shouldBe` 136
 
       it "collects keys for example 5" $
-        collectKeys example5 `shouldBe` 81
+        part1 example5 `shouldBe` 81
 
     -- describe "part1" $ do
     --   it "computes accepted result" $

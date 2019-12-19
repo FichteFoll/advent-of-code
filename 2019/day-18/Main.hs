@@ -1,79 +1,106 @@
+{-# Language RecordWildCards #-}
+
 module Main where
 
-import Control.Applicative (liftA2)
 import Data.Char
+import Data.List
 import Data.Map (Map, (!))
 import qualified Data.Map as Map
-import Data.Maybe (fromJust, isJust)
+import Data.Maybe
 import Data.Set (Set)
-import Data.Tuple
 import qualified Data.Set as Set
 
-import Debug.Trace (trace)
+import Control.DeepSeq (force)
+
+import Debug.Trace (trace, traceShowId)
 
 import Linear.V2
 
 type Point = V2 Int
 
-data UMap = UM {
-  passages :: Set Point,
-  position :: Point,
-  dkeys :: Map Char Point,
-  doors :: Map Char Point,
-  steps :: Int
+data UMap = UM { -- short for UndergroundMap
+  umPassages :: !(Set Point),
+  umStart :: !Point,
+  umKeys :: !(Map Point Char),
+  umDoors :: !(Map Point Char)
 } deriving (Show)
-
-consumeKey :: UMap -> Char -> UMap
-consumeKey m k = m {dkeys = Map.delete k $ dkeys m,
-                    doors = Map.delete (chr $ ord k - 0x20) $ doors m}
 
 parse :: String -> UMap
 parse input =
   UM {
-    passages = Set.fromList $ Map.keys $ Map.filter (/= '#') charmap,
-    position = head $ Map.keys $ Map.filter (== '@') charmap,
-    dkeys = reverseMap $ Map.filter ((> 0x60) . ord) charmap,
-    doors = reverseMap $ Map.filter (liftA2 (&&) (> 0x40) (< 0x60) . ord) charmap,
-    steps = 0
+    umPassages = Set.fromList $ Map.keys $ Map.filter (/= '#') charmap,
+    umStart = head $ Map.keys $ Map.filter (== '@') charmap,
+    umKeys = Map.filter (`elem` '@':['a'..'z']) charmap,
+    umDoors = Map.map toLower $ Map.filter isUpper charmap
   }
   where
-    charmap = Map.fromList $ concat [[(V2 x y, c) | (x,c) <- zip [0..] line ]
-                                    | (y,line) <- zip [0..] $ lines input]
-    reverseMap = Map.fromList . map swap . Map.toList
+    charmap = Map.fromList [(V2 x y, c) | (y,line) <- zip [0..] $ lines input, (x,c) <- zip [0..] line]
+
+data Connection = Connection {
+  cDist :: !Int,
+  cDoors :: !(Set Char)
+} deriving (Show)
+
+connections :: UMap -> Map (Set Char) Connection
+connections m = Map.fromList $ concat [connFromKey key pt Set.empty | (pt, key) <- Map.toList $ umKeys m]
+  where
+    connFromKey :: Char -> Point -> Set Point -> [(Set Char, Connection)]
+    connFromKey startKey pt visited
+      | Just key <- Map.lookup pt $ umKeys m, key /= startKey
+        = (Set.fromList [startKey, key], Connection (Set.size visited) doorsSeen) : branches
+      | otherwise = branches
+      where
+        nextPts = umPassages m `Set.intersection` neighbors pt `Set.difference` visited
+        newVisited = Set.insert pt visited
+        branches = concat [connFromKey startKey nPt newVisited | nPt <- Set.toList nextPts]
+        doorsSeen = Set.fromList $ mapMaybe (`Map.lookup` umDoors m) $ Set.toList visited
 
 neighbors :: Point -> Set Point
 neighbors pt = Set.fromList [pt+pt2 | pt2 <- [V2 1 0, V2 0 1, V2 (-1) 0, V2 0 (-1)]]
 
-shortestPath :: UMap -> Point -> Maybe Int
-shortestPath m to = shortestPath' (Set.singleton $ position m) 0
-  where
-    shortestPath' :: Set Point -> Int -> Maybe Int
-    shortestPath' candidates count
-      | to `Set.member` candidates = Just count
-      | candidates == newCandidates = Nothing
-      | otherwise = shortestPath' newCandidates (count+1)
-      where candidateNeighbors = foldl Set.union candidates (Set.map neighbors candidates)
-            newCandidates = candidateNeighbors `Set.intersection` passages m `Set.difference` doorPts
-    doorPts = Set.fromList $ Map.elems $ doors m
+data Path = Path {
+  pKeys :: !(Set Char),
+  pLength :: !Int,
+  pPos :: !Char
+} deriving (Show, Eq, Ord)
 
-collectKeys :: UMap -> Int
-collectKeys m
-  | Map.null $ dkeys m = steps m
-  | otherwise = minimum $ map collectKeys newMaps
+{-
+  option 1: do bfs like before
+  option 2: build tree of valid options (basically the same)
+  both are O(n!)
+-}
+
+collectKeys :: UMap -> [Path]
+collectKeys m = loop Set.empty [Path (Set.singleton '@') 0 '@'] []
   where
-    newMaps = [ (consumeKey m k) {position = pt, steps = steps m + dist}
-                | (k,pt) <- Map.toList $ dkeys m
-                , let path = shortestPath m pt
-                , isJust path
-                , let Just dist = path]
+    cons = connections m
+    loop :: Set Path -> [Path] -> [Path] -> [Path]
+    loop seen [] done = done
+    loop seen (here@(Path keys steps pos):xs) done
+      -- | trace (show here) False = undefined
+      | length keys == Map.size (umKeys m) = loop seen xs (here:done)
+      | here `Set.member` seen = loop seen xs done
+      | otherwise = loop (Set.insert here seen) sortedQueue done
+      where
+        candidates = Map.filterWithKey (\ks _ -> pos `Set.member` ks) cons
+        openCandidates = Map.filter (Set.null . (`Set.difference` keys) . cDoors) candidates
+        newPaths = [Path (Set.insert newKey keys) (steps + cDist) newKey
+                    | (ks,Connection{..}) <- Map.toList openCandidates
+                    , not . Set.null $ ks `Set.difference` keys
+                    , let newKey = head $ filter (/= pos) $ Set.toList ks]
+        queue = xs ++ newPaths
+        -- minDone = traceShowId $ minimum (5278:map pLength done)
+        minDone = minimum (5278:map pLength done) -- 5278 is from a previous run I had to abort
+        sortedQueue = sortOn (negate . Set.size . pKeys) $ filter ((< minDone) . pLength) queue
 
 part1 :: UMap -> Int
-part1 = collectKeys
+part1 = minimum . map pLength . collectKeys
 
 -- part2 :: Tape -> Int
 
 main :: IO ()
 main = do
   input <- parse <$> getContents
+  -- putStrLn $ unlines $ map show $ Map.toList $ connections input
   putStrLn $ "Part 1: " ++ show (part1 input)
   -- putStrLn $ "Part 2: " ++ show (part2 input)
