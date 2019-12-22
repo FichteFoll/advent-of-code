@@ -16,4 +16,4 @@ main = do
 
     describe "part2" $ do
         it "computes accepted result" $
-          part2 input `shouldBe` 929045
+          part2 input `shouldBe` 6840937
