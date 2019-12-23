@@ -4,8 +4,8 @@ module Main where
 
 import Data.Char
 import Data.List
-import Data.Map (Map, (!))
-import qualified Data.Map as Map
+import Data.Map.Strict (Map, (!))
+import qualified Data.Map.Strict as Map
 import Data.Maybe
 import Data.Set (Set)
 import qualified Data.Set as Set
@@ -60,41 +60,40 @@ neighbors pt = Set.fromList [pt+pt2 | pt2 <- [V2 1 0, V2 0 1, V2 (-1) 0, V2 0 (-
 
 data Path = Path {
   pKeys :: !(Set Char),
-  pLength :: !Int,
   pPos :: !Char
 } deriving (Show, Eq, Ord)
 
-{-
-  option 1: do bfs like before
-  option 2: build tree of valid options (basically the same)
-  both are O(n!)
--}
+-- Build a map with the shortest solution from the given Path.
+type Solutions = Map Path Int
 
-collectKeys :: UMap -> [Path]
-collectKeys m = loop Set.empty [Path (Set.singleton '@') 0 '@'] []
+-- 5278 is from a previous run I had to abort
+collectKeys :: UMap -> Int
+collectKeys m = snd $ solve Map.empty $ Path (Set.singleton '@') '@'
   where
     cons = connections m
-    loop :: Set Path -> [Path] -> [Path] -> [Path]
-    loop seen [] done = done
-    loop seen (here@(Path keys steps pos):xs) done
+
+    solve :: Solutions -> Path -> (Solutions, Int)
+    solve seen here@(Path keys pos)
       -- | trace (show here) False = undefined
-      | length keys == Map.size (umKeys m) = loop seen xs (here:done)
-      | here `Set.member` seen = loop seen xs done
-      | otherwise = loop (Set.insert here seen) sortedQueue done
+      | length keys == Map.size (umKeys m) = (Map.empty, 0)
+      | Just best <- Map.lookup here seen = (Map.empty, best)
+      | otherwise = foldl foldSolutions (seen, 1000000) subSolutions
       where
-        candidates = Map.filterWithKey (\ks _ -> pos `Set.member` ks) cons
-        openCandidates = Map.filter (Set.null . (`Set.difference` keys) . cDoors) candidates
-        newPaths = [Path (Set.insert newKey keys) (steps + cDist) newKey
-                    | (ks,Connection{..}) <- Map.toList openCandidates
-                    , not . Set.null $ ks `Set.difference` keys
-                    , let newKey = head $ filter (/= pos) $ Set.toList ks]
-        queue = xs ++ newPaths
-        -- minDone = traceShowId $ minimum (5278:map pLength done)
-        minDone = minimum (5278:map pLength done) -- 5278 is from a previous run I had to abort
-        sortedQueue = sortOn (negate . Set.size . pKeys) $ filter ((< minDone) . pLength) queue
+        subSolutions = [(Path (Set.insert newPos keys) newPos, cDist)
+                        | newPos <- Map.elems (umKeys m)
+                        , newPos `Set.notMember` keys
+                        , let Connection{..} = cons ! Set.fromList [pos, newPos]
+                        , cDoors `Set.isSubsetOf` keys]
+
+    foldSolutions :: (Solutions, Int) -> (Path, Int) -> (Solutions, Int)
+    foldSolutions (seen', best) (path, dist) = (newSeen, newBest)
+      where
+        (subMap, len) = solve seen' path
+        newSeen = Map.insert path len $ Map.union seen' subMap
+        newBest = min best (len + dist)
 
 part1 :: UMap -> Int
-part1 = minimum . map pLength . collectKeys
+part1 = collectKeys
 
 -- part2 :: Tape -> Int
 
