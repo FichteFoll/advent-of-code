@@ -22,7 +22,7 @@ fn part_1(input: &[u64]) -> u64 {
 }
 
 fn part_2(input: &[u64]) -> u64 {
-    let mut lookup: [Option<u64>; 2020] = [None; 2020];
+    let mut lookup = [None; 2020];
     let combinations =
         input.iter()
             .copied()
