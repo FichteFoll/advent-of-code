@@ -23,10 +23,22 @@ but unstable is definitely allowed.~~
 Crates are too useful.
 Also, tests are nice.
 
-For **2019**, I will mostly do the same as in 2018
-but throw Haskell into the mix.
-I will chose on a whim which I prefer to use for a day,
-maybe even both if time allows.
+For **2019**, I decided to go with **Haskell**.
+That was definitely an interesting and fun choice,
+although implementing some solitions
+definitely took a bit longer than necessary.
+For some days, I used the Linear package for its vector implementation,
+although that was definitely not necessary.
+The RecordDotNotation extension was added later,
+but I would definitely have liked to used that.
+I eventually gave up after spending a lot of time on day 18,
+which I built a correct solution for
+but could not for the life of me get performant enough,
+despite implementing every optimization strategy
+I could think of or found from discussions.
+
+For **2020**, I am going back to **Rust**,
+because it has been two years since I last did something with it.
 
 
 [Advent of Code]: https://adventofcode.com/
