@@ -1,0 +1,5 @@
+# Rust build files
+target/
+
+# Large input files
+big_input.txt
