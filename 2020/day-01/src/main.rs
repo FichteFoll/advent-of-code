@@ -1,4 +1,4 @@
-#![feature(test)]
+#![feature(test,bool_to_option)]
 
 extern crate test;
 use itertools::Itertools;
@@ -14,31 +14,22 @@ fn parse_input(input_str: &str) -> Vec<u64> {
 
 fn part_1(input: &[u64]) -> u64 {
     input.iter()
-        .copied()
         .tuple_combinations()
-        .find(|(a, b)| a + b == 2020)
-        .map(|(a, b)| a * b)
-        .expect("No combination found")
+        .find_map(|(&a, &b)| (a + b == 2020).then_some(a * b))
+        .expect("No solution found")
 }
 
 fn part_2(input: &[u64]) -> u64 {
     let mut lookup = [None; 2020];
-    let combinations =
-        input.iter()
-            .copied()
-            .tuple_combinations();
-    for (a, b) in combinations {
+    for (a, b) in input.iter().tuple_combinations() {
         let i = (a + b) as usize;
         if i < 2020 {
             lookup[i] = Some(a * b);
         }
     }
-    for c in input.iter() {
-        if let Some(ab) = lookup[(2020 - c) as usize] {
-            return c * ab;
-        }
-    }
-    panic!("No solution found");
+    input.iter()
+        .find_map(|x| lookup[(2020 - x) as usize].map(|ab| ab * x))
+        .expect("No solution found")
 }
 
 fn main() {
