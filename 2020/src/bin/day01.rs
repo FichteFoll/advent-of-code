@@ -1,11 +1,10 @@
 #![feature(test,bool_to_option)]
 
-extern crate test;
 use itertools::Itertools;
 
 
 fn read_input() -> String {
-    std::fs::read_to_string("input.txt").expect("can’t read file")
+    std::fs::read_to_string("input/day01.txt").expect("can’t read file")
 }
 
 fn parse_input(input_str: &str) -> Vec<u64> {
@@ -43,6 +42,7 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+    extern crate test;
     use super::*;
     use test::Bencher;
 

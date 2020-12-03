@@ -5,7 +5,7 @@ use std::str::FromStr;
 use text_io::scan;
 
 fn read_input() -> String {
-    std::fs::read_to_string("input.txt").expect("can’t read file")
+    std::fs::read_to_string("input/day02.txt").expect("can’t read file")
 }
 
 type Input = Password;
