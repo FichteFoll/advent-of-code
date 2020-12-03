@@ -5,6 +5,7 @@ name = "advent-of-code-2020"
 version = "0.1.0"
 dependencies = [
  "itertools",
+ "lazy_static",
  "text_io",
 ]
 
@@ -22,6 +23,12 @@ checksum = "284f18f85651fe11e8a991b2adb42cb078325c996ed026d994719efcfca1d54b"
 dependencies = [
  "either",
 ]
+
+[[package]]
+name = "lazy_static"
+version = "1.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
 
 [[package]]
 name = "text_io"
