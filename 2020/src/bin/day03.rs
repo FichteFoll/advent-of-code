@@ -9,10 +9,10 @@ fn read_input() -> String {
     std::fs::read_to_string("input/day03.txt").expect("can’t read file")
 }
 
-type Input = Vec<Vec<Square>>;
+type Input = Vec<Vec<Tile>>;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-enum Square {
+enum Tile {
     Empty,
     Tree,
 }
@@ -22,10 +22,10 @@ fn parse_input(input_str: &str) -> Input {
         .trim()
         .split("\n")
         .map(|line| {
-            line.chars()
+            line.bytes()
                 .map(|c| match c {
-                    '.' => Square::Empty,
-                    '#' => Square::Tree,
+                    b'.' => Tile::Empty,
+                    b'#' => Tile::Tree,
                     _ => panic!("unexpected input char")
                 })
                 .collect()
@@ -33,23 +33,23 @@ fn parse_input(input_str: &str) -> Input {
         .collect()
 }
 
-fn walk_forest(input: &Input, by_x: usize, by_y: usize) -> usize {
-    successors(Some((0, 0)), |(x, y)| Some((x + by_x, y + by_y)))
+fn walk_forest(input: &Input, steps: (usize, usize)) -> usize {
+    successors(Some(0), |x| Some(x + steps.0))
+        .zip((0..).step_by(steps.1))
         .map_while(|(x, y)| input.get(y).map(|line| line[x % line.len()]))
-        .filter(|s| s == &Square::Tree)
+        .filter(|s| s == &Tile::Tree)
         .count()
 }
 
 fn part_1(input: &Input) -> usize {
-    walk_forest(input, 3, 1)
+    walk_forest(input, (3, 1))
 }
 
 fn part_2(input: &Input) -> usize {
-    walk_forest(input, 1, 1)
-        * walk_forest(input, 3, 1)
-        * walk_forest(input, 5, 1)
-        * walk_forest(input, 7, 1)
-        * walk_forest(input, 1, 2)
+    [(1, 1), (3, 1), (5, 1), (7, 1), (1, 2)]
+        .iter()
+        .map(|&steps| walk_forest(input, steps))
+        .product()
 }
 
 fn main() {
