@@ -1,4 +1,4 @@
-#![feature(test, str_split_once, bool_to_option, half_open_range_patterns)]
+#![feature(test, str_split_once, bool_to_option)]
 
 use std::collections::HashMap;
 
