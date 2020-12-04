@@ -32,28 +32,27 @@ lazy_static! {
 }
 
 fn has_valid_fields(pp: &HashMap<&str, &str>) -> bool {
-    pp.iter()
-        .all(|(&k, &v)| match k {
-            "byr" => (1920..=2002).contains(&v.parse().unwrap_or(0)),
-            "iyr" => (2010..=2020).contains(&v.parse().unwrap_or(0)),
-            "eyr" => (2020..=2030).contains(&v.parse().unwrap_or(0)),
-            "hgt" => {
-                let (n_str, unit) = v.split_at(v.len() - 2);
-                match (n_str.parse().unwrap_or(0), unit) {
-                    ((150..=193), "cm") => true,
-                    ((59..=76), "in") => true,
-                    _ => false,
-                }
-            },
-            "hcl" => v.len() == 7 && match v.split_at(1) {
-                ("#", rest) => rest.chars().all(|c| c.is_digit(16)),
+    pp.iter().all(|(&k, &v)| match k {
+        "byr" => (1920..=2002).contains(&v.parse().unwrap_or(0)),
+        "iyr" => (2010..=2020).contains(&v.parse().unwrap_or(0)),
+        "eyr" => (2020..=2030).contains(&v.parse().unwrap_or(0)),
+        "hgt" => {
+            let (n_str, unit) = v.split_at(v.len() - 2);
+            match (n_str.parse().unwrap_or(0), unit) {
+                (150..=193, "cm") => true,
+                (59..=76, "in") => true,
                 _ => false,
-            },
-            "ecl" => (&EYE_COLORS).contains(&v),
-            "pid" => v.len() == 9 && v.chars().all(|c| c.is_ascii_digit()),
-            "cid" => true,
+            }
+        },
+        "hcl" => v.len() == 7 && match v.split_at(1) {
+            ("#", rest) => rest.chars().all(|c| c.is_digit(16)),
             _ => false,
-        })
+        },
+        "ecl" => (&EYE_COLORS).contains(&v),
+        "pid" => v.len() == 9 && v.chars().all(|c| c.is_ascii_digit()),
+        "cid" => true,
+        _ => false,
+    })
 }
 
 fn part_1(input: &Input) -> usize {
