@@ -1,7 +1,5 @@
 #![feature(test, str_split_once, bool_to_option)]
 
-use itertools::Itertools;
-
 fn read_input() -> String {
     std::fs::read_to_string("input/day05.txt").expect("can’t read file")
 }
@@ -24,8 +22,9 @@ fn part_1(input: &Input) -> usize {
 }
 
 fn part_2(input: &Input) -> usize {
-    input.iter()
-        .sorted()
+    let mut sorted_input = input.clone();
+    sorted_input.sort_unstable();
+    sorted_input.iter()
         .tuple_windows()
         .find_map(|(a, b)| (a + 1 != *b).then_some(a + 1))
         .expect("no seat found")
