@@ -1,31 +1,46 @@
-#![feature(test, bool_to_option)]
+#![feature(test, iterator_fold_self)]
 
-use std::collections::BTreeSet;
+use std::collections::HashSet;
+
+#[macro_use]
+extern crate lazy_static;
 
 fn read_input() -> String {
     std::fs::read_to_string("input/day06.txt").expect("can’t read file")
 }
 
-type Input = Vec<BTreeSet<u8>>;
+type Input = Vec<Vec<HashSet<u8>>>;
 
 fn parse_input(input_str: &str) -> Input {
     input_str
         .trim()
         .split("\n\n")
         .map(|group|
-            group.bytes()
-                .filter(|&b| b != b'\n')
+            group.split("\n")
+                .map(|line| line.bytes().collect())
                 .collect()
         )
         .collect()
 }
 
 fn part_1(input: &Input) -> usize {
-    input.iter().map(BTreeSet::len).sum()
+    input.iter()
+        .map(|group| group.iter()
+            .fold(HashSet::new(), |acc, p| acc.union(p).cloned().collect())
+            .len()
+        )
+        .sum()
 }
 
-fn part_2(_input: &Input) -> usize {
-    0
+fn part_2(input: &Input) -> usize {
+    input.iter()
+        .map(|group| group.iter()
+            .cloned()
+            .fold_first(|acc, p| acc.intersection(&p).cloned().collect())
+            .map(|s| s.len())
+            .unwrap_or(0)
+        )
+        .sum()
 }
 
 fn main() {
@@ -43,9 +58,8 @@ mod tests {
     extern crate test;
     use test::Bencher;
 
-    #[test]
-    fn test_part_1() {
-        let input_str = "\
+    lazy_static! {
+        static ref EXAMPLE_INPUT_STR: &'static str = "\
             abc\n\
             \n\
             a\n\
@@ -62,8 +76,18 @@ mod tests {
             \n\
             b\n\
             ";
-        let input = parse_input(input_str);
+    }
+
+    #[test]
+    fn test_part_1() {
+        let input = parse_input(&EXAMPLE_INPUT_STR);
         assert_eq!(part_1(&input), 11);
+    }
+
+    #[test]
+    fn test_part_2() {
+        let input = parse_input(&EXAMPLE_INPUT_STR);
+        assert_eq!(part_2(&input), 6);
     }
 
     #[bench]
@@ -83,12 +107,12 @@ mod tests {
         });
     }
 
-    // #[bench]
-    // fn bench_part_2(b: &mut Bencher) {
-    //     let input_str = read_input();
-    //     let input = parse_input(&input_str);
-    //     b.iter(|| {
-    //         assert_eq!(part_2(&input), 557);
-    //     });
-    // }
+    #[bench]
+    fn bench_part_2(b: &mut Bencher) {
+        let input_str = read_input();
+        let input = parse_input(&input_str);
+        b.iter(|| {
+            assert_eq!(part_2(&input), 3290);
+        });
+    }
 }
