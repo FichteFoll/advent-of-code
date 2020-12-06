@@ -1,6 +1,6 @@
 #![feature(test, iterator_fold_self)]
 
-use std::collections::HashSet;
+use std::ops::{BitAnd, BitOr};
 
 #[macro_use]
 extern crate lazy_static;
@@ -9,7 +9,7 @@ fn read_input() -> String {
     std::fs::read_to_string("input/day06.txt").expect("can’t read file")
 }
 
-type Input = Vec<Vec<HashSet<u8>>>;
+type Input = Vec<Vec<u32>>;
 
 fn parse_input(input_str: &str) -> Input {
     input_str
@@ -17,7 +17,10 @@ fn parse_input(input_str: &str) -> Input {
         .split("\n\n")
         .map(|group|
             group.split("\n")
-                .map(|line| line.bytes().collect())
+                .map(|line| line.bytes()
+                    .map(|b| 1 << (b - b'a'))
+                    .fold(0, u32::bitor)
+                )
                 .collect()
         )
         .collect()
@@ -26,8 +29,9 @@ fn parse_input(input_str: &str) -> Input {
 fn part_1(input: &Input) -> usize {
     input.iter()
         .map(|group| group.iter()
-            .fold(HashSet::new(), |acc, p| acc.union(p).cloned().collect())
-            .len()
+            .fold(0, u32::bitor)
+            .count_ones()
+            as usize
         )
         .sum()
 }
@@ -35,10 +39,9 @@ fn part_1(input: &Input) -> usize {
 fn part_2(input: &Input) -> usize {
     input.iter()
         .map(|group| group.iter()
-            .cloned()
-            .fold_first(|acc, p| acc.intersection(&p).cloned().collect())
-            .map(|s| s.len())
-            .unwrap_or(0)
+            .fold(u32::MAX, u32::bitand)
+            .count_ones()
+            as usize
         )
         .sum()
 }
