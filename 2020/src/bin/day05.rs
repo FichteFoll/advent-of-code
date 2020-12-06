@@ -22,11 +22,14 @@ fn part_1(input: &Input) -> usize {
 }
 
 fn part_2(input: &Input) -> usize {
-    let mut sorted_input = input.clone();
-    sorted_input.sort_unstable();
-    sorted_input.iter()
-        .tuple_windows()
-        .find_map(|(a, b)| (a + 1 != *b).then_some(a + 1))
+    let mut seats = [false; 1024];
+    for &seat in input.iter() {
+        seats[seat] = true;
+    }
+    seats.iter()
+        .enumerate()
+        .skip_while(|(_, &s)| !s)
+        .find_map(|(i, s)| (!s).then_some(i))
         .expect("no seat found")
 }
 
