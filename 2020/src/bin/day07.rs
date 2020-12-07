@@ -2,6 +2,8 @@
 
 use std::collections::{HashMap, HashSet, VecDeque};
 
+use multimap::MultiMap;
+
 fn read_input() -> String {
     std::fs::read_to_string("input/day07.txt").expect("can’t read file")
 }
@@ -35,23 +37,19 @@ fn parse_input(input_str: &str) -> Input {
 
 fn part_1(input: &Input) -> usize {
     // reverse the input graph
-    let mut graph: HashMap<&str, Vec<&str>> = HashMap::new();
-    for (color, sub_colors) in input {
-        for (sub_color, _) in sub_colors.iter() {
-            graph.entry(sub_color).or_default().push(color);
-        }
-    }
+    let graph: MultiMap<&String, &String> = input.iter()
+        .flat_map(|(color, sub_colors)|
+            sub_colors.iter()
+                .map(move |(sub_color, _)| (sub_color, color))
+        )
+        .collect();
     // traverse graph
-    let mut queue: VecDeque<&str> = vec!["shiny gold"].into_iter().collect();
+    let starting_color = "shiny gold".to_string();
+    let mut queue: VecDeque<&String> = vec![&starting_color].into_iter().collect();
     let mut seen = HashSet::new();
-    loop {
-        if let Some(color) = queue.pop_front() {
-            if !seen.insert(color) {
-                continue;
-            }
-            graph.get(color).map(|sub_colors| queue.extend(sub_colors));
-        } else {
-            break;
+    while let Some(color) = queue.pop_front() {
+        if seen.insert(color) {
+            graph.get_vec(&color.to_string()).map(|sub_colors| queue.extend(sub_colors));
         }
     }
     seen.len() - 1
