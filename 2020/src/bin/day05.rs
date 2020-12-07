@@ -1,4 +1,4 @@
-#![feature(test, str_split_once, bool_to_option)]
+#![feature(test, bool_to_option)]
 
 fn read_input() -> String {
     std::fs::read_to_string("input/day05.txt").expect("can’t read file")
