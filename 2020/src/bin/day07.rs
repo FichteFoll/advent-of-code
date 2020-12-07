@@ -11,7 +11,7 @@ fn read_input() -> String {
     std::fs::read_to_string("input/day07.txt").expect("can’t read file")
 }
 
-type Input = HashMap<String, HashMap<String, usize>>;
+type Input = HashMap<String, Vec<(String, usize)>>;
 
 fn parse_input(input_str: &str) -> Input {
     input_str
@@ -21,7 +21,7 @@ fn parse_input(input_str: &str) -> Input {
             let (color, contents) = line
                 .strip_suffix(".").expect("line did not have a dot")
                 .split_once(" bags contain ").expect("could not split");
-            let rules: HashMap<_, _> = contents.split(", ")
+            let rules = contents.split(", ")
                 .filter_map(|rule| {
                     if rule == "no other bags" {
                         None
@@ -40,10 +40,10 @@ fn parse_input(input_str: &str) -> Input {
 
 fn part_1(input: &Input) -> usize {
     // reverse the input graph
-    let mut graph: HashMap<&str, HashSet<&str>> = HashMap::new();
+    let mut graph: HashMap<&str, Vec<&str>> = HashMap::new();
     for (color, sub_colors) in input {
-        for sub_color in sub_colors.keys() {
-            graph.entry(sub_color).or_default().insert(color);
+        for (sub_color, _) in sub_colors.iter() {
+            graph.entry(sub_color).or_default().push(color);
         }
     }
     // traverse graph
@@ -68,7 +68,7 @@ fn count_bags(input: &Input, color: &str, mut seen: &mut HashMap<String, usize>)
     } else {
         let n = 1 + input.get(color).expect("bag color not found")
             .iter()
-            .map(|(sub_color, &multiplier)| {
+            .map(|(sub_color, multiplier)| {
                 multiplier * count_bags(input, sub_color, &mut seen)
             })
             .sum::<usize>();
