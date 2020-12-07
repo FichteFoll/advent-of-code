@@ -2,9 +2,6 @@
 
 use std::collections::HashMap;
 
-#[macro_use]
-extern crate lazy_static;
-
 fn read_input() -> String {
     std::fs::read_to_string("input/day04.txt").expect("can’t read file")
 }
@@ -27,9 +24,7 @@ fn has_all_fields(pp: &HashMap<&str, &str>) -> bool {
     pp.keys().len().saturating_sub(pp.contains_key("cid").then_some(1).unwrap_or(0)) >= 7
 }
 
-lazy_static! {
-    static ref EYE_COLORS: [&'static str; 7] = ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"];
-}
+const EYE_COLORS: [&str; 7] = ["amb", "blu", "brn", "gry", "grn", "hzl", "oth"];
 
 fn has_valid_fields(pp: &HashMap<&str, &str>) -> bool {
     pp.iter().all(|(&k, &v)| match k {
@@ -83,23 +78,21 @@ mod tests {
     extern crate test;
     use test::Bencher;
 
-    lazy_static! {
-        static ref EXAMPLE_INPUT_STR: &'static str = "\
-            ecl:gry pid:860033327 eyr:2020 hcl:#fffffd\n\
-            byr:1937 iyr:2017 cid:147 hgt:183cm\n\
-            \n\
-            iyr:2013 ecl:amb cid:350 eyr:2023 pid:028048884\n\
-            hcl:#cfa07d byr:1929\n\
-            \n\
-            hcl:#ae17e1 iyr:2013\n\
-            eyr:2024\n\
-            ecl:brn pid:760753108 byr:1931\n\
-            hgt:179cm\n\
-            \n\
-            hcl:#cfa07d eyr:2025 pid:166559648\n\
-            iyr:2011 ecl:brn hgt:59in\n\
-            ";
-    }
+    const EXAMPLE_INPUT_STR: &str = "\
+        ecl:gry pid:860033327 eyr:2020 hcl:#fffffd\n\
+        byr:1937 iyr:2017 cid:147 hgt:183cm\n\
+        \n\
+        iyr:2013 ecl:amb cid:350 eyr:2023 pid:028048884\n\
+        hcl:#cfa07d byr:1929\n\
+        \n\
+        hcl:#ae17e1 iyr:2013\n\
+        eyr:2024\n\
+        ecl:brn pid:760753108 byr:1931\n\
+        hgt:179cm\n\
+        \n\
+        hcl:#cfa07d eyr:2025 pid:166559648\n\
+        iyr:2011 ecl:brn hgt:59in\n\
+        ";
 
     #[test]
     fn test_part_1() {

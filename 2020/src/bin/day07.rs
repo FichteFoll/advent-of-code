@@ -2,11 +2,6 @@
 
 use std::collections::{HashMap, HashSet, VecDeque};
 
-// use itertools::Itertools;
-
-#[macro_use]
-extern crate lazy_static;
-
 fn read_input() -> String {
     std::fs::read_to_string("input/day07.txt").expect("can’t read file")
 }
@@ -97,19 +92,17 @@ mod tests {
     extern crate test;
     use test::Bencher;
 
-    lazy_static! {
-        static ref EXAMPLE_INPUT_STR: &'static str = "\
-            light red bags contain 1 bright white bag, 2 muted yellow bags.\n\
-            dark orange bags contain 3 bright white bags, 4 muted yellow bags.\n\
-            bright white bags contain 1 shiny gold bag.\n\
-            muted yellow bags contain 2 shiny gold bags, 9 faded blue bags.\n\
-            shiny gold bags contain 1 dark olive bag, 2 vibrant plum bags.\n\
-            dark olive bags contain 3 faded blue bags, 4 dotted black bags.\n\
-            vibrant plum bags contain 5 faded blue bags, 6 dotted black bags.\n\
-            faded blue bags contain no other bags.\n\
-            dotted black bags contain no other bags.\n\
-            ";
-    }
+    const EXAMPLE_INPUT_STR: &str = "\
+        light red bags contain 1 bright white bag, 2 muted yellow bags.\n\
+        dark orange bags contain 3 bright white bags, 4 muted yellow bags.\n\
+        bright white bags contain 1 shiny gold bag.\n\
+        muted yellow bags contain 2 shiny gold bags, 9 faded blue bags.\n\
+        shiny gold bags contain 1 dark olive bag, 2 vibrant plum bags.\n\
+        dark olive bags contain 3 faded blue bags, 4 dotted black bags.\n\
+        vibrant plum bags contain 5 faded blue bags, 6 dotted black bags.\n\
+        faded blue bags contain no other bags.\n\
+        dotted black bags contain no other bags.\n\
+        ";
 
     #[test]
     fn test_part_1() {

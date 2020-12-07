@@ -2,9 +2,6 @@
 
 use std::iter::successors;
 
-#[macro_use]
-extern crate lazy_static;
-
 fn read_input() -> String {
     std::fs::read_to_string("input/day03.txt").expect("can’t read file")
 }
@@ -67,21 +64,19 @@ mod tests {
     extern crate test;
     use test::Bencher;
 
-    lazy_static! {
-        static ref EXAMPLE_INPUT_STR: &'static str = "\
-            ..##.......\n\
-            #...#...#..\n\
-            .#....#..#.\n\
-            ..#.#...#.#\n\
-            .#...##..#.\n\
-            ..#.##.....\n\
-            .#.#.#....#\n\
-            .#........#\n\
-            #.##...#...\n\
-            #...##....#\n\
-            .#..#...#.#\n\
-            ";
-    }
+    const EXAMPLE_INPUT_STR: &str = "\
+        ..##.......\n\
+        #...#...#..\n\
+        .#....#..#.\n\
+        ..#.#...#.#\n\
+        .#...##..#.\n\
+        ..#.##.....\n\
+        .#.#.#....#\n\
+        .#........#\n\
+        #.##...#...\n\
+        #...##....#\n\
+        .#..#...#.#\n\
+        ";
 
     #[test]
     fn test_part_1() {

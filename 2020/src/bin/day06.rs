@@ -2,9 +2,6 @@
 
 use std::ops::{BitAnd, BitOr};
 
-#[macro_use]
-extern crate lazy_static;
-
 fn read_input() -> String {
     std::fs::read_to_string("input/day06.txt").expect("can’t read file")
 }
@@ -61,25 +58,23 @@ mod tests {
     extern crate test;
     use test::Bencher;
 
-    lazy_static! {
-        static ref EXAMPLE_INPUT_STR: &'static str = "\
-            abc\n\
-            \n\
-            a\n\
-            b\n\
-            c\n\
-            \n\
-            ab\n\
-            ac\n\
-            \n\
-            a\n\
-            a\n\
-            a\n\
-            a\n\
-            \n\
-            b\n\
-            ";
-    }
+    const EXAMPLE_INPUT_STR: &str = "\
+        abc\n\
+        \n\
+        a\n\
+        b\n\
+        c\n\
+        \n\
+        ab\n\
+        ac\n\
+        \n\
+        a\n\
+        a\n\
+        a\n\
+        a\n\
+        \n\
+        b\n\
+        ";
 
     #[test]
     fn test_part_1() {
