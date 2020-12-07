@@ -39,7 +39,7 @@ fn parse_input(input_str: &str) -> Input {
 }
 
 fn part_1(input: &Input) -> usize {
-    // build a directed graph
+    // reverse the input graph
     let mut graph: HashMap<&str, HashSet<&str>> = HashMap::new();
     for (color, sub_colors) in input {
         for sub_color in sub_colors.keys() {
@@ -62,8 +62,24 @@ fn part_1(input: &Input) -> usize {
     seen.len() - 1
 }
 
-fn part_2(_input: &Input) -> usize {
-    0
+fn count_bags(input: &Input, color: &str, mut seen: &mut HashMap<String, usize>) -> usize {
+    if let Some(&n) = seen.get(color) {
+        n
+    } else {
+        let n = 1 + input.get(color).expect("bag color not found")
+            .iter()
+            .map(|(sub_color, &multiplier)| {
+                multiplier * count_bags(input, sub_color, &mut seen)
+            })
+            .sum::<usize>();
+        seen.insert(color.to_string(), n);
+        n
+    }
+}
+
+fn part_2(input: &Input) -> usize {
+    let mut seen = HashMap::new();
+    count_bags(input, "shiny gold", &mut seen) - 1
 }
 
 fn main() {
@@ -101,11 +117,11 @@ mod tests {
         assert_eq!(part_1(&input), 4);
     }
 
-    // #[test]
-    // fn test_part_2() {
-    //     let input = parse_input(&EXAMPLE_INPUT_STR);
-    //     assert_eq!(part_2(&input), 6);
-    // }
+    #[test]
+    fn test_part_2() {
+        let input = parse_input(&EXAMPLE_INPUT_STR);
+        assert_eq!(part_2(&input), 32);
+    }
 
     #[bench]
     fn bench_parse(b: &mut Bencher) {
@@ -124,12 +140,12 @@ mod tests {
         });
     }
 
-    // #[bench]
-    // fn bench_part_2(b: &mut Bencher) {
-    //     let input_str = read_input();
-    //     let input = parse_input(&input_str);
-    //     b.iter(|| {
-    //         assert_eq!(part_2(&input), 3290);
-    //     });
-    // }
+    #[bench]
+    fn bench_part_2(b: &mut Bencher) {
+        let input_str = read_input();
+        let input = parse_input(&input_str);
+        b.iter(|| {
+            assert_eq!(part_2(&input), 38426);
+        });
+    }
 }
