@@ -1,6 +1,4 @@
-#![feature(test, str_split_once)]
-
-use std::collections::HashSet;
+#![feature(test, str_split_once, destructuring_assignment)]
 
 fn read_input() -> String {
     std::fs::read_to_string("input/day08.txt").expect("can’t read file")
@@ -10,9 +8,9 @@ fn read_input() -> String {
 struct Handheld<'a> {
     pub acc: i64,
     pub instructions: &'a [Instruction],
-    pub pointer: i64,
-    pub seen: HashSet<i64>,
-    pub replaced_instr: Option<i64>,
+    pub pointer: usize,
+    pub seen: Vec<bool>,
+    pub replaced_instr: Option<usize>,
 }
 
 #[derive(Debug)]
@@ -30,53 +28,53 @@ enum Operation {
 
 impl<'a> Handheld<'a> {
     fn new(instructions: &'a [Instruction]) -> Self {
-        Handheld { acc: 0, instructions, pointer: 0, seen: HashSet::new(), replaced_instr: None }
+        Handheld {
+            acc: 0,
+            instructions,
+            pointer: 0,
+            seen: vec![false; instructions.len()],
+            replaced_instr: None,
+        }
     }
 
     fn execute_one(&mut self) {
         use Operation::*;
-        let instr = &self.instructions[self.pointer as usize];
-        let op = if self.replaced_instr == Some(self.pointer) {
-            match &instr.op {
-                Jmp => &Nop,
-                Nop => &Jmp,
-                x => x,
-            }
-        } else {
-            &instr.op
-        };
-        match op {
-            Acc => {self.acc += instr.arg; self.pointer += 1},
-            Jmp => self.pointer = self.pointer + instr.arg,
-            Nop => self.pointer += 1,
+        let instr = &self.instructions[self.pointer];
+        let changed = self.replaced_instr == Some(self.pointer);
+        match (&instr.op, changed) {
+            (Acc, _) => {self.acc += instr.arg; self.pointer += 1},
+            (Jmp, false) | (Nop, true) => self.pointer = ((self.pointer as i64) + instr.arg) as usize,
+            (Nop, false) | (Jmp, true) => self.pointer += 1,
         }
     }
 
     fn is_done(&self) -> bool {
-        !(0..self.instructions.len() as i64).contains(&self.pointer)
+        self.pointer >= self.instructions.len()
     }
 
     fn execute_until_cycle_or_done(&mut self) {
-        while !self.is_done() && self.seen.insert(self.pointer) {
+        while !self.is_done() && !self.seen[self.pointer] {
+            self.seen[self.pointer] = true;
             self.execute_one()
         }
     }
 
-    fn find_terminating(mut self) -> Self {
-        let mut replaced = HashSet::new();
-        while !self.is_done() && !self.seen.contains(&self.pointer) {
-            let is_not_acc = &self.instructions[self.pointer as usize].op != &Operation::Acc;
-            if self.replaced_instr.is_none() && is_not_acc && replaced.insert(self.pointer) {
-                let mut branch = self.clone();
-                branch.replaced_instr = Some(self.pointer);
-                branch.execute_until_cycle_or_done();
-                if branch.is_done() {
-                    return branch;
+    fn execute_modified(&mut self) {
+        let mut replaced = vec![false; self.instructions.len()];
+        while !self.is_done() && !self.seen[self.pointer] {
+            if !replaced[self.pointer] && &self.instructions[self.pointer].op != &Operation::Acc {
+                let (acc, pointer) = (self.acc, self.pointer);
+                self.replaced_instr = Some(pointer);
+                self.execute_until_cycle_or_done();
+                if !self.is_done() {
+                    // reset state
+                    (self.acc, self.pointer, self.replaced_instr) = (acc, pointer, None);
+                    replaced[pointer] = true;
+                    self.seen[pointer] = false;
                 }
             }
             self.execute_one()
         }
-        self
     }
 }
 
@@ -107,7 +105,7 @@ fn part_1(input: &Input) -> i64 {
 
 fn part_2(input: &Input) -> i64 {
     let mut hh = Handheld::new(input);
-    hh = hh.find_terminating();
+    hh.execute_modified();
     assert!(hh.is_done());
     hh.acc
 }
