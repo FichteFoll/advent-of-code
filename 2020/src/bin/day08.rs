@@ -38,10 +38,11 @@ impl<'a> Handheld<'a> {
     }
 
     fn execute_one(&mut self) {
-        use Operation::*;
+        self.seen[self.pointer] = true;
         let instr = &self.instructions[self.pointer];
-        let changed = self.replaced_instr == Some(self.pointer);
-        match (&instr.op, changed) {
+        let is_changed = self.replaced_instr == Some(self.pointer);
+        use Operation::*;
+        match (&instr.op, is_changed) {
             (Acc, _) => {self.acc += instr.arg; self.pointer += 1},
             (Jmp, false) | (Nop, true) => self.pointer = ((self.pointer as i64) + instr.arg) as usize,
             (Nop, false) | (Jmp, true) => self.pointer += 1,
@@ -52,28 +53,29 @@ impl<'a> Handheld<'a> {
         self.pointer >= self.instructions.len()
     }
 
-    fn execute_until_cycle_or_done(&mut self) {
-        while !self.is_done() && !self.seen[self.pointer] {
-            self.seen[self.pointer] = true;
-            self.execute_one()
+    fn execute_until_cycle_or_done(&mut self) -> bool {
+        loop {
+            self.execute_one();
+            if self.is_done() {
+                return true;
+            } else if self.seen[self.pointer] {
+                return false;
+            }
         }
     }
 
     fn execute_modified(&mut self) {
-        let mut replaced = vec![false; self.instructions.len()];
-        while !self.is_done() && !self.seen[self.pointer] {
-            if !replaced[self.pointer] && &self.instructions[self.pointer].op != &Operation::Acc {
+        loop {
+            if &self.instructions[self.pointer].op != &Operation::Acc {
                 let (acc, pointer) = (self.acc, self.pointer);
                 self.replaced_instr = Some(pointer);
-                self.execute_until_cycle_or_done();
-                if !self.is_done() {
-                    // reset state
-                    (self.acc, self.pointer, self.replaced_instr) = (acc, pointer, None);
-                    replaced[pointer] = true;
-                    self.seen[pointer] = false;
+                if self.execute_until_cycle_or_done() {
+                    return;
                 }
+                // reset state
+                (self.acc, self.pointer, self.replaced_instr) = (acc, pointer, None);
             }
-            self.execute_one()
+            self.execute_one();
         }
     }
 }
@@ -106,7 +108,6 @@ fn part_1(input: &Input) -> i64 {
 fn part_2(input: &Input) -> i64 {
     let mut hh = Handheld::new(input);
     hh.execute_modified();
-    assert!(hh.is_done());
     hh.acc
 }
 
