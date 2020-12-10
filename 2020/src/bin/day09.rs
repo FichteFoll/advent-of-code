@@ -1,6 +1,6 @@
-#![feature(test, str_split_once)]
+#![feature(test, core_intrinsics)]
 
-use itertools::Itertools;
+use itertools::{Itertools, MinMaxResult};
 
 fn read_input() -> String {
     std::fs::read_to_string("input/day09.txt").expect("can’t read file")
@@ -26,16 +26,32 @@ fn part_1(preamble: usize, input: &Input) -> usize {
     panic!("all numbers are valid");
 }
 
-fn part_2(_input: &Input) -> usize {
-    0
+fn part_2(n: usize, input: &Input) -> usize {
+    for i in 0..input.len() {
+        let sums = input[i..].iter()
+            .scan(0usize, |acc, &x| {*acc += x; Some(*acc)})
+            .skip(1)
+            .take_while(|&x| x <= n)
+            .collect_vec();
+        if let Some(&candidate) = sums.last() {
+            if candidate == n {
+                return match input[i..i+sums.len()+1].iter().minmax() {
+                    MinMaxResult::MinMax(a, b) => a + b,
+                    _ => unreachable!(),
+                }
+            }
+        }
+    }
+    panic!("no window found");
 }
 
 fn main() {
     let input_str = read_input();
     let input = parse_input(&input_str);
 
-    println!("Part 1: {}", part_1(25, &input));
-    println!("Part 2: {}", part_2(&input));
+    let n = part_1(25, &input);
+    println!("Part 1: {}", n);
+    println!("Part 2: {}", part_2(n, &input));
 }
 
 #[cfg(test)]
@@ -74,11 +90,11 @@ mod tests {
         assert_eq!(part_1(5, &input), 127);
     }
 
-    // #[test]
-    // fn test_part_2() {
-    //     let input = parse_input(&EXAMPLE_INPUT_STR);
-    //     assert_eq!(part_2(&input), 8);
-    // }
+    #[test]
+    fn test_part_2() {
+        let input = parse_input(&EXAMPLE_INPUT_STR);
+        assert_eq!(part_2(127, &input), 62);
+    }
 
     #[bench]
     fn bench_parse(b: &mut Bencher) {
@@ -97,12 +113,12 @@ mod tests {
         });
     }
 
-    // #[bench]
-    // fn bench_part_2(b: &mut Bencher) {
-    //     let input_str = read_input();
-    //     let input = parse_input(&input_str);
-    //     b.iter(|| {
-    //         assert_eq!(part_2(&input), 1089);
-    //     });
-    // }
+    #[bench]
+    fn bench_part_2(b: &mut Bencher) {
+        let input_str = read_input();
+        let input = parse_input(&input_str);
+        b.iter(|| {
+            assert_eq!(part_2(1930745883, &input), 268878261);
+        });
+    }
 }
