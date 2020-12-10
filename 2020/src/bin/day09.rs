@@ -1,11 +1,9 @@
 #![feature(test, core_intrinsics)]
 
+use aoc2020::*;
 use itertools::{Itertools, MinMaxResult};
 
-fn read_input() -> String {
-    std::fs::read_to_string("input/day09.txt").expect("can’t read file")
-}
-
+const DAY: usize = 9;
 type Input = Vec<usize>;
 
 fn parse_input(input_str: &str) -> Input {
@@ -16,7 +14,7 @@ fn parse_input(input_str: &str) -> Input {
         .collect()
 }
 
-fn part_1(preamble: usize, input: &Input) -> usize {
+fn part_1(input: &Input, preamble: usize) -> usize {
     for i in preamble..input.len() {
         let n = input[i];
         if !input[i - preamble..i].iter().tuple_combinations().any(|(a, b)| a + b == n) {
@@ -26,7 +24,7 @@ fn part_1(preamble: usize, input: &Input) -> usize {
     panic!("all numbers are valid");
 }
 
-fn part_2(n: usize, input: &Input) -> usize {
+fn part_2(input: &Input, n: usize) -> usize {
     let (mut start, mut end) = (0, 2);
     let mut acc = input[0] + input[1];
     loop {
@@ -46,22 +44,19 @@ fn part_2(n: usize, input: &Input) -> usize {
 }
 
 fn main() {
-    let input_str = read_input();
+    let input_str = read_input!();
     let input = parse_input(&input_str);
-
-    let n = part_1(25, &input);
+    let n = part_1(&input, 25);
     println!("Part 1: {}", n);
-    println!("Part 2: {}", part_2(n, &input));
+    println!("Part 2: {}", part_2(&input, n));
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
     extern crate test;
-    use test::Bencher;
 
-    const EXAMPLE_INPUT_STR: &str = "\
+    const TEST_INPUT_STR: &str = "\
         35\n\
         20\n\
         15\n\
@@ -84,46 +79,14 @@ mod tests {
         576\n\
         ";
 
-    #[test]
-    fn test_part_1() {
-        let input = parse_input(&EXAMPLE_INPUT_STR);
-        assert_eq!(part_1(5, &input), 127);
-    }
-
-    #[test]
-    fn test_part_2() {
-        let input = parse_input(&EXAMPLE_INPUT_STR);
-        assert_eq!(part_2(127, &input), 62);
-    }
+    test!(part_1(5) == 127);
+    test!(part_2(127) == 62);
+    bench_parse!(len, 1000);
+    bench!(part_1(25) == 1930745883);
+    bench!(part_2(1930745883) == 268878261);
 
     #[test]
     fn test_part_2_window_large_enough() {
-        assert_eq!(part_2(2, &vec![4, 2, 1, 1]), 2);
-    }
-
-    #[bench]
-    fn bench_parse(b: &mut Bencher) {
-        let input_str = read_input();
-        b.iter(|| {
-            let _ = parse_input(&input_str);
-        });
-    }
-
-    #[bench]
-    fn bench_part_1(b: &mut Bencher) {
-        let input_str = read_input();
-        let input = parse_input(&input_str);
-        b.iter(|| {
-            assert_eq!(part_1(25, &input), 1930745883);
-        });
-    }
-
-    #[bench]
-    fn bench_part_2(b: &mut Bencher) {
-        let input_str = read_input();
-        let input = parse_input(&input_str);
-        b.iter(|| {
-            assert_eq!(part_2(1930745883, &input), 268878261);
-        });
+        assert_eq!(part_2(&vec![4, 2, 1, 1], 2), 2);
     }
 }
