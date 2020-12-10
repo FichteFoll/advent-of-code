@@ -1,7 +1,5 @@
 #![feature(test, str_split_once)]
 
-use std::collections::VecDeque;
-
 use itertools::Itertools;
 
 fn read_input() -> String {
@@ -19,19 +17,11 @@ fn parse_input(input_str: &str) -> Input {
 }
 
 fn part_1(preamble: usize, input: &Input) -> usize {
-    let (window_init, numbers) = input.split_at(preamble);
-    let mut window: VecDeque<_> = window_init.into_iter().cloned().collect();
-    let mut n_iter = numbers.into_iter();
-    while let Some(&n) = n_iter.next() {
-        let valid = window.iter().tuple_combinations()
-            .map(|(a, b)| a + b)
-            .find(|&x| x == n)
-            .is_some();
-        if !valid {
+    for i in preamble..input.len() {
+        let n = input[i];
+        if !input[i - preamble..i].iter().tuple_combinations().any(|(a, b)| a + b == n) {
             return n;
         }
-        window.pop_front();
-        window.push_back(n);
     }
     panic!("all numbers are valid");
 }
