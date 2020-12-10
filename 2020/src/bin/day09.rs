@@ -27,22 +27,22 @@ fn part_1(preamble: usize, input: &Input) -> usize {
 }
 
 fn part_2(n: usize, input: &Input) -> usize {
-    for i in 0..input.len() {
-        let sums = input[i..].iter()
-            .scan(0usize, |acc, &x| {*acc += x; Some(*acc)})
-            .skip(1)
-            .take_while(|&x| x <= n)
-            .collect_vec();
-        if let Some(&candidate) = sums.last() {
-            if candidate == n {
-                return match input[i..i+sums.len()+1].iter().minmax() {
-                    MinMaxResult::MinMax(a, b) => a + b,
-                    _ => unreachable!(),
-                }
-            }
+    let (mut start, mut end) = (0, 2);
+    let mut acc = input[0] + input[1];
+    loop {
+        if acc == n && start + 1 < end {
+            return match input[start..end].iter().minmax() {
+                MinMaxResult::MinMax(a, b) => a + b,
+                _ => unreachable!(),
+            };
+        } else if acc > n {
+            acc -= input[start];
+            start += 1;
+        } else {
+            acc += input[end];
+            end += 1;
         }
     }
-    panic!("no window found");
 }
 
 fn main() {
@@ -94,6 +94,11 @@ mod tests {
     fn test_part_2() {
         let input = parse_input(&EXAMPLE_INPUT_STR);
         assert_eq!(part_2(127, &input), 62);
+    }
+
+    #[test]
+    fn test_part_2_window_large_enough() {
+        assert_eq!(part_2(2, &vec![4, 2, 1, 1]), 2);
     }
 
     #[bench]
