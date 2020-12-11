@@ -17,7 +17,7 @@ macro_rules! read_input {
     };
 }
 
-// requires TEST_INPUT
+// requires TEST_INPUT_STR & parse_input
 #[macro_export]
 macro_rules! test {
     ($part: ident ($($param: expr),*) == $expected:expr) => {
@@ -31,6 +31,7 @@ macro_rules! test {
     };
 }
 
+// requires parse_input
 #[macro_export]
 macro_rules! bench {
     ($part: ident ($($param: expr),*) == $expected:expr) => {
@@ -45,6 +46,7 @@ macro_rules! bench {
     };
 }
 
+// requires parse_input
 #[macro_export]
 macro_rules! bench_parse {
     ($fn:ident, $expected_len:expr) => {
