@@ -26,8 +26,15 @@ fn part_1(input: &Input) -> usize {
     diff.first().unwrap() * (diff.last().unwrap() + 1)
 }
 
-fn part_2(_input: &Input) -> usize {
-    0
+fn part_2(input: &Input) -> usize {
+    let mut sorted_input = input.clone();
+    sorted_input.sort_unstable();
+    let mut routes = vec![0; *sorted_input.last().unwrap() + 1];
+    routes[0] = 1;
+    for &i in sorted_input.iter() {
+        routes[i] = (&routes[i.saturating_sub(3)..i]).iter().sum();
+    }
+    *routes.last().unwrap()
 }
 
 fn main() {
@@ -41,6 +48,32 @@ fn main() {
 mod tests {
     use super::*;
     extern crate test;
+
+    const SIMPLE_INPUT_STR: &str = "\
+        16\n\
+        10\n\
+        15\n\
+        5\n\
+        1\n\
+        11\n\
+        7\n\
+        19\n\
+        6\n\
+        12\n\
+        4\n\
+        ";
+
+    #[test]
+    fn test_part_1_simple() {
+        let input = parse_input(SIMPLE_INPUT_STR);
+        assert_eq!(part_1(&input), 5 * 7)
+    }
+
+    #[test]
+    fn test_part_2_simple() {
+        let input = parse_input(SIMPLE_INPUT_STR);
+        assert_eq!(part_2(&input), 8)
+    }
 
     const TEST_INPUT_STR: &str = "\
         28\n\
@@ -77,27 +110,8 @@ mod tests {
         ";
 
     test!(part_1() == 10 * 22);
-    // test!(part_2() == 0);
+    test!(part_2() == 19208);
     bench_parse!(len, 101);
     bench!(part_1() == 2277);
-    // bench!(part_2() == 0);
-
-    #[test]
-    fn test_part_1_simple() {
-        let input_str = "\
-            16\n\
-            10\n\
-            15\n\
-            5\n\
-            1\n\
-            11\n\
-            7\n\
-            19\n\
-            6\n\
-            12\n\
-            4\n\
-            ";
-        let input = parse_input(input_str);
-        assert_eq!(part_1(&input), 5 * 7)
-    }
+    bench!(part_2() == 37024595836928);
 }
