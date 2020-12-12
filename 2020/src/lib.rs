@@ -1,3 +1,4 @@
+pub mod grid;
 
 pub fn read_file(day: usize) -> String {
     std::fs::read_to_string(
