@@ -3,13 +3,12 @@ use std::{fmt::{Display, Error, Formatter}, iter::FromIterator};
 use itertools::iproduct;
 // use impl_ops::impl_op;
 
-
 type Size = (usize, usize);
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Grid<T> {
     grid: Vec<Vec<T>>,
-    dimensions: Size,
+    size: Size,
 }
 
 impl<T> Grid<T> {
@@ -18,15 +17,12 @@ impl<T> Grid<T> {
     }
 
     pub fn iter(&self) -> impl Iterator<Item=&T> {
-        (0..self.dimensions.0)
-            .flat_map(move |y| (0..self.dimensions.1)
-                .map(move |x| Point { x, y })
-                .map(move |p| self.get(&p))
-            )
+        self.grid.iter()
+            .flat_map(|row| row.iter())
     }
 
     pub fn saturated_neighbors(&self, pt: &Point) -> impl Iterator<Item=Point> {
-        pt.saturated_neighbors(self.dimensions.0 - 1, self.dimensions.1 - 1)
+        pt.saturated_neighbors(self.size.0 - 1, self.size.1 - 1)
     }
 
     pub fn neighbor_values(&self, pt: &Point) -> Vec<&T> {
@@ -37,8 +33,8 @@ impl<T> Grid<T> {
 
     pub fn indices(&self) -> impl Iterator<Item=Point> {
         iproduct!(
-            0..self.dimensions.0,
-            0..self.dimensions.1
+            0..self.size.0,
+            0..self.size.1
         )
             .map(|x| Point::from(x))
     }
@@ -46,11 +42,12 @@ impl<T> Grid<T> {
     pub fn new_map<F>(&self, f: F) -> Self
         where F: Fn(&T) -> T
     {
-        (0..self.dimensions.0)
-            .map(|y| (0..self.dimensions.1)
-                .map(move |x| Point { x, y })
-                .map(|p| f(self.get(&p)))
-            )
+        self.grid.iter()
+            .map(|row| {
+                row.iter()
+                   .map(|cell| f(cell))
+                   .collect::<Vec<T>>()
+            })
             .collect()
     }
 
@@ -64,8 +61,8 @@ impl<T> Grid<T> {
                    .collect::<Vec<T>>()
             })
             .collect()
-        // (0..self.dimensions.0)
-        //     .map(|y| (0..self.dimensions.1)
+        // (0..self.size.0)
+        //     .map(|y| (0..self.size.1)
         //         .map(move |x| Point { x, y })
         //         .map(|p| f(&p, self.get(&p)))
         //     )
@@ -90,11 +87,8 @@ impl<A, T> FromIterator<A> for Grid<T>
         let grid: Vec<Vec<T>> = iter.into_iter()
                 .map(|nested_iter| nested_iter.into_iter().collect())
                 .collect();
-        let dimensions = (grid.first().map(Vec::len).unwrap_or(0), grid.len());
-        Grid {
-            grid,
-            dimensions,
-        }
+        let size = (grid.first().map(Vec::len).unwrap_or(0), grid.len());
+        Grid { grid, size }
     }
 }
 
@@ -125,7 +119,7 @@ impl Point {
             self.x.saturating_sub(1)..=max_x.min(self.x + 1),
             self.y.saturating_sub(1)..=max_y.min(self.y + 1)
         )
-            .filter(move |(x, y)| !(*x == exclude.x && *y == exclude.y))
+            .filter(move |(x, y)| *x != exclude.x || *y != exclude.y)
             .map(|tpl| Point::from(tpl))
     }
 }
