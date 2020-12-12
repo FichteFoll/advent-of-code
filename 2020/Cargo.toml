@@ -7,6 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+impl_ops = "0.1.1"
 itertools = "0.9.0"
 lazy_static = "1.4.0"
 multimap = "0.8.2"

@@ -1,3 +1,5 @@
+extern crate impl_ops;
+
 pub mod grid;
 
 pub fn read_file(day: usize) -> String {

@@ -1,7 +1,9 @@
 use std::{fmt::{Display, Error, Formatter}, iter::FromIterator};
 
 use itertools::iproduct;
-// use impl_ops::impl_op;
+use std::ops;
+
+use impl_ops::*;
 
 type Size = (usize, usize);
 
@@ -12,8 +14,13 @@ pub struct Grid<T> {
 }
 
 impl<T> Grid<T> {
-    pub fn get(&self, pt: &Point) -> &T {
-        &self.grid[pt.y as usize][pt.x as usize]
+    pub fn get(&self, pt: &Point) -> Option<&T> {
+        self.grid.get(pt.y as usize).map(|row| row.get(pt.x as usize)).flatten()
+    }
+
+    pub fn contains(&self, pt: &Point) -> bool {
+        (0..self.size.0 as i32).contains(&pt.x)
+            && (0..self.size.1 as i32).contains(&pt.y)
     }
 
     pub fn iter(&self) -> impl Iterator<Item=&T> {
@@ -21,13 +28,22 @@ impl<T> Grid<T> {
             .flat_map(|row| row.iter())
     }
 
+    pub fn iter_enumerate(&self) -> impl Iterator<Item=(Point, &T)> {
+        self.grid.iter().enumerate()
+            .flat_map(|(y, row)| {
+                row.iter().enumerate()
+                   .map(|(x, cell)| (Point { x: x as i32, y: y as i32 }, cell))
+                   .collect::<Vec<_>>()
+            })
+    }
+
     pub fn saturated_neighbors(&self, pt: &Point) -> impl Iterator<Item=Point> {
         pt.saturated_neighbors(self.size.0 - 1, self.size.1 - 1)
     }
 
     pub fn neighbor_values(&self, pt: &Point) -> Vec<&T> {
-        self.saturated_neighbors(pt)
-            .map(|x| self.get(&x))
+        pt.neighbors().iter()
+            .filter_map(|x| self.get(&x))
             .collect()
     }
 
@@ -46,7 +62,7 @@ impl<T> Grid<T> {
             .map(|row| {
                 row.iter()
                    .map(|cell| f(cell))
-                   .collect::<Vec<T>>()
+                   .collect::<Vec<_>>()
             })
             .collect()
     }
@@ -58,7 +74,7 @@ impl<T> Grid<T> {
             .map(|(y, row)| {
                 row.iter().enumerate()
                    .map(|(x, cell)| f(&Point { x: x as i32, y: y as i32 }, cell))
-                   .collect::<Vec<T>>()
+                   .collect::<Vec<_>>()
             })
             .collect()
         // (0..self.size.0)
@@ -106,13 +122,30 @@ impl<T> Display for Grid<T>
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Point {
     pub x: i32,
     pub y: i32,
 }
 
 impl Point {
+    pub fn new(x: i32, y: i32) -> Self {
+        Point { x, y }
+    }
+
+    pub fn neighbors(&self) -> Vec<Point> {
+        vec![
+            Point { x: self.x - 1, y: self.y - 1 },
+            Point { x: self.x - 1, y: self.y     },
+            Point { x: self.x - 1, y: self.y + 1 },
+            Point { x: self.x    , y: self.y - 1 },
+            Point { x: self.x    , y: self.y + 1 },
+            Point { x: self.x + 1, y: self.y - 1 },
+            Point { x: self.x + 1, y: self.y     },
+            Point { x: self.x + 1, y: self.y + 1 },
+        ]
+    }
+
     pub fn saturated_neighbors(&self, max_x: usize, max_y: usize) -> impl Iterator<Item=Point> {
         let exclude = self.clone();
         iproduct!(
@@ -121,6 +154,32 @@ impl Point {
         )
             .filter(move |(x, y)| *x != exclude.x || *y != exclude.y)
             .map(|tpl| Point::from(tpl))
+    }
+
+    pub fn normalized(&self) -> Point {
+        if self.x == 0 || self.y == 0 {
+            Point { x: self.x.signum(), y: self.y.signum()}
+        } else {
+            let d = gcd(self.x.abs(), self.y.abs());
+            self / d
+        }
+    }
+
+    pub fn manhattan(&self) -> i32 {
+        self.x.abs() + self.y.abs()
+    }
+
+}
+
+impl Default for Point {
+    fn default() -> Self {
+        Point { x: 0, y: 0}
+    }
+}
+
+impl Display for Point {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}, {})", self.x, self.y)
     }
 }
 
@@ -136,4 +195,32 @@ impl From<(i32, i32)> for Point {
     }
 }
 
-// TODO impl_op!
+impl_op!(+ |a: &Point, b: i32| -> Point { Point { x: a.x + b, y: a.y + b } });
+impl_op!(- |a: &Point, b: i32| -> Point { Point { x: a.x - b, y: a.y - b } });
+impl_op!(* |a: &Point, b: i32| -> Point { Point { x: a.x * b, y: a.y * b } });
+impl_op!(/ |a: &Point, b: i32| -> Point { Point { x: a.x / b, y: a.y / b } });
+
+impl_op!(+ |a: &Point, b: &Point| -> Point { Point { x: a.x + b.x, y: a.y + b.y } });
+impl_op!(+ |a: &Point, b:  Point| -> Point { Point { x: a.x + b.x, y: a.y + b.y } });
+impl_op!(+ |a:  Point, b: &Point| -> Point { Point { x: a.x + b.x, y: a.y + b.y } });
+impl_op!(+ |a:  Point, b:  Point| -> Point { Point { x: a.x + b.x, y: a.y + b.y } });
+impl_op!(- |a: &Point, b: &Point| -> Point { Point { x: a.x - b.x, y: a.y - b.y } });
+impl_op!(- |a: &Point, b:  Point| -> Point { Point { x: a.x - b.x, y: a.y - b.y } });
+impl_op!(- |a:  Point, b: &Point| -> Point { Point { x: a.x - b.x, y: a.y - b.y } });
+impl_op!(- |a:  Point, b:  Point| -> Point { Point { x: a.x - b.x, y: a.y - b.y } });
+
+impl_op!(+= |a: &mut Point, b:  Point| { a.x += b.x; a.y += b.y; });
+impl_op!(+= |a: &mut Point, b: &Point| { a.x += b.x; a.y += b.y; });
+impl_op!(-= |a: &mut Point, b:  Point| { a.x -= b.x; a.y -= b.y; });
+impl_op!(-= |a: &mut Point, b: &Point| { a.x -= b.x; a.y -= b.y; });
+
+
+fn gcd(a: i32, b: i32) -> i32 {
+    if a == b {
+        a
+    } else if a > b {
+        gcd(a - b, b)
+    } else {
+        gcd(a, b - a)
+    }
+}

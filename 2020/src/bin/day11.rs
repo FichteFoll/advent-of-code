@@ -1,10 +1,9 @@
-#![feature(test, bool_to_option, exclusive_range_pattern)]
+#![feature(test, exclusive_range_pattern, iter_map_while)]
 
 use std::{fmt::{Display, Error, Formatter}, iter::successors};
 
 use aoc2020::*;
 use aoc2020::grid::*;
-
 
 const DAY: usize = 11;
 type Input = Grid<Seat>;
@@ -15,6 +14,7 @@ enum Seat {
     Empty,
     Occupied,
 }
+use Seat::*;
 
 impl Display for Seat {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
@@ -42,35 +42,54 @@ fn parse_input(input_str: &str) -> Input {
         .collect()
 }
 
-fn next_layout(grid: &Input) -> Grid<Seat> {
-    use Seat::*;
-    grid.new_map_enumerate(|pt, seat| {
-        let occupied = grid.neighbor_values(pt).into_iter()
-            .filter(|s| **s == Occupied)
-            .count();
-        match (seat, occupied) {
-            (Empty, 0) => Occupied,
-            (Occupied, 4..=8) => Empty,
-            _ => *seat,
-        }
-    })
-}
-
 fn part_1(input: &Input) -> usize {
     successors(
         Some(input.clone()),
-        |prev| {
-            let next = next_layout(&prev);
-            (*prev != next).then_some(next)
-        }
+        |prev|
+            Some(prev.new_map_enumerate(|pt, seat| {
+                let num_occupied = prev.neighbor_values(pt).into_iter()
+                    .filter(|s| **s == Occupied)
+                    .count();
+                match (seat, num_occupied) {
+                    (Empty, 0) => Occupied,
+                    (Occupied, 4..=8) => Empty,
+                    _ => *seat,
+                }
+            })).filter(|x| x != prev)
     )
         .last()
-        .map(|g| g.iter().filter(|s| **s == Seat::Occupied).count())
+        .map(|g| g.iter().filter(|s| **s == Occupied).count())
         .unwrap()
 }
 
-fn part_2(_input: &Input) -> usize {
-    0
+fn part_2(input: &Input) -> usize {
+    let directions = Point::default().neighbors();
+    successors(
+        Some(input.clone()),
+        |prev|
+            Some(prev.new_map_enumerate(|pt, seat| {
+                let num_occupied = directions.iter()
+                    .filter(|&dir| {
+                        successors(Some(pt + dir), |pos| Some(pos + dir))
+                            .map_while(|pos| prev.get(&pos))
+                            .find_map(|&seat| match seat {
+                                Floor => None,
+                                Empty => Some(false),
+                                Occupied => Some(true),
+                            })
+                            .unwrap_or(false)
+                    })
+                    .count();
+                match (seat, num_occupied) {
+                    (Empty, 0) => Occupied,
+                    (Occupied, 5..=8) => Empty,
+                    _ => *seat,
+                }
+            })).filter(|x| x != prev)
+    )
+        .last()
+        .map(|g| g.iter().filter(|&s| *s == Occupied).count())
+        .unwrap()
 }
 
 fn main() {
@@ -99,8 +118,8 @@ mod tests {
         ";
 
     test!(part_1() == 37);
-    // test!(part_2() == 0);
+    test!(part_2() == 26);
     // bench_parse!(len, 0);
     bench!(part_1() == 2468);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 2214);
 }
