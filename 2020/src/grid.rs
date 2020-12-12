@@ -13,7 +13,7 @@ pub struct Grid<T> {
 
 impl<T> Grid<T> {
     pub fn get(&self, pt: &Point) -> &T {
-        &self.grid[pt.y][pt.x]
+        &self.grid[pt.y as usize][pt.x as usize]
     }
 
     pub fn iter(&self) -> impl Iterator<Item=&T> {
@@ -57,7 +57,7 @@ impl<T> Grid<T> {
         self.grid.iter().enumerate()
             .map(|(y, row)| {
                 row.iter().enumerate()
-                   .map(|(x, cell)| f(&Point { x, y }, cell))
+                   .map(|(x, cell)| f(&Point { x: x as i32, y: y as i32 }, cell))
                    .collect::<Vec<T>>()
             })
             .collect()
@@ -108,16 +108,16 @@ impl<T> Display for Grid<T>
 
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct Point {
-    pub x: usize,
-    pub y: usize,
+    pub x: i32,
+    pub y: i32,
 }
 
 impl Point {
     pub fn saturated_neighbors(&self, max_x: usize, max_y: usize) -> impl Iterator<Item=Point> {
         let exclude = self.clone();
         iproduct!(
-            self.x.saturating_sub(1)..=max_x.min(self.x + 1),
-            self.y.saturating_sub(1)..=max_y.min(self.y + 1)
+            0.max(self.x - 1)..=(max_x as i32).min(self.x + 1),
+            0.max(self.y - 1)..=(max_y as i32).min(self.y + 1)
         )
             .filter(move |(x, y)| *x != exclude.x || *y != exclude.y)
             .map(|tpl| Point::from(tpl))
@@ -126,6 +126,12 @@ impl Point {
 
 impl From<(usize, usize)> for Point {
     fn from(tpl: (usize, usize)) -> Self {
+        Self { x: tpl.0 as i32, y: tpl.1 as i32 }
+    }
+}
+
+impl From<(i32, i32)> for Point {
+    fn from(tpl: (i32, i32)) -> Self {
         Self { x: tpl.0, y: tpl.1 }
     }
 }
