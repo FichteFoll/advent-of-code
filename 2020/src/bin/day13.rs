@@ -29,8 +29,20 @@ fn part_1(input: &Input) -> usize {
         .unwrap()
 }
 
-fn part_2(_input: &Input) -> usize {
-    0
+fn part_2(input: &Input) -> usize {
+    let buses: Vec<_> = input.buses.iter()
+        .enumerate()
+        .filter_map(|(i, ob)| ob.map(|b| (i, b)))
+        .collect();
+    // https://en.wikipedia.org/wiki/Chinese_remainder_theorem#Search_by_sieving
+    let (mut t, mut step) = (0, 1);
+    for (j, b) in buses.iter() {
+        while (t + j) % b != 0 {
+            t += step;
+        }
+        step *= b;
+    }
+    t
 }
 
 fn main() {
@@ -51,8 +63,7 @@ mod tests {
         ";
 
     test!(part_1() == 295);
-    // test!(part_2() == 0);
-    // bench_parse!(len, 0);
-    // bench!(part_1() == 0);
-    // bench!(part_2() == 0);
+    test!(part_2() == 1068781);
+    bench!(part_1() == 3269);
+    bench!(part_2() == 672754131923874);
 }
