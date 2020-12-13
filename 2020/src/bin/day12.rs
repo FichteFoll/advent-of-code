@@ -31,8 +31,21 @@ fn part_1(input: &Input) -> i32 {
     pos.manhattan()
 }
 
-fn part_2(_input: &Input) -> usize {
-    0
+fn part_2(input: &Input) -> i32 {
+    let (mut ship, mut wp) = (Point::ZERO, Point::new(10, -1));
+    for (cmd, arg) in input.iter() {
+        match cmd {
+            'N' => wp += Point::N * arg,
+            'S' => wp += Point::S * arg,
+            'E' => wp += Point::E * arg,
+            'W' => wp += Point::W * arg,
+            'L' => wp.rotate_left(*arg),
+            'R' => wp.rotate_right(*arg),
+            'F' => ship += wp * arg,
+            _   => panic!("unexpected command"),
+        };
+    }
+    ship.manhattan()
 }
 
 fn main() {
@@ -56,8 +69,8 @@ mod tests {
         ";
 
     test!(part_1() == 25);
-    // test!(part_2() == 0);
-    // bench_parse!(len, 0);
-    // bench!(part_1() == 757);
-    // bench!(part_2() == 0);
+    test!(part_2() == 286);
+    bench_parse!(len, 971);
+    bench!(part_1() == 757);
+    bench!(part_2() == 51249);
 }

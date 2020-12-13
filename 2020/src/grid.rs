@@ -1,4 +1,4 @@
-use std::{fmt::{Display, Error, Formatter}, iter::FromIterator, unimplemented};
+use std::{fmt::{Display, Error, Formatter}, iter::FromIterator};
 
 use itertools::iproduct;
 use std::ops;
