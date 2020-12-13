@@ -1,4 +1,4 @@
-use std::{fmt::{Display, Error, Formatter}, iter::FromIterator};
+use std::{fmt::{Display, Error, Formatter}, iter::FromIterator, unimplemented};
 
 use itertools::iproduct;
 use std::ops;
@@ -123,6 +123,18 @@ pub struct Point {
 }
 
 impl Point {
+    pub const NW: Self = Self { x: -1, y: -1 };
+    pub const N:  Self = Self { x:  0, y: -1 };
+    pub const NE: Self = Self { x:  1, y: -1 };
+    pub const W:  Self = Self { x: -1, y:  0 };
+    pub const E:  Self = Self { x:  1, y:  0 };
+    pub const SW: Self = Self { x: -1, y:  1 };
+    pub const S:  Self = Self { x:  0, y:  1 };
+    pub const SE: Self = Self { x:  1, y:  1 };
+
+    pub const ZERO: Self = Self { x: 0, y: 0 };
+
+
     pub fn new(x: i32, y: i32) -> Self {
         Point { x, y }
     }
@@ -130,12 +142,12 @@ impl Point {
     pub fn neighbors(&self) -> Vec<Point> {
         vec![
             Point { x: self.x - 1, y: self.y - 1 },
-            Point { x: self.x - 1, y: self.y     },
-            Point { x: self.x - 1, y: self.y + 1 },
             Point { x: self.x    , y: self.y - 1 },
-            Point { x: self.x    , y: self.y + 1 },
             Point { x: self.x + 1, y: self.y - 1 },
+            Point { x: self.x - 1, y: self.y     },
             Point { x: self.x + 1, y: self.y     },
+            Point { x: self.x - 1, y: self.y + 1 },
+            Point { x: self.x    , y: self.y + 1 },
             Point { x: self.x + 1, y: self.y + 1 },
         ]
     }
@@ -156,6 +168,29 @@ impl Point {
         } else {
             let d = gcd(self.x.abs(), self.y.abs());
             self / d
+        }
+    }
+
+    pub fn rotate_right(&mut self, by: i32) {
+        self.rotate_left(360 - by);
+    }
+
+    pub fn rotate_left(&mut self, by: i32) {
+        match by % 360 {
+            0 => (),
+            180 => {
+                self.x *= -1;
+                self.y *= -1;
+            },
+            90 => {
+                std::mem::swap(&mut self.x, &mut self.y);
+                self.y *= -1;
+            },
+            270 => {
+                std::mem::swap(&mut self.x, &mut self.y);
+                self.x *= -1;
+            },
+            _ => panic!("invalid rotation {}", by),
         }
     }
 
@@ -189,10 +224,22 @@ impl From<(i32, i32)> for Point {
     }
 }
 
-impl_op!(+ |a: &Point, b: i32| -> Point { Point { x: a.x + b, y: a.y + b } });
-impl_op!(- |a: &Point, b: i32| -> Point { Point { x: a.x - b, y: a.y - b } });
-impl_op!(* |a: &Point, b: i32| -> Point { Point { x: a.x * b, y: a.y * b } });
-impl_op!(/ |a: &Point, b: i32| -> Point { Point { x: a.x / b, y: a.y / b } });
+impl_op!(+ |a: &Point, b:  i32| -> Point { Point { x: a.x + b, y: a.y + b } });
+impl_op!(+ |a:  Point, b:  i32| -> Point { Point { x: a.x + b, y: a.y + b } });
+impl_op!(+ |a: &Point, b: &i32| -> Point { Point { x: a.x + b, y: a.y + b } });
+impl_op!(+ |a:  Point, b: &i32| -> Point { Point { x: a.x + b, y: a.y + b } });
+impl_op!(- |a: &Point, b:  i32| -> Point { Point { x: a.x - b, y: a.y - b } });
+impl_op!(- |a:  Point, b:  i32| -> Point { Point { x: a.x - b, y: a.y - b } });
+impl_op!(- |a: &Point, b: &i32| -> Point { Point { x: a.x - b, y: a.y - b } });
+impl_op!(- |a:  Point, b: &i32| -> Point { Point { x: a.x - b, y: a.y - b } });
+impl_op!(* |a: &Point, b:  i32| -> Point { Point { x: a.x * b, y: a.y * b } });
+impl_op!(* |a:  Point, b:  i32| -> Point { Point { x: a.x * b, y: a.y * b } });
+impl_op!(* |a: &Point, b: &i32| -> Point { Point { x: a.x * b, y: a.y * b } });
+impl_op!(* |a:  Point, b: &i32| -> Point { Point { x: a.x * b, y: a.y * b } });
+impl_op!(/ |a: &Point, b:  i32| -> Point { Point { x: a.x / b, y: a.y / b } });
+impl_op!(/ |a:  Point, b:  i32| -> Point { Point { x: a.x / b, y: a.y / b } });
+impl_op!(/ |a: &Point, b: &i32| -> Point { Point { x: a.x / b, y: a.y / b } });
+impl_op!(/ |a:  Point, b: &i32| -> Point { Point { x: a.x / b, y: a.y / b } });
 
 impl_op!(+ |a: &Point, b: &Point| -> Point { Point { x: a.x + b.x, y: a.y + b.y } });
 impl_op!(+ |a: &Point, b:  Point| -> Point { Point { x: a.x + b.x, y: a.y + b.y } });
