@@ -59,4 +59,13 @@ macro_rules! bench_parse {
             b.iter(|| assert_eq!(parse_input(test::black_box(&raw)).$fn(), $expected_len));
         }
     };
+    () => {
+        #[bench]
+        fn bench_parse(b: &mut test::Bencher) {
+            let raw = read_input!();
+            b.iter(|| {
+                let _ = parse_input(test::black_box(&raw));
+            });
+        }
+    };
 }

@@ -119,7 +119,7 @@ mod tests {
 
     test!(part_1() == 37);
     test!(part_2() == 26);
-    // bench_parse!(len, 0);
+    bench_parse!();
     bench!(part_1() == 2468);
     bench!(part_2() == 2214);
 }

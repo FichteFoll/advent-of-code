@@ -77,12 +77,6 @@ impl<T> Grid<T> {
                    .collect::<Vec<_>>()
             })
             .collect()
-        // (0..self.size.0)
-        //     .map(|y| (0..self.size.1)
-        //         .map(move |x| Point { x, y })
-        //         .map(|p| f(&p, self.get(&p)))
-        //     )
-        //     .collect()
     }
 }
 
