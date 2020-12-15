@@ -32,6 +32,15 @@ macro_rules! test {
             }
         }
     };
+    ($input: expr, $part: ident ($($param: expr),*) == $expected:expr) => {
+        paste::paste! {
+            #[test]
+            fn [<test_ $part>]() {
+                let input = parse_input($input);
+                assert_eq!($part(&input$(, $param)*), $expected);
+            }
+        }
+    };
 }
 
 // requires parse_input
@@ -68,4 +77,32 @@ macro_rules! bench_parse {
             });
         }
     };
+}
+
+// Given a slice of type T, return a Vec containing the powerset,
+// i.e. the set of all subsets.
+//
+// This works by treating each int the range [0, 2**n) (where n is the
+// length of the slice) as a bitmask, selecting only the members of
+// the original slice whose corresponding positional bits are flipped
+// on in each mask.
+pub fn powerset<T: Clone>(slice: &[T]) -> Vec<Vec<T>> {
+    let mut v: Vec<Vec<T>> = Vec::new();
+
+    for mask in 0..(1 << slice.len()) {
+        let mut ss: Vec<T> = vec![];
+        let mut bitset = mask;
+        while bitset > 0 {
+            // isolate the rightmost bit to select one item
+            let rightmost: u64 = bitset & !(bitset - 1);
+            // turn the isolated bit into an array index
+            let idx = rightmost.trailing_zeros();
+            let item = (*slice.get(idx as usize).unwrap()).clone();
+            ss.push(item);
+            // zero the trailing bit
+            bitset &= bitset - 1;
+        }
+        v.push(ss);
+    }
+    v
 }

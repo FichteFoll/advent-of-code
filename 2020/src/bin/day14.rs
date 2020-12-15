@@ -1,4 +1,4 @@
-#![feature(test)]
+#![feature(test, bool_to_option)]
 
 use std::collections::HashMap;
 
@@ -41,17 +41,28 @@ fn parse_input(input_str: &str) -> Input {
         .collect()
 }
 
+fn u64_with_bits<I: IntoIterator<Item=usize>>(ones: I) -> u64 {
+    ones.into_iter().fold(0, |n, i| n | 1 << i)
+}
+
+fn usize_with_bits<I: IntoIterator<Item=usize>>(ones: I) -> usize {
+    ones.into_iter().fold(0, |n, i| n | 1 << i)
+}
+
 fn part_1(input: &Input) -> u64 {
     let (mut or_mask, mut and_mask) = (0u64, 0u64);
     let mut memory = HashMap::new();
     for stmt in input {
         match stmt {
             Mask(mask) => {
-                let (ones, zeros): (Vec<_>, Vec<_>) = mask.iter().enumerate()
-                    .filter(|(_, x)| x.is_some())
-                    .partition(|(_, bit)| *bit == &Some(1));
-                or_mask = ones.into_iter().fold(0u64, |n, (i, _)| n | 1 << i);
-                and_mask = zeros.into_iter().fold(0u64, |n, (i, _)| n | 1 << i) ^ (2u64.pow(mask.len() as u32) - 1);
+                let ones: Vec<_> = mask.iter().enumerate()
+                    .filter_map(|(i, x)| (x == &Some(1)).then_some(i))
+                    .collect();
+                let zeros: Vec<_> = mask.iter().enumerate()
+                    .filter_map(|(i, x)| (x == &Some(0)).then_some(i))
+                    .collect();
+                or_mask = u64_with_bits(ones);
+                and_mask = u64_with_bits(zeros) ^ (2u64.pow(mask.len() as u32) - 1);
             },
             Mem(i, n) => {
                 memory.insert(i, (n | or_mask) & and_mask);
@@ -61,8 +72,33 @@ fn part_1(input: &Input) -> u64 {
     memory.values().sum()
 }
 
-fn part_2(_input: &Input) -> usize {
-    0
+fn part_2(input: &Input) -> u64 {
+    let mut memory = HashMap::new();
+    let (mut or_mask, mut and_mask) = (0usize, 0usize);
+    let mut extra_masks = vec![];
+    for stmt in input {
+        match stmt {
+            Mask(mask) => {
+                let ones: Vec<_> = mask.iter().enumerate()
+                    .filter_map(|(i, x)| (x == &Some(1)).then_some(i))
+                    .collect();
+                let wildcards: Vec<_> = mask.iter().enumerate()
+                    .filter_map(|(i, x)| x.is_none().then_some(i))
+                    .collect();
+                or_mask = usize_with_bits(ones);
+                extra_masks = powerset(&wildcards).into_iter()
+                    .map(|indices| usize_with_bits(indices))
+                    .collect();
+                and_mask = usize_with_bits(wildcards) ^ (2usize.pow(mask.len() as u32) - 1);
+            },
+            Mem(i, n) => {
+                for extra_mask in extra_masks.iter() {
+                    memory.insert((i & and_mask) | or_mask | extra_mask, *n);
+                }
+            },
+        }
+    }
+    memory.values().sum()
 }
 
 fn main() {
@@ -84,9 +120,16 @@ mod tests {
         mem[8] = 0\n\
         ";
 
+    const TEST_INPUT_STR_2: &str = "\
+        mask = 000000000000000000000000000000X1001X\n\
+        mem[42] = 100\n\
+        mask = 00000000000000000000000000000000X0XX\n\
+        mem[26] = 1\n\
+        ";
+
     test!(part_1() == 165);
-    // test!(part_2() == 0);
+    test!(TEST_INPUT_STR_2, part_2() == 208);
     bench_parse!(len, 577);
     bench!(part_1() == 18630548206046);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 4254673508445);
 }
