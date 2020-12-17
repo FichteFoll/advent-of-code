@@ -1,6 +1,6 @@
 extern crate impl_ops;
 
-pub mod grid;
+pub mod grid2d;
 
 pub fn read_file(day: usize) -> String {
     std::fs::read_to_string(

@@ -8,12 +8,12 @@ use impl_ops::*;
 type Size = (usize, usize);
 
 #[derive(Clone, Debug, Eq, PartialEq)]
-pub struct Grid<T> {
+pub struct Grid2D<T> {
     grid: Vec<Vec<T>>,
     size: Size,
 }
 
-impl<T> Grid<T> {
+impl<T> Grid2D<T> {
     pub fn get(&self, pt: &Point) -> Option<&T> {
         self.grid.get(pt.y as usize).map(|row| row.get(pt.x as usize)).flatten()
     }
@@ -89,7 +89,7 @@ impl<T> Grid<T> {
 //     }
 // }
 
-impl<A, T> FromIterator<A> for Grid<T>
+impl<A, T> FromIterator<A> for Grid2D<T>
     where A: IntoIterator<Item=T>
 {
     fn from_iter<I: IntoIterator<Item=A>>(iter: I) -> Self {
@@ -98,11 +98,11 @@ impl<A, T> FromIterator<A> for Grid<T>
                 .map(|nested_iter| nested_iter.into_iter().collect())
                 .collect();
         let size = (grid.first().map(Vec::len).unwrap_or(0), grid.len());
-        Grid { grid, size }
+        Grid2D { grid, size }
     }
 }
 
-impl<T> Display for Grid<T>
+impl<T> Display for Grid2D<T>
     where T: Display
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {

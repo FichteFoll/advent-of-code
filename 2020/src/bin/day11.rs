@@ -3,10 +3,10 @@
 use std::{fmt::{Display, Error, Formatter}, iter::successors};
 
 use aoc2020::*;
-use aoc2020::grid::*;
+use aoc2020::grid2d::*;
 
 const DAY: usize = 11;
-type Input = Grid<Seat>;
+type Input = Grid2D<Seat>;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum Seat {
