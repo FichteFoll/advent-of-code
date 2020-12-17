@@ -1,6 +1,8 @@
 extern crate impl_ops;
 
 pub mod grid2d;
+pub mod hashgrid;
+pub mod coord;
 
 pub fn read_file(day: usize) -> String {
     std::fs::read_to_string(
