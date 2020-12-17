@@ -1,11 +1,11 @@
 #![feature(test)]
 
-use std::collections::HashSet;
+use std::{collections::HashSet, hash::Hash};
 
 use aoc2020::{*, hashgrid::*, coord::*};
 
 const DAY: usize = 17;
-type Input = Vec<((usize, usize), bool)>;
+type Input = Vec<(usize, usize)>;
 
 fn parse_input(input_str: &str) -> Input {
     input_str
@@ -14,17 +14,16 @@ fn parse_input(input_str: &str) -> Input {
         .enumerate()
         .flat_map(|(y, line)|
             line.bytes().enumerate()
-                .map(move |(x, c)| ((x, y), c == b'#'))
+                .filter(|(_, c)| *c == b'#')
+                .map(move |(x, _)| (x, y))
         )
         .collect()
 }
 
-fn part_1(input: &Input) -> usize {
-    let mut grid: HashGrid<Point3D, ()> =
-        input.iter()
-            .filter(|(_, b)| *b)
-            .map(|(pos, _)| ((*pos).into(), ()))
-            .collect();
+fn solve<K>(keys: &[K]) -> usize
+where K: Clone + Hash + Eq + Coordinate
+{
+    let mut grid = HashGrid::with_keys(keys, ());
     for _ in 0..6 {
         let points_of_interest: HashSet<_> =
             grid.keys()
@@ -38,13 +37,19 @@ fn part_1(input: &Input) -> usize {
                     _ => None,
                 }
             })
-            .collect();
+            .collect()
     }
     grid.values().count()
 }
 
-fn part_2(_input: &Input) -> usize {
-    0
+fn part_1(input: &Input) -> usize {
+    let keys: Vec<Point3D> = input.iter().map(|&p| p.into()).collect();
+    solve(&keys)
+}
+
+fn part_2(input: &Input) -> usize {
+    let keys: Vec<Point4D> = input.iter().map(|&p| p.into()).collect();
+    solve(&keys)
 }
 
 fn main() {
@@ -66,7 +71,7 @@ mod tests {
         ";
 
     test!(part_1() == 112);
-    // test!(part_2() == 0);
+    test!(part_2() == 848);
     bench!(part_1() == 375);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 2192);
 }

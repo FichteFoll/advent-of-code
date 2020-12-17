@@ -26,6 +26,16 @@ where K: Hash
 }
 
 impl<K, V> HashGrid<K, V>
+where K: Hash + Eq + Clone, V: Clone
+{
+    pub fn with_keys(keys: &[K], default: V) -> Self {
+        keys.iter()
+            .map(|key| (key.clone(), default.clone()))
+            .collect()
+    }
+}
+
+impl<K, V> HashGrid<K, V>
 where K: Hash + Eq
 {
     pub fn get(&self, pt: &K) -> Option<&V> {
