@@ -6,6 +6,9 @@ infixl 5 * -- part 2
 (*) :: P.Num a => a -> a -> a
 (*) = (P.*)
 
+
+-- part 1 solution: 5783053349377
+-- part 2 solution: 74821486966872
 main :: P.IO ()
 main = do
   P.putStrLn $ P.show $ P.sum $
