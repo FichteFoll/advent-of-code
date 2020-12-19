@@ -56,23 +56,19 @@ fn consume<'a>(rules: &Rules, rule_i: &usize, word: &'a [u8]) -> Vec<&'a [u8]> {
         Terminal(b) =>
             word.get(0)
                 .filter(|&x| b == x)
-                .map(|_| (word.len() > 1)
-                    .then_some(&word[1..])
-                    .unwrap_or(EMPTY)
-                )
+                .map(|_| (word.len() > 1).then_some(&word[1..]).unwrap_or(EMPTY))
                 .into_iter()
                 .collect(),
-        Branch(branches) => branches.iter()
-            .flat_map(|seq| {
-                fold(
-                    seq.iter(),
-                    vec![word],
-                    |rems, sub_i| rems.iter()
-                        .flat_map(|rem| consume(rules, sub_i, &rem))
-                        .collect()
+        Branch(branches) =>
+            branches.iter()
+                .flat_map(|seq|
+                    fold(seq.iter(), vec![word],
+                        |rems, sub_i| rems.iter()
+                            .flat_map(|rem| consume(rules, sub_i, &rem))
+                            .collect()
+                    )
                 )
-            })
-            .collect(),
+                .collect(),
     }
 }
 

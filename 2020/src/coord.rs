@@ -5,7 +5,6 @@ use std::ops;
 use impl_ops::*;
 use itertools::iproduct;
 
-
 pub trait Coordinate: Sized + PartialEq {
     const ZERO: Self;
 
@@ -232,6 +231,7 @@ mod p3d {
     impl_op!(+ |a: &Point3D, b: &Point3D| -> Point3D { Point3D(a.0 + b.0, a.1 + b.1, a.2 + b.2) });
     impl_op!(+ |a:  Point3D, b: &Point3D| -> Point3D { Point3D(a.0 + b.0, a.1 + b.1, a.2 + b.2) });
 }
+
 
 mod p4d {
     use super::*;
