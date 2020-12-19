@@ -2,6 +2,8 @@
 
 use std::collections::HashMap;
 
+use itertools::fold;
+
 use aoc2020::*;
 
 const DAY: usize = 19;
@@ -44,30 +46,41 @@ fn parse_input(input_str: &str) -> Input {
 }
 
 fn matches(rules: &Rules, word: &[u8]) -> bool {
-    consume(rules, &0, word).map(|rem| rem.len() == 0).unwrap_or(false)
+    consume(rules, &0, word).iter().any(|rem| rem.len() == 0)
 }
 
-fn consume<'a>(rules: &Rules, rule_i: &usize, word: &'a [u8]) -> Option<&'a [u8]> {
+const EMPTY: &[u8] = &[];
+
+fn consume<'a>(rules: &Rules, rule_i: &usize, word: &'a [u8]) -> Vec<&'a [u8]> {
     match &rules[rule_i] {
-        Terminal(b) => match word.len() {
-            0 => None,
-            1 => (word[0] == *b).then_some(&[]),
-            _ => (word[0] == *b).then_some(&word[1..]),
-        },
+        Terminal(b) =>
+            word.get(0)
+                .filter(|&x| b == x)
+                .map(|_| (word.len() > 1)
+                    .then_some(&word[1..])
+                    .unwrap_or(EMPTY)
+                )
+                .into_iter()
+                .collect(),
         Branch(branches) => branches.iter()
-            .find_map(|seq| {
-                // TODO scan?
-                let mut rem = word;
-                for sub_i in seq.iter() {
-                    if let Some(new_rem) = consume(rules, sub_i, &rem) {
-                        rem = new_rem;
-                    } else {
-                        return None;
-                    }
-                }
-                Some(rem)
-            }),
+            .flat_map(|seq| {
+                fold(
+                    seq.iter(),
+                    vec![word],
+                    |rems, sub_i| rems.iter()
+                        .flat_map(|rem| consume(rules, sub_i, &rem))
+                        .collect()
+                )
+            })
+            .collect(),
     }
+}
+
+fn rules_for_part_2(inp: &Rules) -> Rules {
+    let mut rules = inp.clone();
+    rules.insert(8,  Branch(vec![vec![42], vec![42, 8]]));
+    rules.insert(11, Branch(vec![vec![42, 31], vec![42, 11, 31]]));
+    rules
 }
 
 fn part_1(input: &Input) -> usize {
@@ -76,8 +89,11 @@ fn part_1(input: &Input) -> usize {
         .count()
 }
 
-fn part_2(_input: &Input) -> usize {
-    0
+fn part_2(input: &Input) -> usize {
+    let rules = rules_for_part_2(&input.0);
+    input.1.iter()
+        .filter(|word| matches(&rules, &word.as_bytes()))
+        .count()
 }
 
 fn main() {
@@ -107,11 +123,61 @@ mod tests {
         aaaabbb\n\
         ";
 
+    const TEST_INPUT_2_STR: &str = "\
+        42: 9 14 | 10 1\n\
+        9: 14 27 | 1 26\n\
+        10: 23 14 | 28 1\n\
+        1: \"a\"\n\
+        11: 42 31\n\
+        5: 1 14 | 15 1\n\
+        19: 14 1 | 14 14\n\
+        12: 24 14 | 19 1\n\
+        16: 15 1 | 14 14\n\
+        31: 14 17 | 1 13\n\
+        6: 14 14 | 1 14\n\
+        2: 1 24 | 14 4\n\
+        0: 8 11\n\
+        13: 14 3 | 1 12\n\
+        15: 1 | 14\n\
+        17: 14 2 | 1 7\n\
+        23: 25 1 | 22 14\n\
+        28: 16 1\n\
+        4: 1 1\n\
+        20: 14 14 | 1 15\n\
+        3: 5 14 | 16 1\n\
+        27: 1 6 | 14 18\n\
+        14: \"b\"\n\
+        21: 14 1 | 1 14\n\
+        25: 1 1 | 1 14\n\
+        22: 14 14\n\
+        8: 42\n\
+        26: 14 22 | 1 20\n\
+        18: 15 15\n\
+        7: 14 5 | 1 21\n\
+        24: 14 1\n\
+        \n\
+        abbbbbabbbaaaababbaabbbbabababbbabbbbbbabaaaa\n\
+        bbabbbbaabaabba\n\
+        babbbbaabbbbbabbbbbbaabaaabaaa\n\
+        aaabbbbbbaaaabaababaabababbabaaabbababababaaa\n\
+        bbbbbbbaaaabbbbaaabbabaaa\n\
+        bbbababbbbaaaaaaaabbababaaababaabab\n\
+        ababaaaaaabaaab\n\
+        ababaaaaabbbaba\n\
+        baabbaaaabbaaaababbaababb\n\
+        abbbbabbbbaaaababbbbbbaaaababb\n\
+        aaaaabbaabaaaaababaa\n\
+        aaaabbaaaabbaaa\n\
+        aaaabbaabbaaaaaaabbbabbbaaabbaabaaa\n\
+        babaaabbbaaabaababbaabababaaab\n\
+        aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba\n\
+        ";
+
     test!(part_1() == 2);
-    // test!(part_2() == 0);
-    // bench_parse!(len, 0);
+    test!(example_2, TEST_INPUT_2_STR, part_1() == 3);
+    test!(TEST_INPUT_2_STR, part_2() == 12);
     bench!(part_1() == 165);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 274);
 
     #[test]
     fn test_matcher() {
@@ -135,4 +201,29 @@ mod tests {
             assert_eq!(matches(&rules, word.as_bytes()), *expected);
         }
     }
+
+    #[test]
+    fn test_matcher_2() {
+        let rules = parse_input(TEST_INPUT_2_STR).0;
+        let rules_mod = rules_for_part_2(&rules);
+        for (word, expected) in [
+            ("bbabbbbaabaabba", true),
+            ("babbbbaabbbbbabbbbbbaabaaabaaa", true),
+            ("aaabbbbbbaaaabaababaabababbabaaabbababababaaa", true),
+            ("bbbbbbbaaaabbbbaaabbabaaa", true),
+            ("bbbababbbbaaaaaaaabbababaaababaabab", true),
+            ("ababaaaaaabaaab", true),
+            ("ababaaaaabbbaba", true),
+            ("baabbaaaabbaaaababbaababb", true),
+            ("abbbbabbbbaaaababbbbbbaaaababb", true),
+            ("aaaaabbaabaaaaababaa", true),
+            ("aaaabbaabbaaaaaaabbbabbbaaabbaabaaa", true),
+            ("aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba", true),
+        ].iter() {
+            println!("\ntesting {}", word);
+            assert_eq!(matches(&rules_mod, word.as_bytes()), *expected);
+        }
+    }
+
+    // fn
 }

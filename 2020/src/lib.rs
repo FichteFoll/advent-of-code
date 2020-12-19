@@ -43,6 +43,15 @@ macro_rules! test {
             }
         }
     };
+    ($suffix: ident, $input: expr, $part: ident ($($param: expr),*) == $expected:expr) => {
+        paste::paste! {
+            #[test]
+            fn [<test_ $part _ $suffix>]() {
+                let input = parse_input($input);
+                assert_eq!($part(&input$(, $param)*), $expected);
+            }
+        }
+    };
 }
 
 // requires parse_input
