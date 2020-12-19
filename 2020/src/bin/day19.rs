@@ -12,10 +12,11 @@ const DAY: usize = 19;
 enum Rule {
     Terminal(u8),
     Branch(Vec<Vec<usize>>),
+    Nop,
 }
 use Rule::*;
 
-type Rules = HashMap<usize, Rule>;
+type Rules = Vec<Rule>;
 type Input = (Rules, Vec<String>);
 
 fn parse_input(input_str: &str) -> Input {
@@ -23,7 +24,7 @@ fn parse_input(input_str: &str) -> Input {
         .trim()
         .split_once("\n\n")
         .unwrap_or((input_str, ""));
-    let rules: HashMap<_, _> = rule_block.split("\n")
+    let rule_map: HashMap<usize, _> = rule_block.split("\n")
         .map(|line| {
             let (i, contents) = line.split_once(": ").unwrap();
             let rule = match contents.as_bytes() {
@@ -41,17 +42,21 @@ fn parse_input(input_str: &str) -> Input {
             (i.parse().unwrap(), rule)
         })
         .collect();
+    let mut rules = vec![Nop; *rule_map.keys().max().unwrap() + 1];
+    for (i, rule) in rule_map {
+        rules[i] = rule;
+    }
     let words = word_block.split("\n").map(|s| s.to_string()).collect();
     (rules, words)
 }
 
 fn matches(rules: &Rules, word: &[u8]) -> bool {
-    consume(rules, &0, word).iter().any(|rem| rem.len() == 0)
+    consume(rules, 0, word).iter().any(|rem| rem.len() == 0)
 }
 
 const EMPTY: &[u8] = &[];
 
-fn consume<'a>(rules: &Rules, rule_i: &usize, word: &'a [u8]) -> Vec<&'a [u8]> {
+fn consume<'a>(rules: &Rules, rule_i: usize, word: &'a [u8]) -> Vec<&'a [u8]> {
     match &rules[rule_i] {
         Terminal(b) =>
             word.get(0)
@@ -63,19 +68,20 @@ fn consume<'a>(rules: &Rules, rule_i: &usize, word: &'a [u8]) -> Vec<&'a [u8]> {
             branches.iter()
                 .flat_map(|seq|
                     fold(seq.iter(), vec![word],
-                        |rems, sub_i| rems.iter()
+                        |rems, &sub_i| rems.iter()
                             .flat_map(|rem| consume(rules, sub_i, &rem))
                             .collect()
                     )
                 )
                 .collect(),
+        Nop => panic!("no rule for {}", rule_i),
     }
 }
 
 fn rules_for_part_2(inp: &Rules) -> Rules {
     let mut rules = inp.clone();
-    rules.insert(8,  Branch(vec![vec![42], vec![42, 8]]));
-    rules.insert(11, Branch(vec![vec![42, 31], vec![42, 11, 31]]));
+    rules[8] = Branch(vec![vec![42], vec![42, 8]]);
+    rules[11] = Branch(vec![vec![42, 31], vec![42, 11, 31]]);
     rules
 }
 
