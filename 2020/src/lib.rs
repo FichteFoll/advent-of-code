@@ -62,7 +62,7 @@ macro_rules! bench {
             #[bench]
             fn [<bench_ $part>](b: &mut test::Bencher) {
                 let input_str = read_input!();
-                let input = parse_input(&read_input!());
+                let input = parse_input(&input_str);
                 b.iter(|| assert_eq!($part(test::black_box(&input) $(, $param)* ), $expected));
             }
         }
