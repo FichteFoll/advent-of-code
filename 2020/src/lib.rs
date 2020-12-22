@@ -1,3 +1,5 @@
+use std::{collections::{HashMap, HashSet}, hash::Hash};
+
 extern crate impl_ops;
 
 pub mod grid2d;
@@ -116,4 +118,34 @@ pub fn powerset<T: Clone>(slice: &[T]) -> Vec<Vec<T>> {
         v.push(ss);
     }
     v
+}
+
+
+// Given a map with a set of candidates, reduce the candidates to one each
+pub fn resolve_multimap<K, V>(multimap: &HashMap<K, HashSet<V>>, singlemap: HashMap<K, V>) -> Option<HashMap<K, V>>
+where
+    K: Clone + Eq + Hash,
+    V: Clone + Eq + Hash,
+{
+    // recursive depth-first search
+    let mut sorted_map: Vec<_> = multimap.iter().collect();
+    sorted_map.sort_unstable_by_key(|(_, x)| x.len());
+    if let Some((k, vs)) = sorted_map.into_iter().next() {
+        for v in vs.iter() {
+            let mut new_singlemap = singlemap.clone();
+            new_singlemap.insert(k.clone(), v.clone());
+            let mut new_multimap = multimap.clone();
+            for other_vs in new_multimap.values_mut() {
+                other_vs.retain(|x| x != v)
+            }
+            new_multimap.remove(&k);
+            let result = resolve_multimap(&new_multimap, new_singlemap);
+            if result.is_some() {
+                return result;
+            }
+        }
+        None
+    } else {
+        Some(singlemap)
+    }
 }

@@ -43,31 +43,6 @@ fn part_1(input: &Input) -> usize {
         .sum()
 }
 
-fn resolve_multimap<'a>(multimap: &HashMap<&'a str, HashSet<&'a str>>, singlemap: HashMap<&'a str, &'a str>)
--> Option<HashMap<&'a str, &'a str>> {
-    // recursive depth-first search
-    let mut sorted_map: Vec<_> = multimap.iter().collect();
-    sorted_map.sort_unstable_by_key(|(_, x)| x.len());
-    if let Some((&a, is)) = sorted_map.first() {
-        for i in is.iter() {
-            let mut new_singlemap = singlemap.clone();
-            new_singlemap.insert(a, i);
-            let mut new_multimap = multimap.clone();
-            for mis in new_multimap.values_mut() {
-                mis.retain(|x| x != i)
-            }
-            new_multimap.remove(a);
-            let result = resolve_multimap(&new_multimap, new_singlemap);
-            if result.is_some() {
-                return result;
-            }
-        }
-        None
-    } else {
-        Some(singlemap)
-    }
-}
-
 fn part_2(input: &Input) -> String {
     let allergen_map = build_allergen_map(input);
     let resolved_map = resolve_multimap(&allergen_map, HashMap::new()).unwrap();

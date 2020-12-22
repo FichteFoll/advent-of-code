@@ -1,6 +1,6 @@
 #![feature(test, str_split_once)]
 
-use std::{collections::{HashMap, HashSet}, hash::Hash, ops::RangeInclusive};
+use std::{collections::{HashMap, HashSet}, ops::RangeInclusive};
 
 use aoc2020::*;
 
@@ -41,35 +41,6 @@ fn part_1(input: &Input) -> usize {
         .flatten()
         .filter(|num| !input.0.values().flatten().any(|range| range.contains(num)))
         .sum()
-}
-
-// copied and generalized from day 21
-fn resolve_multimap<K, V>(multimap: &HashMap<K, HashSet<V>>, singlemap: HashMap<K, V>) -> Option<HashMap<K, V>>
-where
-    K: Clone + Eq + Hash,
-    V: Clone + Eq + Hash,
-{
-    // recursive depth-first search
-    let mut sorted_map: Vec<_> = multimap.iter().collect();
-    sorted_map.sort_unstable_by_key(|(_, x)| x.len());
-    if let Some((k, vs)) = sorted_map.into_iter().next() {
-        for v in vs.iter() {
-            let mut new_singlemap = singlemap.clone();
-            new_singlemap.insert(k.clone(), v.clone());
-            let mut new_multimap = multimap.clone();
-            for mis in new_multimap.values_mut() {
-                mis.retain(|x| x != v)
-            }
-            new_multimap.remove(&k);
-            let result = resolve_multimap(&new_multimap, new_singlemap);
-            if result.is_some() {
-                return result;
-            }
-        }
-        None
-    } else {
-        Some(singlemap)
-    }
 }
 
 fn determine_field_order(rules: &HashMap<String, Rule>, tickets: &Vec<Ticket>) -> HashMap<usize, String> {
