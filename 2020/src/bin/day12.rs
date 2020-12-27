@@ -1,7 +1,7 @@
 #![feature(test)]
 
 use aoc2020::*;
-use aoc2020::grid::*;
+use aoc2020::grid2d::*;
 
 const DAY: usize = 12;
 type Input = Vec<(char, i32)>;
