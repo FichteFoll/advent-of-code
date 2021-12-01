@@ -70,7 +70,7 @@ mod tests {
 
     test!(part_1() == 25);
     test!(part_2() == 286);
-    bench_parse!(len, 971);
+    bench_parse!(len, 791);
     bench!(part_1() == 757);
     bench!(part_2() == 51249);
 }

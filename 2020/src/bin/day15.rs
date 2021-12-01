@@ -70,11 +70,11 @@ mod tests {
 
     #[test]
     fn test_part_2_more() {
-        assert_eq!(part_1(&parse_input("1,3,2")), 2578);
-        assert_eq!(part_1(&parse_input("2,1,3")), 3544142);
-        assert_eq!(part_1(&parse_input("1,2,3")), 261214);
-        assert_eq!(part_1(&parse_input("2,3,1")), 6895259);
-        assert_eq!(part_1(&parse_input("3,2,1")), 18);
-        assert_eq!(part_1(&parse_input("3,1,2")), 362);
+        assert_eq!(part_2(&parse_input("1,3,2")), 2578);
+        assert_eq!(part_2(&parse_input("2,1,3")), 3544142);
+        assert_eq!(part_2(&parse_input("1,2,3")), 261214);
+        assert_eq!(part_2(&parse_input("2,3,1")), 6895259);
+        assert_eq!(part_2(&parse_input("3,2,1")), 18);
+        assert_eq!(part_2(&parse_input("3,1,2")), 362);
     }
 }
