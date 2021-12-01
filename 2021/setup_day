@@ -26,29 +26,29 @@ else
 use aoc2021::*;
 
 const DAY: usize = $day;
-type Input = Vec<usize>;
+type Parsed = Vec<usize>;
 
-fn parse_input(input_str: &str) -> Input {
-    input_str
+fn parse_input(input: &str) -> Parsed {
+    input
         .trim()
         .split("\n")
         .map(|line| line.parse().unwrap())
         .collect()
 }
 
-fn part_1(input: &Input) -> usize {
+fn part_1(parsed: &Parsed) -> usize {
     0
 }
 
-fn part_2(_input: &Input) -> usize {
+fn part_2(_parsed: &Parsed) -> usize {
     0
 }
 
 fn main() {
-    let input_str = read_input!();
-    let input = parse_input(&input_str);
-    println!("Part 1: {}", part_1(&input));
-    println!("Part 2: {}", part_2(&input));
+    let input = read_input!();
+    let parsed = parse_input(&input);
+    println!("Part 1: {}", part_1(&parsed));
+    println!("Part 2: {}", part_2(&parsed));
 }
 
 #[cfg(test)]

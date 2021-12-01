@@ -3,33 +3,33 @@
 use aoc2021::*;
 
 const DAY: usize = 01;
-type Input = Vec<usize>;
+type Parsed = Vec<usize>;
 
-fn parse_input(input_str: &str) -> Input {
-    input_str
+fn parse_input(input: &str) -> Parsed {
+    input
         .trim()
         .split("\n")
         .map(|line| line.parse().unwrap())
         .collect()
 }
 
-fn part_1(input: &Input) -> usize {
-    input.windows(2)
+fn part_1(parsed: &Parsed) -> usize {
+    parsed.windows(2)
         .filter(|w| w[0] < w[1])
         .count()
 }
 
-fn part_2(input: &Input) -> usize {
-    input.windows(4)
+fn part_2(parsed: &Parsed) -> usize {
+    parsed.windows(4)
         .filter(|w| w[0] < w[3])
         .count()
 }
 
 fn main() {
-    let input_str = read_input!();
-    let input = parse_input(&input_str);
-    println!("Part 1: {}", part_1(&input));
-    println!("Part 2: {}", part_2(&input));
+    let input = read_input!();
+    let parsed = parse_input(&input);
+    println!("Part 1: {}", part_1(&parsed));
+    println!("Part 2: {}", part_2(&parsed));
 }
 
 #[cfg(test)]
@@ -37,7 +37,7 @@ mod tests {
     use super::*;
     extern crate test;
 
-    const TEST_INPUT_STR: &str = "\
+    const TEST_INPUT: &str = "\
         199\n\
         200\n\
         208\n\

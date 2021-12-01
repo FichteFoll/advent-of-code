@@ -17,15 +17,15 @@ macro_rules! read_input {
     };
 }
 
-// requires TEST_INPUT_STR & parse_input
+// requires TEST_INPUT & parse_input
 #[macro_export]
 macro_rules! test {
     ($part: ident ($($param: expr),*) == $expected:expr) => {
         paste::paste! {
             #[test]
             fn [<test_ $part>]() {
-                let input = parse_input(TEST_INPUT_STR);
-                assert_eq!($part(&input$(, $param)*), $expected);
+                let parsed = parse_input(TEST_INPUT);
+                assert_eq!($part(&parsed$(, $param)*), $expected);
             }
         }
     };
@@ -33,8 +33,8 @@ macro_rules! test {
         paste::paste! {
             #[test]
             fn [<test_ $part>]() {
-                let input = parse_input($input);
-                assert_eq!($part(&input$(, $param)*), $expected);
+                let parsed = parse_input($parsed);
+                assert_eq!($part(&parsed$(, $param)*), $expected);
             }
         }
     };
@@ -42,8 +42,8 @@ macro_rules! test {
         paste::paste! {
             #[test]
             fn [<test_ $part _ $suffix>]() {
-                let input = parse_input($input);
-                assert_eq!($part(&input$(, $param)*), $expected);
+                let parsed = parse_input($parsed);
+                assert_eq!($part(&parsed$(, $param)*), $expected);
             }
         }
     };
@@ -56,9 +56,9 @@ macro_rules! bench {
         paste::paste! {
             #[bench]
             fn [<bench_ $part>](b: &mut test::Bencher) {
-                let input_str = read_input!();
-                let input = parse_input(&input_str);
-                b.iter(|| assert_eq!($part(test::black_box(&input) $(, $param)* ), $expected));
+                let input = read_input!();
+                let parsed = parse_input(&input);
+                b.iter(|| assert_eq!($part(test::black_box(&parsed) $(, $param)* ), $expected));
             }
         }
     };
