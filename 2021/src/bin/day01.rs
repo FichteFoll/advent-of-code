@@ -1,4 +1,5 @@
 #![feature(test)]
+#![feature(array_windows)]
 
 use aoc2021::*;
 
@@ -14,14 +15,14 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    parsed.windows(2)
-        .filter(|w| w[0] < w[1])
+    parsed.array_windows()
+        .filter(|[a, b]| a < b)
         .count()
 }
 
 fn part_2(parsed: &Parsed) -> usize {
-    parsed.windows(4)
-        .filter(|w| w[0] < w[3])
+    parsed.array_windows()
+        .filter(|[a, _, _, b]| a < b)
         .count()
 }
 
