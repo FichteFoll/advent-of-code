@@ -1,4 +1,4 @@
-#![feature(test, iter_map_while)]
+#![feature(test)]
 
 use std::iter::successors;
 

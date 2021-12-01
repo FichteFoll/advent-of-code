@@ -1,4 +1,4 @@
-#![feature(test, exclusive_range_pattern, iter_map_while)]
+#![feature(test, exclusive_range_pattern)]
 
 use std::{fmt::{Display, Error, Formatter}, iter::successors};
 

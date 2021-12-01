@@ -1,4 +1,4 @@
-#![feature(test, str_split_once)]
+#![feature(test)]
 
 use std::collections::{HashMap, HashSet, VecDeque};
 

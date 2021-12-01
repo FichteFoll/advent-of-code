@@ -1,4 +1,4 @@
-#![feature(test, iterator_fold_self)]
+#![feature(test)]
 
 use std::ops::{BitAnd, BitOr};
 

@@ -1,4 +1,4 @@
-#![feature(test, str_split_once, map_into_keys_values)]
+#![feature(test)]
 
 use std::collections::{HashMap, HashSet};
 
