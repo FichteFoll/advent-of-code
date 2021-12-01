@@ -1,0 +1,70 @@
+#!/bin/zsh
+
+today=$(date +%d)
+day=${1-$today}
+input=input/day$day.txt
+src=src/bin/day$day.rs
+
+mkdir -p input src/bin
+
+if [ -e "$input" ]; then
+    echo "$input already exists"
+else
+    # fetch the puzzle input via https://github.com/wimglenn/advent-of-code-data
+    aocd $day > "$input"
+    # add trailing newline if necessary
+    sed -i -e '$a\' "$input"
+    echo "$input created"
+fi
+
+if [ -e "$src" ]; then
+    echo "$src already exists"
+else
+    <<EOF > "$src"
+#![feature(test)]
+
+use aoc2021::*;
+
+const DAY: usize = $day;
+type Input = Vec<usize>;
+
+fn parse_input(input_str: &str) -> Input {
+    input_str
+        .trim()
+        .split("\n")
+        .map(|line| line.parse().unwrap())
+        .collect()
+}
+
+fn part_1(input: &Input) -> usize {
+    0
+}
+
+fn part_2(_input: &Input) -> usize {
+    0
+}
+
+fn main() {
+    let input_str = read_input!();
+    let input = parse_input(&input_str);
+    println!("Part 1: {}", part_1(&input));
+    println!("Part 2: {}", part_2(&input));
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    extern crate test;
+
+    const TEST_INPUT_STR: &str = "\\
+        ";
+
+    test!(part_1() == 0);
+    // test!(part_2() == 0);
+    // bench_parse!(len, 0);
+    // bench!(part_1() == 0);
+    // bench!(part_2() == 0);
+}
+EOF
+    echo "$src created"
+fi
