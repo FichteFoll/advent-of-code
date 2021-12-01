@@ -1,11 +1,11 @@
 # FichteFoll's Advent of Code
 
-These are just my quick and dirty solutions to the
+These are just my (quick and dirty) solutions to the
 [Advent of Code][] Advent calendar
 for everyone to see, frown and laugh at.
 
 Code is split into folders by year and day
-with my input included for better reproduction.
+with my input included for better reproducibility.
 I did not complete all puzzles,
 so you'll only see those that I completed.
 
@@ -25,7 +25,7 @@ Also, tests are nice.
 
 For **2019**, I decided to go with **Haskell**.
 That was definitely an interesting and fun choice,
-although implementing some solitions
+although implementing some solutions
 definitely took a bit longer than necessary.
 For some days, I used the Linear package for its vector implementation,
 although that was definitely not necessary.
@@ -39,6 +39,8 @@ I could think of or found from discussions.
 
 For **2020**, I am going back to **Rust**,
 because it has been two years since I last did something with it.
+
+For **2021**, **Rust** it is. It's just so much fun.
 
 
 [Advent of Code]: https://adventofcode.com/
