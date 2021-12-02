@@ -1,3 +1,30 @@
+use std::error::Error;
+use std::fmt;
+
+
+#[derive(Debug)]
+pub struct ParseError {
+    msg: String,
+}
+
+impl ParseError {
+    pub fn new(msg: &str) -> Self {
+        ParseError { msg: msg.to_owned() }
+    }
+}
+
+impl Error for ParseError {
+    fn source(&self) -> Option<&(dyn Error + 'static)> {
+        None
+    }
+}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Unable to parse: {}", self.msg)
+    }
+}
+
 
 pub fn read_file(day: usize) -> String {
     std::fs::read_to_string(
