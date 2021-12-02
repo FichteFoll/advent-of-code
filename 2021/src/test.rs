@@ -1,4 +1,4 @@
-// requires TEST_INPUT & parse_input
+// requires `TEST_INPUT` & `parse_input`
 #[macro_export]
 macro_rules! test {
     ($part: ident ($($param: expr),*) == $expected:expr) => {
@@ -30,7 +30,7 @@ macro_rules! test {
     };
 }
 
-// requires parse_input
+// requires `DAY` & `parse_input`
 #[macro_export]
 macro_rules! bench {
     ($part: ident ($($param: expr),*) == $expected:expr) => {
@@ -45,7 +45,7 @@ macro_rules! bench {
     };
 }
 
-// requires parse_input
+// requires `DAY` & `parse_input`
 #[macro_export]
 macro_rules! bench_parse {
     ($fn:ident, $expected_len:expr) => {
