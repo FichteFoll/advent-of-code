@@ -44,15 +44,24 @@ fn part_1(parsed: &Parsed) -> usize {
         .fold((0usize, 0usize), |(dist, dep), cmd| {
             match cmd {
                 &Forward(n) => (dist + n, dep),
-                &Up(n) => (dist, dep.saturating_sub(n)),
+                &Up(n) => (dist, dep - n),
                 &Down(n) => (dist, dep + n),
             }
         });
     distance * depth
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    0
+fn part_2(parsed: &Parsed) -> usize {
+    use Command::*;
+    let (distance, depth, _) = parsed.iter()
+        .fold((0usize, 0usize, 0usize), |(dist, dep, aim), cmd| {
+            match cmd {
+                &Forward(n) => (dist + n, dep + aim * n, aim),
+                &Up(n) => (dist, dep, aim - n),
+                &Down(n) => (dist, dep, aim + n),
+            }
+        });
+    distance * depth
 }
 
 fn main() {
@@ -77,8 +86,8 @@ mod tests {
         ";
 
     test!(part_1() == 150);
-    // test!(part_2() == 0);
-    // bench_parse!(len, 0);
+    test!(part_2() == 900);
+    bench_parse!(len, 1000);
     bench!(part_1() == 2117664);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 2073416724);
 }
