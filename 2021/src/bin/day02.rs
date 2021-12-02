@@ -1,6 +1,9 @@
 #![feature(test)]
 
 use std::str::FromStr;
+use std::num::ParseIntError;
+
+use custom_error::custom_error;
 
 use aoc2021::*;
 
@@ -14,18 +17,24 @@ enum Command {
     Down(usize),
 }
 
+custom_error!{ParseError
+    NoSpace = "no space in line",
+    BadCommand{cmd: String} = "unexpected command: {cmd}",
+    BadInt{source: ParseIntError} = "Unable to parse integer",
+}
+
 impl FromStr for Command {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use Command::*;
-        let (word, step_str) =  s.split_once(" ").ok_or_else(|| ParseError::new("no space found"))?;
-        let step = step_str.parse().expect("expected number"); // TODO proper error handling?
+        let (word, step_str) = s.split_once(" ").ok_or(ParseError::NoSpace)?;
+        let step = step_str.parse()?;
         match word {
             "forward" => Ok(Forward(step)),
             "up" => Ok(Up(step)),
             "down" => Ok(Down(step)),
-            _ => Err(ParseError::new("unexpected keyword")),
+            _ => Err(ParseError::BadCommand { cmd: word.to_owned() }),
         }
     }
 }
