@@ -42,15 +42,12 @@ fn part_1(parsed: &Parsed) -> usize {
     use Command::*;
     let (distance, depth) = parsed.iter()
         .fold((0usize, 0usize), |(dist, dep), cmd| {
-            println!("dist: {dist}, dep: {dep}, cmd: {cmd:?}");
             match cmd {
                 &Forward(n) => (dist + n, dep),
                 &Up(n) => (dist, dep.saturating_sub(n)),
                 &Down(n) => (dist, dep + n),
             }
         });
-    let mul = distance * depth;
-    println!("distance: {distance}, depth: {depth}, mul: {mul}");
     distance * depth
 }
 

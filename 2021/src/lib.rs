@@ -60,7 +60,7 @@ macro_rules! test {
         paste::paste! {
             #[test]
             fn [<test_ $part>]() {
-                let parsed = parse_input($parsed);
+                let parsed = parse_input($input);
                 assert_eq!($part(&parsed$(, $param)*), $expected);
             }
         }
@@ -69,7 +69,7 @@ macro_rules! test {
         paste::paste! {
             #[test]
             fn [<test_ $part _ $suffix>]() {
-                let parsed = parse_input($parsed);
+                let parsed = parse_input($input);
                 assert_eq!($part(&parsed$(, $param)*), $expected);
             }
         }

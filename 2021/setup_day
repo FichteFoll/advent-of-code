@@ -56,7 +56,7 @@ mod tests {
     use super::*;
     extern crate test;
 
-    const TEST_INPUT_STR: &str = "\\
+    const TEST_INPUT: &str = "\\
         ";
 
     test!(part_1() == 0);
