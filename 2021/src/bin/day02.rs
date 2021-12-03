@@ -96,7 +96,7 @@ mod tests {
 
     test!(part_1() == 150);
     test!(part_2() == 900);
-    bench_parse!(len, 1000);
+    bench_parse!(Vec::len, 1000);
     bench!(part_1() == 2117664);
     bench!(part_2() == 2073416724);
 }

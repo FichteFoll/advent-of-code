@@ -53,7 +53,7 @@ mod tests {
 
     test!(part_1() == 7);
     test!(part_2() == 5);
-    bench_parse!(len, 2000);
+    bench_parse!(Vec::len, 2000);
     bench!(part_1() == 1195);
     bench!(part_2() == 1235);
 }
