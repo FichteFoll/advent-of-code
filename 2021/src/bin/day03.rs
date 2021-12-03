@@ -98,7 +98,7 @@ mod tests {
 
     test!(part_1() == 198);
     test!(part_2() == 230);
-    bench_parse!(|x: &Parsed| x.nums.len(), 1000);
+    bench_parse!(|x: &Parsed| (x.nums.len(), x.digits), (1000, 12));
     bench!(part_1() == 2583164);
     bench!(part_2() == 2784375);
 }
