@@ -48,13 +48,13 @@ macro_rules! bench {
 // requires `DAY` & `parse_input`
 #[macro_export]
 macro_rules! bench_parse {
-    ($fn:expr, $expected_len:expr) => {
+    ($fn:expr, $expected:expr) => {
         #[bench]
         fn bench_parse(b: &mut test::Bencher) {
             let raw = read_input!();
             b.iter(|| {
                 let parsed = parse_input(test::black_box(&raw));
-                assert_eq!($fn(&parsed), $expected_len)
+                assert_eq!($fn(&parsed), $expected)
             });
         }
     };
