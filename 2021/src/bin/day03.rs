@@ -38,29 +38,29 @@ fn part_1(parsed: &Parsed) -> usize {
 }
 
 #[inline]
-fn digit_at(n: usize, pos: usize) -> usize {
+fn bit_at(n: usize, pos: usize) -> usize {
     n >> pos & 1
 }
 
 fn most_common_digit_at(nums: &Vec<usize>, pos: usize) -> usize {
-    let one = nums.iter().filter(|&&n| digit_at(n, pos) > 0).count();
+    let one = nums.iter().filter(|&&n| bit_at(n, pos) > 0).count();
     (one * 2 >= nums.len()) as usize
 }
 
 fn rating(parsed: &Parsed, keep_most_common: bool) -> usize {
     // I need to deref the numbers for comparisons anyway
     let mut nums = parsed.nums.clone();
-    let mut pos = parsed.digits - 1;
-    loop {
+    for pos in (0..parsed.digits).rev() {
         let most_common_digit = most_common_digit_at(&nums, pos);
+        // Vec::retain is significantly slower
         nums = nums.into_iter()
-            .filter(|&n| (digit_at(n, pos) == most_common_digit) == keep_most_common)
+            .filter(|&n| (bit_at(n, pos) == most_common_digit) == keep_most_common)
             .collect();
         if nums.len() == 1 {
             return nums[0];
         }
-        pos -= 1;
     }
+    panic!("more than one number left");
 }
 
 fn part_2(parsed: &Parsed) -> usize {
