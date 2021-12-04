@@ -89,22 +89,13 @@ mod parse {
         type Err = ParseError;
 
         fn from_str(s: &str) -> Result<Self, Self::Err> {
-            let fields: Vec<Vec<usize>> = s.trim().split('\n')
+            let grid: Grid2D<usize> = s.trim().split('\n')
                 .map(|line|
                     line.split(' ')
                         .filter(|s| s.len() > 0)
                         .map(|num| num.parse::<usize>())
-                        .collect()
+                        .collect::<Result<Vec<_>, _>>()
                 ).collect::<Result<_, _>>()?;
-            let grid = Grid2D::from_iter(fields);
-            // TODO why does this not work
-            // let grid: Grid2D<usize> = s.trim().split('\n')
-            //     .map(|line|
-            //         line.split(' ')
-            //             .filter(|s| s.len() > 0)
-            //             .map(|num| num.parse::<usize>())
-            //             .collect()
-            //     ).collect::<Result<_, _>>()?;
             Ok(Card::new(grid))
         }
     }
