@@ -2,74 +2,111 @@
 #![feature(bool_to_option)]
 
 use core::panic;
-use std::str::FromStr;
-use std::num::ParseIntError;
 use std::ops::BitOr;
-
-use custom_error::custom_error;
 
 use aoc2021::*;
 use aoc2021::grid2d::*;
+use parse::parse_input;
 
 const DAY: usize = 04;
 
+
+fn main() {
+    let input = read_input!();
+    let parsed = parse_input(&input);
+    println!("Part 1: {}", part_1(&parsed));
+    println!("Part 2: {}", part_2(&parsed));
+}
+
+fn part_1(parsed: &Parsed) -> usize {
+    let mut bingo = parsed.to_owned();
+    for n in bingo.draws.iter() {
+        for card in bingo.cards.iter_mut() { // try rayon here
+            card.mark(*n);
+        }
+
+        if let Some(winning_card) = bingo.cards.iter().find(|c| c.is_winning()) {
+            return winning_card.points() * n;
+        }
+    }
+    panic!("No board won");
+}
+
+fn part_2(_parsed: &Parsed) -> usize {
+    0
+}
+
 #[derive(Clone,Debug)]
-struct Parsed {
+pub struct Parsed {
     draws: Vec<usize>,
     cards: Vec<Card>,
 }
 
-custom_error!{ParseError
-    BadInt {source: ParseIntError} = "Unable to parse integer",
-    NoDraws = "Couldn't find line with draws",
-}
-
-impl FromStr for Parsed {
-    type Err = ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (draws_line, cards_lines) = s.split_once("\n\n").ok_or(ParseError::NoDraws)?;
-        let draws = draws_line
-            .split(',')
-            .map(|x| x.parse())
-            .collect::<Result<_, _>>()?;
-        let cards = cards_lines
-            .split("\n\n")
-            .map(|x| x.parse())
-            .collect::<Result<_, _>>()?;
-        Ok(Parsed { draws: draws, cards: cards })
-    }
-}
-
 type Mask = u32; // supports up to 5x5
+
 #[derive(Clone,Debug)]
 struct Card {
     grid: Grid2D<usize>,
     marked: Mask,
-    winning_masks: Vec<Mask>, // compute these statically
+    winning_masks: Vec<Mask>, // computed in ::new
 }
 
-impl FromStr for Card {
-    type Err = ParseError;
+mod parse {
+    use std::num::ParseIntError;
+    use std::str::FromStr;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let fields: Vec<Vec<usize>> = s.trim().split('\n')
-            .map(|line|
-                line.split(' ')
-                    .filter(|s| s.len() > 0)
-                    .map(|num| num.parse::<usize>())
-                    .collect()
-            ).collect::<Result<_, _>>()?;
-        let grid = Grid2D::from_iter(fields);
-        // TODO why does this not work
-        // let grid: Grid2D<usize> = s.trim().split('\n')
-        //     .map(|line|
-        //         line.split(' ')
-        //             .filter(|s| s.len() > 0)
-        //             .map(|num| num.parse::<usize>())
-        //             .collect()
-        //     ).collect::<Result<_, _>>()?;
-        Ok(Card::new(grid))
+    use custom_error::custom_error;
+
+    use super::*;
+
+    pub fn parse_input(input: &str) -> Parsed {
+        input.trim().parse().unwrap()
+    }
+
+    custom_error!{pub ParseError
+        BadInt {source: ParseIntError} = "Unable to parse integer",
+        NoDraws = "Couldn't find line with draws",
+    }
+
+    impl FromStr for Parsed {
+        type Err = ParseError;
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            let (draws_line, cards_lines) = s.split_once("\n\n").ok_or(ParseError::NoDraws)?;
+            let draws = draws_line
+                .split(',')
+                .map(|x| x.parse())
+                .collect::<Result<_, _>>()?;
+            let cards = cards_lines
+                .split("\n\n")
+                .map(|x| x.parse())
+                .collect::<Result<_, _>>()?;
+            Ok(Parsed { draws: draws, cards: cards })
+        }
+    }
+
+    impl FromStr for Card {
+        type Err = ParseError;
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            let fields: Vec<Vec<usize>> = s.trim().split('\n')
+                .map(|line|
+                    line.split(' ')
+                        .filter(|s| s.len() > 0)
+                        .map(|num| num.parse::<usize>())
+                        .collect()
+                ).collect::<Result<_, _>>()?;
+            let grid = Grid2D::from_iter(fields);
+            // TODO why does this not work
+            // let grid: Grid2D<usize> = s.trim().split('\n')
+            //     .map(|line|
+            //         line.split(' ')
+            //             .filter(|s| s.len() > 0)
+            //             .map(|num| num.parse::<usize>())
+            //             .collect()
+            //     ).collect::<Result<_, _>>()?;
+            Ok(Card::new(grid))
+        }
     }
 }
 
@@ -112,7 +149,6 @@ impl Card {
         masks
     }
 
-
     fn mark(&mut self, n: usize) {
         let point_opt = self.grid
             .iter_enumerate()
@@ -139,35 +175,6 @@ impl Card {
             .filter_map(|(pt, &val)| (self.marked & self.mark_mask(&pt) == 0).then_some(val))
             .sum()
     }
-}
-
-fn parse_input(input: &str) -> Parsed {
-    input.trim().parse().unwrap()
-}
-
-fn part_1(parsed: &Parsed) -> usize {
-    let mut bingo = parsed.to_owned();
-    for n in bingo.draws.iter() {
-        for card in bingo.cards.iter_mut() { // try rayon here
-            card.mark(*n);
-        }
-
-        if let Some(winning_card) = bingo.cards.iter().find(|c| c.is_winning()) {
-            return winning_card.points() * n;
-        }
-    }
-    panic!("No board won");
-}
-
-fn part_2(_parsed: &Parsed) -> usize {
-    0
-}
-
-fn main() {
-    let input = read_input!();
-    let parsed = parse_input(&input);
-    println!("Part 1: {}", part_1(&parsed));
-    println!("Part 2: {}", part_2(&parsed));
 }
 
 #[cfg(test)]
