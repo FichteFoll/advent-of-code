@@ -31,7 +31,7 @@ type Parsed = Vec<usize>;
 fn parse_input(input: &str) -> Parsed {
     input
         .trim()
-        .split("\n")
+        .split('\n')
         .map(|line| line.parse().unwrap())
         .collect()
 }
@@ -61,7 +61,7 @@ mod tests {
 
     test!(part_1() == 0);
     // test!(part_2() == 0);
-    // bench_parse!(len, 0);
+    // bench_parse!(Vec::len, 0);
     // bench!(part_1() == 0);
     // bench!(part_2() == 0);
 }
