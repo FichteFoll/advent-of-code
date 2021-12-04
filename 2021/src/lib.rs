@@ -20,3 +20,4 @@ macro_rules! read_input {
 }
 
 pub mod test;
+pub mod grid2d;
