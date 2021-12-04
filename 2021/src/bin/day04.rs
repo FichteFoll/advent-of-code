@@ -5,7 +5,6 @@ use core::panic;
 use std::ops::BitOr;
 
 use aoc2021::*;
-use aoc2021::grid2d::*;
 use parse::parse_input;
 
 const DAY: usize = 04;
@@ -57,7 +56,7 @@ type Mask = u32; // supports up to 5x5
 
 #[derive(Clone,Debug)]
 struct Card {
-    grid: Grid2D<usize>,
+    fields: Vec<usize>,
     marked: Mask,
     winning_masks: Vec<Mask>, // computed in ::new
 }
@@ -100,68 +99,53 @@ mod parse {
         type Err = ParseError;
 
         fn from_str(s: &str) -> Result<Self, Self::Err> {
-            let grid: Grid2D<usize> = s.trim().split('\n')
-                .map(|line|
-                    line.split(' ')
-                        .filter(|s| s.len() > 0)
+            let fields: Vec<usize> = s.trim().split('\n')
+                .flat_map(|line|
+                    line.split_whitespace()
                         .map(|num| num.parse::<usize>())
-                        .collect::<Result<Vec<_>, _>>()
                 ).collect::<Result<_, _>>()?;
-            Ok(Card::new(grid))
+            Ok(Card::new(fields))
         }
     }
 }
 
 impl Card {
-    fn new(grid: Grid2D<usize>) -> Self {
-        let winning_masks = Card::create_winning_masks(&grid.size);
+    fn new(fields: Vec<usize>) -> Self {
+        let size = (fields.len() as f32).sqrt() as usize;
+        assert_eq!(size * size, fields.len(), "Fields must form a square");
+        assert!(size * size < Mask::BITS as usize, "Fields do not fit into mask");
+        let winning_masks = Card::create_winning_masks(size);
         Card {
-            grid,
+            fields,
             marked: 0,
             winning_masks,
         }
     }
 
-    fn create_winning_masks(size: &Size) -> Vec<Mask> {
-        if size.0 != size.1 {
-            panic!("grid must be a square");
-        }
-        let dim = size.0;
+    fn create_winning_masks(size: usize) -> Vec<Mask> {
         let mut masks = vec![];
         // horiz →
-        for row in 0..dim {
-            masks.push(((2 as Mask).pow(dim as u32) - 1) << row * dim);
+        for row in 0..size {
+            masks.push(((2 as Mask).pow(size as u32) - 1) << row * size);
         }
         // vert ↓
-        for col in 0..dim {
-            masks.push(
-                (0..dim).map(|row| 1 << (col + row * dim) as Mask).fold(0, Mask::bitor)
-            );
+        for col in 0..size {
+            masks.push((0..size).map(|row| 1 << (col + row * size) as Mask).fold(0, Mask::bitor));
         }
-        // Diagonals don't actually count, but I implemented them anyway because I can't read.
-        // The example would pass this after the number 2 in the third card.
-        // // diag →↓
-        // masks.push(
-        //     (0..dim).map(|i| 1 << (i + i * dim) as Mask).fold(0, Mask::bitor)
-        // );
-        // // diag ←↓
-        // masks.push(
-        //     (0..dim).map(|i| 1 << ((dim - i - 1) + i * dim) as Mask).fold(0, Mask::bitor)
-        // );
         masks
     }
 
     fn mark(&mut self, n: usize) {
-        let point_opt = self.grid
-            .iter_enumerate()
+        let i_opt = self.fields.iter()
+            .enumerate()
             .find(|(_, &val)| val == n);
-        if let Some((pt, _)) = point_opt {
-            self.marked |= self.mark_mask(&pt);
+        if let Some((i, _)) = i_opt {
+            self.marked |= Card::mark_mask(i);
         }
     }
 
-    fn mark_mask(&self, pt: &Point) -> Mask {
-        1 << (self.grid.size.0 as Mask * pt.y as Mask + pt.x as Mask)
+    fn mark_mask(i: usize) -> Mask {
+        1 << i as Mask
     }
 
     fn is_winning(&self) -> bool {
@@ -172,9 +156,9 @@ impl Card {
     }
 
     fn points(&self) -> usize {
-        self.grid
-            .iter_enumerate()
-            .filter_map(|(pt, &val)| (self.marked & self.mark_mask(&pt) == 0).then_some(val))
+        self.fields.iter()
+            .enumerate()
+            .filter_map(|(i, &val)| (self.marked & Card::mark_mask(i) == 0).then_some(val))
             .sum()
     }
 }
