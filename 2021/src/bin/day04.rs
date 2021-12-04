@@ -21,7 +21,7 @@ fn main() {
 fn part_1(parsed: &Parsed) -> usize {
     let mut bingo = parsed.to_owned();
     for n in bingo.draws.iter() {
-        for card in bingo.cards.iter_mut() { // try rayon here
+        for card in bingo.cards.iter_mut() {
             card.mark(*n);
         }
 
@@ -32,8 +32,19 @@ fn part_1(parsed: &Parsed) -> usize {
     panic!("No board won");
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    0
+fn part_2(parsed: &Parsed) -> usize {
+    let mut bingo = parsed.to_owned();
+    for n in bingo.draws.iter() {
+        for card in bingo.cards.iter_mut() {
+            card.mark(*n);
+        }
+
+        if bingo.cards.len() == 1 && bingo.cards[0].is_winning() {
+            return bingo.cards[0].points() * n;
+        }
+        bingo.cards.retain(|card| !card.is_winning());
+    }
+    panic!("No board or multiple boards won");
 }
 
 #[derive(Clone,Debug)]
@@ -196,8 +207,8 @@ mod tests {
         ";
 
     test!(part_1() == 4512);
-    // test!(part_2() == 0);
+    test!(part_2() == 1924);
     bench_parse!(|p: &Parsed| (p.cards.len(), p.draws.len()), (100, 100));
     bench!(part_1() == 58374);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 11377);
 }
