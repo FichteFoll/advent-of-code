@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 
+use either::Either::{self, Left, Right};
 use itertools::iproduct;
 
 use aoc2021::*;
@@ -10,7 +11,10 @@ use parse::parse_input;
 const DAY: usize = 5;
 
 type Point = (usize, usize);
-type Parsed = Vec<(Point, Point)>;
+type Line = (Point, Point);
+// left: vertical/horizontal, right: diagonal
+type ELine = Either<Line, Line>;
+type Parsed = Vec<ELine>;
 
 fn main() {
     let input = read_input!();
@@ -28,7 +32,12 @@ mod parse {
             .split('\n')
             .map(|line| {
                 let (left, right) = line.split_once(" -> ").expect("no separator");
-                (parse_pt(left), parse_pt(right))
+                let line = (parse_pt(left), parse_pt(right));
+                if line.0.0 == line.1.0 || line.0.1 == line.1.1 {
+                    Left(line)
+                } else {
+                    Right(line)
+                }
             })
             .collect()
     }
@@ -40,49 +49,45 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    let mut grid = HashMap::new();
-    let filtered = parsed.iter()
-        .filter(|(from, to)| from.0 == to.0 || from.1 == to.1);
-    for (from, to) in filtered {
-        for pt in pts_for_hv(from, to) {
-            *grid.entry(pt).or_insert(0) += 1;
-        }
-    }
-    grid.values().filter(|&&n| n >= 2).count()
+    let pts = parsed.iter()
+        .filter_map(|eline| eline.left())
+        .flat_map(pts_for_hv);
+    count_overlaps(pts)
 }
 
 fn part_2(parsed: &Parsed) -> usize {
-    let mut grid = HashMap::new();
-    for (from, to) in parsed.iter() {
-        let pts = if from.0 == to.0 || from.1 == to.1 {
-            pts_for_hv(from, to)
-        } else {
-            pts_for_diag(from, to)
-        };
-        for pt in pts {
-            *grid.entry(pt).or_insert(0) += 1;
-        }
-    }
-    grid.values().filter(|&&n| n >= 2).count()
+    let pts = parsed.iter()
+        .flat_map(|eline| eline.either(pts_for_hv, pts_for_diag));
+    count_overlaps(pts)
 }
 
-fn pts_for_hv(from: &Point, to: &Point) -> Vec<Point> {
+fn pts_for_hv(line: Line) -> Vec<Point> {
     iproduct!(
-        from.0.min(to.0)..=from.0.max(to.0),
-        from.1.min(to.1)..=from.1.max(to.1)
+        line.0.0.min(line.1.0)..=line.0.0.max(line.1.0),
+        line.0.1.min(line.1.1)..=line.0.1.max(line.1.1)
     ).collect()
 }
 
-fn pts_for_diag(from: &Point, to: &Point) -> Vec<Point> {
-    let mut x_iter: Box<dyn DoubleEndedIterator<Item=_>> = Box::new(from.0.min(to.0)..=from.0.max(to.0));
-    if from.0 > to.0 {
+fn pts_for_diag(line: Line) -> Vec<Point> {
+    let mut x_iter: Box<dyn DoubleEndedIterator<Item=_>>
+        = Box::new(line.0.0.min(line.1.0)..=line.0.0.max(line.1.0));
+    if line.0.0 > line.1.0 {
         x_iter = Box::new(x_iter.rev());
     }
-    let mut y_iter: Box<dyn DoubleEndedIterator<Item=_>> = Box::new(from.1.min(to.1)..=from.1.max(to.1));
-    if from.1 > to.1 {
+    let mut y_iter: Box<dyn DoubleEndedIterator<Item=_>>
+        = Box::new(line.0.1.min(line.1.1)..=line.0.1.max(line.1.1));
+    if line.0.1 > line.1.1 {
         y_iter = Box::new(y_iter.rev());
     }
     x_iter.zip(y_iter).collect()
+}
+
+fn count_overlaps(pts: impl Iterator<Item=Point>) -> usize {
+    let mut grid = HashMap::new();
+    for pt in pts {
+        *grid.entry(pt).or_insert(0) += 1;
+    }
+    grid.into_values().filter(|&n| n >= 2).count()
 }
 
 #[cfg(test)]
