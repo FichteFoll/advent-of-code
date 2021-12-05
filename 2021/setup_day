@@ -9,12 +9,14 @@ mkdir -p input src/bin
 
 if [ -e "$input" ]; then
     echo "$input already exists"
-else
+elif command -v aocd >/dev/null; then
     # fetch the puzzle input via https://github.com/wimglenn/advent-of-code-data
     aocd $day > "$input"
     # add trailing newline if necessary
     sed -i -e '$a\' "$input"
     echo "$input created"
+else
+    echo "aocd not found; skipping input file creation"
 fi
 
 if [ -e "$src" ]; then
