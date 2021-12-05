@@ -26,16 +26,15 @@ else
 #![feature(test)]
 
 use aoc2021::*;
+use parse::parse_input;
 
 const DAY: usize = $day;
-type Parsed = Vec<usize>;
 
-fn parse_input(input: &str) -> Parsed {
-    input
-        .trim()
-        .split('\n')
-        .map(|line| line.parse().unwrap())
-        .collect()
+fn main() {
+    let input = read_input!();
+    let parsed = parse_input(&input);
+    println!("Part 1: {}", part_1(&parsed));
+    println!("Part 2: {}", part_2(&parsed));
 }
 
 fn part_1(parsed: &Parsed) -> usize {
@@ -46,11 +45,18 @@ fn part_2(_parsed: &Parsed) -> usize {
     0
 }
 
-fn main() {
-    let input = read_input!();
-    let parsed = parse_input(&input);
-    println!("Part 1: {}", part_1(&parsed));
-    println!("Part 2: {}", part_2(&parsed));
+type Parsed = Vec<usize>;
+
+mod parse {
+    use super::*;
+
+    pub fn parse_input(input: &str) -> Parsed {
+        input
+            .trim()
+            .split('\n')
+            .map(|line| line.parse().unwrap())
+            .collect()
+    }
 }
 
 #[cfg(test)]
