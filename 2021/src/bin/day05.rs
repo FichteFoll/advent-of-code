@@ -2,6 +2,8 @@
 
 use std::collections::HashMap;
 
+use itertools::iproduct;
+
 use aoc2021::*;
 use parse::parse_input;
 
@@ -22,17 +24,45 @@ fn part_1(parsed: &Parsed) -> usize {
     let filtered = parsed.iter()
         .filter(|(from, to)| from.0 == to.0 || from.1 == to.1);
     for (from, to) in filtered {
-        for i in from.0.min(to.0)..=from.0.max(to.0) {
-            for j in from.1.min(to.1)..=from.1.max(to.1) {
-                *grid.entry((i, j)).or_insert(0) += 1;
-            }
+        for pt in pts_for_hv(from, to) {
+            *grid.entry(pt).or_insert(0) += 1;
         }
     }
     grid.values().filter(|&&n| n >= 2).count()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    0
+fn part_2(parsed: &Parsed) -> usize {
+    let mut grid = HashMap::new();
+    for (from, to) in parsed.iter() {
+        let pts = if from.0 == to.0 || from.1 == to.1 {
+            pts_for_hv(from, to)
+        } else {
+            pts_for_diag(from, to)
+        };
+        for pt in pts {
+            *grid.entry(pt).or_insert(0) += 1;
+        }
+    }
+    grid.values().filter(|&&n| n >= 2).count()
+}
+
+fn pts_for_hv(from: &Point, to: &Point) -> Vec<Point> {
+    iproduct!(
+        from.0.min(to.0)..=from.0.max(to.0),
+        from.1.min(to.1)..=from.1.max(to.1)
+    ).collect()
+}
+
+fn pts_for_diag(from: &Point, to: &Point) -> Vec<Point> {
+    let mut x_iter: Box<dyn DoubleEndedIterator<Item=_>> = Box::new(from.0.min(to.0)..=from.0.max(to.0));
+    if from.0 > to.0 {
+        x_iter = Box::new(x_iter.rev());
+    }
+    let mut y_iter: Box<dyn DoubleEndedIterator<Item=_>> = Box::new(from.1.min(to.1)..=from.1.max(to.1));
+    if from.1 > to.1 {
+        y_iter = Box::new(y_iter.rev());
+    }
+    x_iter.zip(y_iter).collect()
 }
 
 mod parse {
@@ -74,7 +104,7 @@ mod tests {
         ";
 
     test!(part_1() == 5);
-    // test!(part_2() == 0);
+    test!(part_2() == 12);
     bench_parse!(Vec::len, 500);
     bench!(part_1() == 6311);
     // bench!(part_2() == 0);
