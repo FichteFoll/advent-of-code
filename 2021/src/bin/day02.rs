@@ -7,7 +7,7 @@ use custom_error::custom_error;
 
 use aoc2021::*;
 
-const DAY: usize = 02;
+const DAY: usize = 2;
 type Parsed = Vec<Command>;
 
 #[derive(Debug)]
@@ -42,7 +42,7 @@ impl FromStr for Command {
 fn parse_input(input: &str) -> Parsed {
     input
         .trim()
-        .split("\n")
+        .split('\n')
         .map(|line| line.parse().unwrap())
         .collect()
 }
@@ -52,9 +52,9 @@ fn part_1(parsed: &Parsed) -> usize {
     let (distance, depth) = parsed.iter()
         .fold((0usize, 0usize), |(dist, dep), cmd| {
             match cmd {
-                &Forward(n) => (dist + n, dep),
-                &Up(n) => (dist, dep - n),
-                &Down(n) => (dist, dep + n),
+                Forward(n) => (dist + n, dep),
+                Up(n) => (dist, dep - n),
+                Down(n) => (dist, dep + n),
             }
         });
     distance * depth
@@ -65,9 +65,9 @@ fn part_2(parsed: &Parsed) -> usize {
     let (distance, depth, _) = parsed.iter()
         .fold((0usize, 0usize, 0usize), |(dist, dep, aim), cmd| {
             match cmd {
-                &Forward(n) => (dist + n, dep + aim * n, aim),
-                &Up(n) => (dist, dep, aim - n),
-                &Down(n) => (dist, dep, aim + n),
+                Forward(n) => (dist + n, dep + aim * n, aim),
+                Up(n) => (dist, dep, aim - n),
+                Down(n) => (dist, dep, aim + n),
             }
         });
     distance * depth

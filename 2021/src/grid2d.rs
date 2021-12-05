@@ -43,7 +43,7 @@ impl<T> Grid2D<T> {
 
     pub fn neighbor_values(&self, pt: &Point) -> Vec<&T> {
         pt.neighbors().iter()
-            .filter_map(|x| self.get(&x))
+            .filter_map(|x| self.get(x))
             .collect()
     }
 
@@ -52,7 +52,7 @@ impl<T> Grid2D<T> {
             0..self.size.0,
             0..self.size.1
         )
-            .map(|x| Point::from(x))
+            .map(Point::from)
     }
 
     pub fn new_map<F>(&self, f: F) -> Self
@@ -117,7 +117,7 @@ impl<T> Display for Grid2D<T>
 }
 
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Point {
     pub x: i32,
     pub y: i32,
@@ -154,13 +154,13 @@ impl Point {
     }
 
     pub fn saturated_neighbors(&self, max_x: usize, max_y: usize) -> impl Iterator<Item=Point> {
-        let exclude = self.clone();
+        let exclude = *self;
         iproduct!(
             0.max(self.x - 1)..=(max_x as i32).min(self.x + 1),
             0.max(self.y - 1)..=(max_y as i32).min(self.y + 1)
         )
             .filter(move |(x, y)| *x != exclude.x || *y != exclude.y)
-            .map(|tpl| Point::from(tpl))
+            .map(Point::from)
     }
 
     pub fn normalized(&self) -> Point {
@@ -201,12 +201,6 @@ impl Point {
 
 }
 
-impl Default for Point {
-    fn default() -> Self {
-        Point { x: 0, y: 0}
-    }
-}
-
 impl Display for Point {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "({}, {})", self.x, self.y)
@@ -238,11 +232,9 @@ impl_op_ex!(-= |a: &mut Point, b: &Point| { a.x -= b.x; a.y -= b.y; });
 
 
 fn gcd(a: i32, b: i32) -> i32 {
-    if a == b {
-        a
-    } else if a > b {
-        gcd(a - b, b)
-    } else {
-        gcd(a, b - a)
+    match a {
+        _ if a == b => a,
+        _ if a > b => gcd(a - b, b),
+        _ => gcd(a, b - a),
     }
 }

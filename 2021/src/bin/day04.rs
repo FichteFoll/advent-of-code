@@ -7,8 +7,7 @@ use std::ops::BitOr;
 use aoc2021::*;
 use parse::parse_input;
 
-const DAY: usize = 04;
-
+const DAY: usize = 4;
 
 fn main() {
     let input = read_input!();
@@ -91,7 +90,7 @@ mod parse {
                 .split("\n\n")
                 .map(|x| x.parse())
                 .collect::<Result<_, _>>()?;
-            Ok(Parsed { draws: draws, cards: cards })
+            Ok(Parsed { draws, cards })
         }
     }
 
@@ -126,7 +125,7 @@ impl Card {
         let mut masks = vec![];
         // horiz →
         for row in 0..size {
-            masks.push(((2 as Mask).pow(size as u32) - 1) << row * size);
+            masks.push(((2 as Mask).pow(size as u32) - 1) << (row * size));
         }
         // vert ↓
         for col in 0..size {

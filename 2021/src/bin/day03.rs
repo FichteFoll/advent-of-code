@@ -2,7 +2,7 @@
 
 use aoc2021::*;
 
-const DAY: usize = 03;
+const DAY: usize = 3;
 struct Parsed {
     nums: Vec<usize>,
     digits: usize,
@@ -11,22 +11,22 @@ struct Parsed {
 fn parse_input(input: &str) -> Parsed {
     let mut lines = input
         .trim()
-        .split("\n")
+        .split('\n')
         .peekable();
     let digits = lines.peek().expect("file was empty").len();
     Parsed {
         nums: lines
             .map(|line| usize::from_str_radix(line, 2).unwrap())
             .collect(),
-        digits: digits,
+        digits,
     }
 }
 
 fn part_1(parsed: &Parsed) -> usize {
     let mut ones = vec![0usize; parsed.digits];
     for num in parsed.nums.iter() {
-        for i in 0..ones.len() {
-            ones[i] += (num >> (parsed.digits - 1 - i)) & 1;
+        for (i, one) in ones.iter_mut().enumerate() {
+            *one += (num >> (parsed.digits - 1 - i)) & 1;
         }
     }
     let most_common: Vec<_> = ones.iter()
@@ -42,7 +42,7 @@ fn bit_at(n: usize, pos: usize) -> usize {
     n >> pos & 1
 }
 
-fn most_common_digit_at(nums: &Vec<usize>, pos: usize) -> usize {
+fn most_common_digit_at(nums: &[usize], pos: usize) -> usize {
     let one = nums.iter().filter(|&&n| bit_at(n, pos) > 0).count();
     (one * 2 >= nums.len()) as usize
 }

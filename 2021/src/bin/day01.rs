@@ -3,13 +3,13 @@
 
 use aoc2021::*;
 
-const DAY: usize = 01;
+const DAY: usize = 1;
 type Parsed = Vec<usize>;
 
 fn parse_input(input: &str) -> Parsed {
     input
         .trim()
-        .split("\n")
+        .split('\n')
         .map(|line| line.parse().unwrap())
         .collect()
 }
