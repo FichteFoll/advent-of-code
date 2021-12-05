@@ -9,42 +9,6 @@ use parse::parse_input;
 
 const DAY: usize = 4;
 
-fn main() {
-    let input = read_input!();
-    let parsed = parse_input(&input);
-    println!("Part 1: {}", part_1(&parsed));
-    println!("Part 2: {}", part_2(&parsed));
-}
-
-fn part_1(parsed: &Parsed) -> usize {
-    let mut bingo = parsed.to_owned();
-    for n in bingo.draws.iter() {
-        for card in bingo.cards.iter_mut() {
-            card.mark(*n);
-        }
-
-        if let Some(winning_card) = bingo.cards.iter().find(|c| c.is_winning()) {
-            return winning_card.points() * n;
-        }
-    }
-    panic!("No board won");
-}
-
-fn part_2(parsed: &Parsed) -> usize {
-    let mut bingo = parsed.to_owned();
-    for n in bingo.draws.iter() {
-        for card in bingo.cards.iter_mut() {
-            card.mark(*n);
-        }
-
-        if bingo.cards.len() == 1 && bingo.cards[0].is_winning() {
-            return bingo.cards[0].points() * n;
-        }
-        bingo.cards.retain(|card| !card.is_winning());
-    }
-    panic!("No board or multiple boards won");
-}
-
 #[derive(Clone,Debug)]
 pub struct Parsed {
     draws: Vec<usize>,
@@ -58,6 +22,13 @@ struct Card {
     fields: Vec<usize>,
     marked: Mask,
     winning_masks: Vec<Mask>, // computed in ::new
+}
+
+fn main() {
+    let input = read_input!();
+    let parsed = parse_input(&input);
+    println!("Part 1: {}", part_1(&parsed));
+    println!("Part 2: {}", part_2(&parsed));
 }
 
 mod parse {
@@ -106,6 +77,35 @@ mod parse {
             Ok(Card::new(fields))
         }
     }
+}
+
+fn part_1(parsed: &Parsed) -> usize {
+    let mut bingo = parsed.to_owned();
+    for n in bingo.draws.iter() {
+        for card in bingo.cards.iter_mut() {
+            card.mark(*n);
+        }
+
+        if let Some(winning_card) = bingo.cards.iter().find(|c| c.is_winning()) {
+            return winning_card.points() * n;
+        }
+    }
+    panic!("No board won");
+}
+
+fn part_2(parsed: &Parsed) -> usize {
+    let mut bingo = parsed.to_owned();
+    for n in bingo.draws.iter() {
+        for card in bingo.cards.iter_mut() {
+            card.mark(*n);
+        }
+
+        if bingo.cards.len() == 1 && bingo.cards[0].is_winning() {
+            return bingo.cards[0].points() * n;
+        }
+        bingo.cards.retain(|card| !card.is_winning());
+    }
+    panic!("No board or multiple boards won");
 }
 
 impl Card {

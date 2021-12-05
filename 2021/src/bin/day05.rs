@@ -19,6 +19,26 @@ fn main() {
     println!("Part 2: {}", part_2(&parsed));
 }
 
+mod parse {
+    use super::*;
+
+    pub fn parse_input(input: &str) -> Parsed {
+        input
+            .trim()
+            .split('\n')
+            .map(|line| {
+                let (left, right) = line.split_once(" -> ").expect("no separator");
+                (parse_pt(left), parse_pt(right))
+            })
+            .collect()
+    }
+
+    fn parse_pt(s: &str) -> Point {
+        let (x, y) = s.split_once(',').expect("no comma");
+        (x.parse().unwrap(), y.parse().unwrap())
+    }
+}
+
 fn part_1(parsed: &Parsed) -> usize {
     let mut grid = HashMap::new();
     let filtered = parsed.iter()
@@ -65,26 +85,6 @@ fn pts_for_diag(from: &Point, to: &Point) -> Vec<Point> {
     x_iter.zip(y_iter).collect()
 }
 
-mod parse {
-    use super::*;
-
-    pub fn parse_input(input: &str) -> Parsed {
-        input
-            .trim()
-            .split('\n')
-            .map(|line| {
-                let (left, right) = line.split_once(" -> ").expect("no separator");
-                (parse_pt(left), parse_pt(right))
-            })
-            .collect()
-    }
-
-    fn parse_pt(s: &str) -> Point {
-        let (x, y) = s.split_once(',').expect("no comma");
-        (x.parse().unwrap(), y.parse().unwrap())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -107,5 +107,5 @@ mod tests {
     test!(part_2() == 12);
     bench_parse!(Vec::len, 500);
     bench!(part_1() == 6311);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 19929);
 }
