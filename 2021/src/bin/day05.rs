@@ -10,10 +10,15 @@ use parse::parse_input;
 
 const DAY: usize = 5;
 
-type Point = (usize, usize);
-type Line = (Point, Point);
+#[derive(Clone, Copy, Hash, Eq, PartialEq)]
+pub struct Point { x: usize, y: usize }
+
+#[derive(Clone, Copy, Hash)]
+pub struct Line { from: Point, to: Point }
+
 // left: vertical/horizontal, right: diagonal
 type ELine = Either<Line, Line>;
+
 type Parsed = Vec<ELine>;
 
 fn main() {
@@ -32,8 +37,8 @@ mod parse {
             .split('\n')
             .map(|line| {
                 let (left, right) = line.split_once(" -> ").expect("no separator");
-                let line = (parse_pt(left), parse_pt(right));
-                if line.0.0 == line.1.0 || line.0.1 == line.1.1 {
+                let line = Line { from: parse_pt(left), to: parse_pt(right) };
+                if line.from.x == line.to.x || line.from.y == line.to.y {
                     Left(line)
                 } else {
                     Right(line)
@@ -44,7 +49,7 @@ mod parse {
 
     fn parse_pt(s: &str) -> Point {
         let (x, y) = s.split_once(',').expect("no comma");
-        (x.parse().unwrap(), y.parse().unwrap())
+        Point { x: x.parse().unwrap(), y: y.parse().unwrap() }
     }
 }
 
@@ -63,23 +68,25 @@ fn part_2(parsed: &Parsed) -> usize {
 
 fn pts_for_hv(line: Line) -> Vec<Point> {
     iproduct!(
-        line.0.0.min(line.1.0)..=line.0.0.max(line.1.0),
-        line.0.1.min(line.1.1)..=line.0.1.max(line.1.1)
-    ).collect()
+        line.from.x.min(line.to.x)..=line.from.x.max(line.to.x),
+        line.from.y.min(line.to.y)..=line.from.y.max(line.to.y)
+    )
+        .map(Point::from)
+        .collect()
 }
 
 fn pts_for_diag(line: Line) -> Vec<Point> {
     let mut x_iter: Box<dyn DoubleEndedIterator<Item=_>>
-        = Box::new(line.0.0.min(line.1.0)..=line.0.0.max(line.1.0));
-    if line.0.0 > line.1.0 {
+        = Box::new(line.from.x.min(line.to.x)..=line.from.x.max(line.to.x));
+    if line.from.x > line.to.x {
         x_iter = Box::new(x_iter.rev());
     }
     let mut y_iter: Box<dyn DoubleEndedIterator<Item=_>>
-        = Box::new(line.0.1.min(line.1.1)..=line.0.1.max(line.1.1));
-    if line.0.1 > line.1.1 {
+        = Box::new(line.from.y.min(line.to.y)..=line.from.y.max(line.to.y));
+    if line.from.y > line.to.y {
         y_iter = Box::new(y_iter.rev());
     }
-    x_iter.zip(y_iter).collect()
+    x_iter.zip(y_iter).map(Point::from).collect()
 }
 
 fn count_overlaps(pts: impl Iterator<Item=Point>) -> usize {
@@ -88,6 +95,12 @@ fn count_overlaps(pts: impl Iterator<Item=Point>) -> usize {
         *grid.entry(pt).or_insert(0) += 1;
     }
     grid.into_values().filter(|&n| n >= 2).count()
+}
+
+impl From<(usize, usize)> for Point {
+    fn from(tpl: (usize, usize)) -> Self {
+        Self { x: tpl.0, y: tpl.1 }
+    }
 }
 
 #[cfg(test)]
