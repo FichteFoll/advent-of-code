@@ -3,7 +3,7 @@
 use aoc2021::*;
 use parse::parse_input;
 
-const DAY: usize = 06;
+const DAY: usize = 6;
 
 type Parsed = Vec<usize>;
 
