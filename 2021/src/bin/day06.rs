@@ -1,7 +1,5 @@
 #![feature(test)]
 
-use std::collections::VecDeque;
-
 use aoc2021::*;
 use parse::parse_input;
 
@@ -29,19 +27,22 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    let mut queue = VecDeque::from(vec![0; 9]);
+    population(parsed, 80)
+}
+
+fn part_2(parsed: &Parsed) -> usize {
+    population(parsed, 256)
+}
+
+fn population(parsed: &Parsed, days: usize) -> usize {
+    let mut queue = [0; 9];
     for n in parsed.iter() {
         queue[*n] += 1;
     }
-    for _ in 0..80 {
-        queue.rotate_left(1);
-        queue[6] += queue[8];
+    for i in 0..days {
+        queue[(i + 7) % 9] += queue[i % 9];
     }
     queue.into_iter().sum()
-}
-
-fn part_2(_parsed: &Parsed) -> usize {
-    0
 }
 
 #[cfg(test)]
@@ -52,8 +53,8 @@ mod tests {
     const TEST_INPUT: &str = "3,4,3,1,2";
 
     test!(part_1() == 5934);
-    // test!(part_2() == 0);
+    test!(part_2() == 26984457539);
     bench_parse!(Vec::len, 300);
     bench!(part_1() == 387413);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 1738377086345);
 }
