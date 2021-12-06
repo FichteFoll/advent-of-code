@@ -57,7 +57,6 @@ impl<const N: usize> Point<N> {
             }
             Self { coord }
         } else {
-            // TODO
             let d = self.coord.iter().cloned().fold1(gcd).unwrap();
             self / d
         }
