@@ -188,7 +188,8 @@ fn gcd(a: i32, b: i32) -> i32 {
     let mut x = a;
     let mut y = b;
     while y != 0 {
-        (x, y) = (y, x % y);
+        std::mem::swap(&mut y, &mut x);
+        y = x % y;
     }
     x
 }
