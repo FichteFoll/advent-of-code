@@ -59,10 +59,9 @@ fn count_overlaps<'a>(lines: impl Iterator<Item=&'a Line>) -> usize {
 }
 
 fn expand_line(line: &'_ Line) -> impl Iterator<Item=Point<2>> + '_ {
-    let dir = |a, b| (a < b) as i32 - (a > b) as i32;
     let step = Point::new([
-        dir(line.from.x(), line.to.x()),
-        dir(line.from.y(), line.to.y()),
+        (line.to.x() - line.from.x()).signum(),
+        (line.to.y() - line.from.y()).signum(),
     ]);
     successors(Some(line.from), move |&prev| {
         (prev != line.to).then_some(prev + step)
