@@ -1,6 +1,8 @@
 // Provides helpful methods, data structures and macros
 // for at least more than one task.
 
+pub mod test;
+
 pub fn read_file(day: usize) -> String {
     std::fs::read_to_string(
         std::env::args()
@@ -18,6 +20,3 @@ macro_rules! read_input {
         read_file(DAY)
     };
 }
-
-pub mod test;
-pub mod grid2d;
