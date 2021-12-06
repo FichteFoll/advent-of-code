@@ -1,8 +1,6 @@
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Div, Sub};
 
-use itertools::Itertools;
-
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Point<const N: usize> {
     pub coord: [i32; N],
@@ -57,7 +55,7 @@ impl<const N: usize> Point<N> {
             }
             Self { coord }
         } else {
-            let d = self.coord.iter().cloned().fold1(gcd).unwrap();
+            let d = self.coord.iter().cloned().reduce(gcd).unwrap();
             self / d
         }
     }
