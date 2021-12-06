@@ -125,6 +125,7 @@ impl Card {
         let mut masks = vec![];
         // horiz →
         for row in 0..size {
+            #[allow(clippy::unnecessary_cast)]
             masks.push(((2 as Mask).pow(size as u32) - 1) << (row * size));
         }
         // vert ↓

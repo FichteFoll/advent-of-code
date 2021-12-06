@@ -23,9 +23,8 @@ impl<const N: usize> Point<N> {
 
     pub fn from_padded(slice: &[i32]) -> Self {
         let mut coord = [0; N];
-        for i in 0..N.min(slice.len()) {
-            coord[i] = slice[i];
-        }
+        let bound = N.min(slice.len());
+        coord[..bound].clone_from_slice(&slice[..bound]);
         Self { coord }
     }
 
@@ -52,6 +51,7 @@ impl<const N: usize> Point<N> {
     pub fn normalized(&self) -> Self {
         if self.coord.iter().filter(|&&n| n != 0).count() == 1 {
             let mut coord = [0i32; N];
+            #[allow(clippy::needless_range_loop)]
             for i in 0..N {
                 coord[i] = coord[i].signum();
             }
@@ -82,6 +82,7 @@ impl<const N: usize> Add for Point<N> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
         let mut coord = self.coord;
+        #[allow(clippy::needless_range_loop)]
         for i in 0..N {
             coord[i] += rhs.coord[i];
         }
@@ -93,6 +94,7 @@ impl<const N: usize> Sub for Point<N> {
     type Output = Self;
     fn sub(self, rhs: Self) -> Self::Output {
         let mut coord = self.coord;
+        #[allow(clippy::needless_range_loop)]
         for i in 0..N {
             coord[i] -= rhs.coord[i];
         }
