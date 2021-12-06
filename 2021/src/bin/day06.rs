@@ -35,8 +35,10 @@ fn part_2(parsed: &Parsed) -> usize {
 }
 
 fn population(parsed: &Parsed, days: usize) -> usize {
-    let mut queue = parsed.iter()
-        .fold([0; 9], |mut q, &n| { q[n] += 1; q });
+    let mut queue = [0; 9];
+    for n in parsed.iter() {
+        queue[*n] += 1;
+    }
     for i in 0..days {
         queue[(i + 7) % 9] += queue[i % 9];
     }
