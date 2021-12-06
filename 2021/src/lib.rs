@@ -1,6 +1,9 @@
 // Provides helpful methods, data structures and macros
 // for at least more than one task.
 
+#![feature(destructuring_assignment)]
+
+pub mod coord;
 pub mod test;
 
 pub fn read_file(day: usize) -> String {

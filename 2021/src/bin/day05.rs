@@ -1,25 +1,19 @@
 #![feature(test)]
+#![feature(bool_to_option)]
 
 use std::collections::HashMap;
-
-use either::Either::{self, Left, Right};
-use itertools::iproduct;
+use std::iter::successors;
 
 use aoc2021::*;
+use aoc2021::coord::Point;
 use parse::parse_input;
 
 const DAY: usize = 5;
 
-#[derive(Clone, Copy, Hash, Eq, PartialEq)]
-pub struct Point { x: usize, y: usize }
+#[derive(Clone, Copy, Hash, Debug)]
+pub struct Line { from: Point<2>, to: Point<2> }
 
-#[derive(Clone, Copy, Hash)]
-pub struct Line { from: Point, to: Point }
-
-// left: vertical/horizontal, right: diagonal
-type ELine = Either<Line, Line>;
-
-type Parsed = Vec<ELine>;
+type Parsed = Vec<Line>;
 
 fn main() {
     let input = read_input!();
@@ -37,70 +31,44 @@ mod parse {
             .split('\n')
             .map(|line| {
                 let (left, right) = line.split_once(" -> ").expect("no separator");
-                let line = Line { from: parse_pt(left), to: parse_pt(right) };
-                if line.from.x == line.to.x || line.from.y == line.to.y {
-                    Left(line)
-                } else {
-                    Right(line)
-                }
+                Line { from: parse_pt(left), to: parse_pt(right) }
             })
             .collect()
     }
 
-    fn parse_pt(s: &str) -> Point {
+    fn parse_pt(s: &str) -> Point<2> {
         let (x, y) = s.split_once(',').expect("no comma");
-        Point { x: x.parse().unwrap(), y: y.parse().unwrap() }
+        Point::new([x.parse().unwrap(), y.parse().unwrap()])
     }
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    let pts = parsed.iter()
-        .filter_map(|eline| eline.left())
-        .flat_map(pts_for_hv);
-    count_overlaps(pts)
+    let lines = parsed.iter()
+        .filter(|line| line.from.x() == line.to.x() || line.from.y() == line.to.y());
+    count_overlaps(lines)
 }
 
 fn part_2(parsed: &Parsed) -> usize {
-    let pts = parsed.iter()
-        .flat_map(|eline| eline.either(pts_for_hv, pts_for_diag));
-    count_overlaps(pts)
+    count_overlaps(parsed.iter())
 }
 
-fn pts_for_hv(line: Line) -> Vec<Point> {
-    iproduct!(
-        line.from.x.min(line.to.x)..=line.from.x.max(line.to.x),
-        line.from.y.min(line.to.y)..=line.from.y.max(line.to.y)
-    )
-        .map(Point::from)
-        .collect()
-}
-
-fn pts_for_diag(line: Line) -> Vec<Point> {
-    let mut x_iter: Box<dyn DoubleEndedIterator<Item=_>>
-        = Box::new(line.from.x.min(line.to.x)..=line.from.x.max(line.to.x));
-    if line.from.x > line.to.x {
-        x_iter = Box::new(x_iter.rev());
-    }
-    let mut y_iter: Box<dyn DoubleEndedIterator<Item=_>>
-        = Box::new(line.from.y.min(line.to.y)..=line.from.y.max(line.to.y));
-    if line.from.y > line.to.y {
-        y_iter = Box::new(y_iter.rev());
-    }
-    x_iter.zip(y_iter).map(Point::from).collect()
-}
-
-fn count_overlaps(pts: impl Iterator<Item=Point>) -> usize {
+fn count_overlaps<'a>(lines: impl Iterator<Item=&'a Line>) -> usize {
     let mut grid = HashMap::new();
-    for pt in pts {
+    for pt in lines.flat_map(expand_line) {
         *grid.entry(pt).or_insert(0) += 1;
     }
     grid.into_values().filter(|&n| n >= 2).count()
 }
 
-impl From<(usize, usize)> for Point {
-    fn from(tpl: (usize, usize)) -> Self {
-        Self { x: tpl.0, y: tpl.1 }
-    }
+fn expand_line(line: &'_ Line) -> impl Iterator<Item=Point<2>> + '_ {
+    let dir = |a, b| (a < b) as i32 - (a > b) as i32;
+    let step = Point::new([
+        dir(line.from.x(), line.to.x()),
+        dir(line.from.y(), line.to.y()),
+    ]);
+    successors(Some(line.from), move |&prev| {
+        (prev != line.to).then_some(prev + step)
+    })
 }
 
 #[cfg(test)]
