@@ -29,10 +29,8 @@ mod parse {
         input
             .trim()
             .split('\n')
-            .map(|line| {
-                let (left, right) = line.split_once(" -> ").expect("no separator");
-                Line { from: parse_pt(left), to: parse_pt(right) }
-            })
+            .filter_map(|line| line.split_once(" -> "))
+            .map(|(left, right)| Line { from: parse_pt(left), to: parse_pt(right) })
             .collect()
     }
 
