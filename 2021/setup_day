@@ -28,7 +28,7 @@ else
 use aoc2021::*;
 use parse::parse_input;
 
-const DAY: usize = $day;
+const DAY: usize = $((day));
 
 type Parsed = Vec<usize>;
 
