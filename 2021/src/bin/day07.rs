@@ -1,10 +1,13 @@
 #![feature(test)]
 #![feature(int_abs_diff)]
 
+use std::iter::Sum;
+use std::ops::Div;
+
 use aoc2021::*;
 use parse::parse_input;
 
-const DAY: usize = 07;
+const DAY: usize = 7;
 
 type Parsed = Vec<usize>;
 
@@ -28,12 +31,29 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    let min = *parsed.iter().min().unwrap();
-    let max = *parsed.iter().max().unwrap();
-    (min..max)
-        .map(|target| calc_fuel_linearly(parsed, target))
-        .min()
-        .unwrap()
+    // https://math.stackexchange.com/questions/113270
+    let target = median(parsed);
+    calc_fuel_linearly(parsed, target)
+}
+
+fn part_2(parsed: &Parsed) -> usize {
+    let target = avg(parsed);
+    // correct rounding error that I don't understand where it's coming from
+    (0..=1).map(|i| calc_fuel_quadratically(parsed, target + i))
+        .min().unwrap()
+}
+
+fn median<T: Ord + Clone>(slice: &[T]) -> T {
+    let mut sorted = slice.to_vec();
+    sorted.sort();
+    sorted[sorted.len() / 2].clone()
+}
+
+fn avg<'a, T>(slice: &'a [T]) -> T
+    where T: Sum<&'a T> + Div<Output=T> + From<usize> + 'a
+{
+    let len = slice.len().into();
+    slice.iter().sum::<T>() / len
 }
 
 fn calc_fuel_linearly(parsed: &Parsed, target: usize) -> usize {
@@ -42,19 +62,10 @@ fn calc_fuel_linearly(parsed: &Parsed, target: usize) -> usize {
         .sum()
 }
 
-fn part_2(parsed: &Parsed) -> usize {
-    let min = *parsed.iter().min().unwrap();
-    let max = *parsed.iter().max().unwrap();
-    (min..max)
-        .map(|target| calc_fuel_quadratically(parsed, target))
-        .min()
-        .unwrap()
-}
-
 fn calc_fuel_quadratically(parsed: &Parsed, target: usize) -> usize {
     parsed.iter()
         .map(|n| n.abs_diff(target))
-        .map(|n| n * (n + 1) / 2)
+        .map(|n| (1..=n).sum::<usize>()) // rust knows that this equals n(n+1)/2
         .sum()
 }
 
