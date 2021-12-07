@@ -44,9 +44,8 @@ fn part_2(parsed: &Parsed) -> usize {
 }
 
 fn median<T: Ord + Clone>(slice: &[T]) -> T {
-    let mut sorted = slice.to_vec();
-    sorted.sort();
-    sorted[sorted.len() / 2].clone()
+    let mut slice_mut = slice.to_vec();
+    slice_mut.select_nth_unstable(slice.len() / 2).1.clone()
 }
 
 fn avg<'a, T>(slice: &'a [T]) -> T
