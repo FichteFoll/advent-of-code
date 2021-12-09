@@ -39,7 +39,6 @@ fn part_1(parsed: &Parsed) -> usize {
 
 fn part_2(parsed: &Parsed) -> usize {
     basins(parsed).iter()
-        .map(Vec::len)
         .sorted_unstable()
         .rev()
         .take(3)
@@ -55,23 +54,21 @@ fn low_points(parsed: &Parsed) -> impl Iterator<Item=(Point<2>, &u8)> {
         )
 }
 
-fn basins(parsed: &Parsed) -> Vec<Vec<u8>> {
+fn basins(parsed: &Parsed) -> Vec<usize> {
     low_points(parsed)
         .map(|(pt, _)| {
-            let mut nums = vec![*parsed.get(&pt).unwrap()];
-            let mut queue: VecDeque<_> = pt.direct_neighbors().into();
+            // use A* to fill basins
+            let mut queue: VecDeque<_> = [pt].into();
             let mut pts = BTreeSet::new();
-            pts.insert(pt);
             while let Some(cur_pt) = queue.pop_front() {
                 if !pts.insert(cur_pt.clone()) {
                     continue;
                 }
-                if let Some(&n) = parsed.get(&cur_pt).filter(|&&n| n != 9) {
-                    nums.push(n);
-                    queue.extend(cur_pt.direct_neighbors());
-                }
+                let new = cur_pt.direct_neighbors().into_iter()
+                    .filter(|pt| parsed.get(&pt).filter(|&&n| n != 9).is_some());
+                queue.extend(new);
             }
-            nums
+            pts.len()
         })
         .collect()
 }
