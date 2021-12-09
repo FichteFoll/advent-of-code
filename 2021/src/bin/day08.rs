@@ -129,7 +129,7 @@ fn digit_to_int_map(line: &Line) -> BTreeMap<Digit, usize> {
         .chain(line.output.iter())
         .cloned()
         .collect();
-    let by_num_wires: BTreeMap<usize, BTreeSet<_>> = all_digits.into_iter()
+    let mut by_num_wires: BTreeMap<usize, BTreeSet<_>> = all_digits.into_iter()
         .into_group_map_by(BTreeSet::len)
         .into_iter()
         .map(|(n, vec)| (n, vec.into_iter().collect()))
@@ -138,10 +138,10 @@ fn digit_to_int_map(line: &Line) -> BTreeMap<Digit, usize> {
     // Start with the known single result segment (here: wire) counts
     // and add them to our `map`.
     for n in NUM_WIRES_WITH_SINGLE_OPTION.iter() {
-        if let Some(groups) = by_num_wires.get(n) {
-            let d = *NUM_WIRES_TO_DIGITS.get(n).unwrap().first().unwrap();
+        if let Some(groups) = by_num_wires.remove(n) {
             assert_eq!(groups.len(), 1);
             let group = groups.first().unwrap();
+            let d = *NUM_WIRES_TO_DIGITS.get(n).unwrap().first().unwrap();
             map.insert(group.clone(), d);
         }
     }
@@ -155,29 +155,27 @@ fn digit_to_int_map(line: &Line) -> BTreeMap<Digit, usize> {
     // it is a valid candidate for this combination of segments
     // and if there is only one such candidate,
     // it is committed to the map.
-    for num_wires in [5, 6] {
-        if let Some(groups) = by_num_wires.get(&num_wires) {
-            for group in groups {
-                let opts: Vec<_> = NUM_WIRES_TO_DIGITS.get(&num_wires)
-                    .unwrap()
-                    .iter()
-                    .filter(|n| !map.values().contains(n))
-                    .filter(|&&n|
-                        map.iter().all(|(m_wires, &m)| {
-                            let common = group.intersection(m_wires).count();
-                            let expected = *NUM_COMMON_WIRES.get(&(n, m)).unwrap();
-                            expected == common
-                        })
-                    )
-                    .cloned()
-                    .collect();
-                if opts.len() == 1 {
-                    map.insert(group.clone(), opts[0]);
-                } else {
-                    unimplemented!("opts.len() != 0 is not considered");
-                }
+    for (num_wires, groups) in by_num_wires {
+        for group in groups {
+            let opts: Vec<_> = NUM_WIRES_TO_DIGITS.get(&num_wires)
+                .unwrap()
+                .iter()
+                .filter(|n| !map.values().contains(n))
+                .filter(|&&n|
+                    map.iter().all(|(m_wires, &m)| {
+                        let common = group.intersection(m_wires).count();
+                        let expected = *NUM_COMMON_WIRES.get(&(n, m)).unwrap();
+                        expected == common
+                    })
+                )
+                .cloned()
+                .collect();
+            if opts.len() == 1 {
+                map.insert(group.clone(), opts[0]);
+            } else {
+                unimplemented!("opts.len() != 0 is not considered");
             }
-        };
+        }
     }
     map
 }
