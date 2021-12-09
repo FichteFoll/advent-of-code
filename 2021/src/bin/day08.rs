@@ -14,8 +14,8 @@ const DAY: usize = 8;
 
 type Parsed = Vec<Line>;
 pub struct Line { digits: Vec<Digit>, output: Vec<Digit> }
-type Digit = BTreeSet<Wire>;
-type Wire = char;
+type Digit = BTreeSet<Segment>;
+type Segment = char;
 
 fn main() {
     let input = read_input!();
@@ -48,7 +48,7 @@ mod parse {
 fn part_1(parsed: &Parsed) -> usize {
     parsed.iter()
         .map(|line| line.output.iter()
-            .filter(|a| NUM_WIRES_WITH_SINGLE_OPTION.contains(&a.len()))
+            .filter(|a| SEG_COUNTS_WITH_SINGLE_OPTION.contains(&a.len()))
             .count()
         )
         .sum()
@@ -57,7 +57,7 @@ fn part_1(parsed: &Parsed) -> usize {
 fn part_2(parsed: &Parsed) -> usize {
     parsed.iter()
         .map(|line| {
-            let map = digit_to_int_map(line);
+            let map = segments_to_digit_map(line);
             line.output.iter()
                 .map(|digit| map.get(digit).unwrap())
                 .fold(0, |a, b| a * 10 + b)
@@ -83,7 +83,7 @@ fn part_2(parsed: &Parsed) -> usize {
 // .    f  e    f  .    f  e    f  .    f
 //  gggg    gggg    ....    gggg    gggg
 lazy_static! {
-    static ref DIGITAL_DISPLAY: Vec<BTreeSet<Wire>> =
+    static ref SEGMENTS: Vec<BTreeSet<Segment>> =
         [
             "abcefg",  // 0
             "cf",      // 1
@@ -100,22 +100,22 @@ lazy_static! {
             .map(|s| s.chars().collect())
             .collect();
 
-    static ref NUM_WIRES_TO_DIGITS: HashMap<usize, BTreeSet<usize>> =
-        DIGITAL_DISPLAY.iter().enumerate()
+    static ref SEG_COUNT_TO_DIGITS: HashMap<usize, BTreeSet<usize>> =
+        SEGMENTS.iter().enumerate()
             .map(|(i, ws)| (ws.len(), i))
             .into_grouping_map()
             .fold(BTreeSet::new(), |mut acc, _, v| { acc.insert(v); acc });
 
-    // const NUM_WIRES_WITH_SINGLE_OPTION: [usize; 4] = [2, 3, 4, 7];
-    static ref NUM_WIRES_WITH_SINGLE_OPTION: BTreeSet<usize> =
-        NUM_WIRES_TO_DIGITS.iter()
-            .filter_map(|(n, wires)| (wires.len() == 1).then_some(n))
+    // const SEG_COUNTS_WITH_SINGLE_OPTION: [usize; 4] = [2, 3, 4, 7];
+    static ref SEG_COUNTS_WITH_SINGLE_OPTION: BTreeSet<usize> =
+        SEG_COUNT_TO_DIGITS.iter()
+            .filter_map(|(n, segments)| (segments.len() == 1).then_some(n))
             .cloned()
             .collect();
-    static ref NUM_COMMON_WIRES: HashMap<(usize, usize), usize> =
-        iproduct!(0..DIGITAL_DISPLAY.len(), 0..DIGITAL_DISPLAY.len())
+    static ref COMMON_SEGMENT_COUNTS: HashMap<(usize, usize), usize> =
+        iproduct!(0..SEGMENTS.len(), 0..SEGMENTS.len())
             .filter(|(a, b)| a != b)
-            .map(|(a, b)| ((a, b), DIGITAL_DISPLAY[a].intersection(&DIGITAL_DISPLAY[b]).count()))
+            .map(|(a, b)| ((a, b), SEGMENTS[a].intersection(&SEGMENTS[b]).count()))
             .collect();
 }
 
@@ -124,24 +124,24 @@ lazy_static! {
 // but refused to give up when the implementation grew in complexity.
 // In the end, I'm just glad that my idea worked, and it's not even that slow.
 // Alas, I spent enough time on this already, so it's gonna stay like this.
-fn digit_to_int_map(line: &Line) -> BTreeMap<Digit, usize> {
+fn segments_to_digit_map(line: &Line) -> BTreeMap<Digit, usize> {
     let all_digits: BTreeSet<_> = line.digits.iter()
         .chain(line.output.iter())
         .cloned()
         .collect();
-    let mut by_num_wires: BTreeMap<usize, BTreeSet<_>> = all_digits.into_iter()
+    let mut by_seg_count: BTreeMap<usize, BTreeSet<_>> = all_digits.into_iter()
         .into_group_map_by(BTreeSet::len)
         .into_iter()
         .map(|(n, vec)| (n, vec.into_iter().collect()))
         .collect();
     let mut map = BTreeMap::new();
-    // Start with the known single result segment (here: wire) counts
+    // Start with the known single result segment counts
     // and add them to our `map`.
-    for n in NUM_WIRES_WITH_SINGLE_OPTION.iter() {
-        if let Some(groups) = by_num_wires.remove(n) {
+    for n in SEG_COUNTS_WITH_SINGLE_OPTION.iter() {
+        if let Some(groups) = by_seg_count.remove(n) {
             assert_eq!(groups.len(), 1);
             let group = groups.first().unwrap();
-            let d = *NUM_WIRES_TO_DIGITS.get(n).unwrap().first().unwrap();
+            let d = *SEG_COUNT_TO_DIGITS.get(n).unwrap().first().unwrap();
             map.insert(group.clone(), d);
         }
     }
@@ -150,28 +150,28 @@ fn digit_to_int_map(line: &Line) -> BTreeMap<Digit, usize> {
     // The numbers to find are: 2, 3, 5, 6, 9, 0.
     // We proceed by counting the number of intersecting segments
     // with an unknown number and all already known numbers
-    // and compare that with our precomputed map `NUM_COMMON_WIRES`.
+    // and compare that with our precomputed map `COMMON_SEGMENT_COUNTS`.
     // When all counts for an unknown number match,
     // it is a valid candidate for this combination of segments
     // and if there is only one such candidate,
     // it is committed to the map.
-    for (num_wires, groups) in by_num_wires {
-        for group in groups {
-            let opts: Vec<_> = NUM_WIRES_TO_DIGITS.get(&num_wires)
+    for (num_segments, groups) in by_seg_count {
+        for segments in groups {
+            let opts: Vec<_> = SEG_COUNT_TO_DIGITS.get(&num_segments)
                 .unwrap()
                 .iter()
                 .filter(|n| !map.values().contains(n))
                 .filter(|&&n|
-                    map.iter().all(|(m_wires, &m)| {
-                        let common = group.intersection(m_wires).count();
-                        let expected = *NUM_COMMON_WIRES.get(&(n, m)).unwrap();
+                    map.iter().all(|(m_segments, &m)| {
+                        let common = segments.intersection(m_segments).count();
+                        let expected = *COMMON_SEGMENT_COUNTS.get(&(n, m)).unwrap();
                         expected == common
                     })
                 )
                 .cloned()
                 .collect();
             if opts.len() == 1 {
-                map.insert(group.clone(), opts[0]);
+                map.insert(segments.clone(), opts[0]);
             } else {
                 unimplemented!("opts.len() != 0 is not considered");
             }
@@ -186,12 +186,12 @@ mod tests {
     extern crate test;
 
     #[test]
-    fn test_wire_to_digit() {
+    fn test_segments_to_digit_map() {
         let input = "acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf";
         let parsed = parse_input(input);
         let line = parsed.first().unwrap();
 
-        assert_eq!(digit_to_int_map(line).len(), 10);
+        assert_eq!(segments_to_digit_map(line).len(), 10);
     }
 
 
