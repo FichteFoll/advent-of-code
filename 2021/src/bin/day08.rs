@@ -122,7 +122,7 @@ lazy_static! {
 // This function is way too cursed.
 // I wanted to generalize my approach with finding common intersections
 // but refused to give up when the implementation grew in complexity.
-// In the end, I'm just glad that my idea worked, but the performance is terrible.
+// In the end, I'm just glad that my idea worked, and it's not even that slow.
 // Alas, I spent enough time on this already, so it's gonna stay like this.
 fn digit_to_int_map(line: &Line) -> BTreeMap<Digit, usize> {
     let all_digits: BTreeSet<_> = line.digits.iter()
@@ -205,6 +205,5 @@ mod tests {
     test!(part_2() == 61229);
     bench_parse!(Vec::len, 200);
     bench!(part_1() == 390);
-    // way too slow for testing even
-    // bench!(part_2() == 1011785);
+    bench!(part_2() == 1011785);
 }
