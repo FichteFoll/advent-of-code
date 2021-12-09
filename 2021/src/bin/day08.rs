@@ -106,12 +106,13 @@ lazy_static! {
             .into_grouping_map()
             .fold(BTreeSet::new(), |mut acc, _, v| { acc.insert(v); acc });
 
-    // const SEG_COUNTS_WITH_SINGLE_OPTION: [usize; 4] = [2, 3, 4, 7];
+    // [2, 3, 4, 7];
     static ref SEG_COUNTS_WITH_SINGLE_OPTION: BTreeSet<usize> =
         SEG_COUNT_TO_DIGITS.iter()
             .filter_map(|(n, segments)| (segments.len() == 1).then_some(n))
             .cloned()
             .collect();
+
     static ref COMMON_SEGMENT_COUNTS: HashMap<(usize, usize), usize> =
         iproduct!(0..SEGMENTS.len(), 0..SEGMENTS.len())
             .filter(|(a, b)| a != b)
@@ -146,15 +147,13 @@ fn segments_to_digit_map(line: &Line) -> BTreeMap<Digit, usize> {
         }
     }
 
-    // The remaining numbers of segments are 5 and 6.
+    // The remaining numbers of segments are: 5, 6.
     // The numbers to find are: 2, 3, 5, 6, 9, 0.
     // We proceed by counting the number of intersecting segments
-    // with an unknown number and all already known numbers
+    // with an unknown segment set and all already known sets
     // and compare that with our precomputed map `COMMON_SEGMENT_COUNTS`.
     // When all counts for an unknown number match,
-    // it is a valid candidate for this combination of segments
-    // and if there is only one such candidate,
-    // it is committed to the map.
+    // it is a valid candidate for this combination of segments.
     for (num_segments, groups) in by_seg_count {
         for segments in groups {
             let opts: Vec<_> = SEG_COUNT_TO_DIGITS.get(&num_segments)
@@ -194,7 +193,6 @@ mod tests {
         assert_eq!(segments_to_digit_map(line).len(), 10);
     }
 
-
     const TEST_INPUT: &str = "\
         be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe\n\
         edbfga begcd cbg gc gcadebf fbgde acbgfd abcde gfcbed gfec | fcgedb cgb dgebacf gc\n\
@@ -209,7 +207,6 @@ mod tests {
         ";
 
     test!(line_1, "be cfbegad cbdgef fgaecd cgeb fdcge agebfd fecdb fabcd edb | fdgacbe cefdb cefbgd gcbe", part_2() == 8394);
-
 
     test!(part_1() == 26);
     test!(part_2() == 61229);
