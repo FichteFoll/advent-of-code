@@ -1,17 +1,13 @@
 #![feature(bool_to_option)]
 #![feature(map_first_last)]
-#![feature(once_cell)]
-#![feature(slice_concat_trait)]
 #![feature(test)]
 
-// clippy doesn't like how I used Lazy
-#[allow(clippy::declare_interior_mutable_const)]
-
-use std::lazy::Lazy;
 use std::collections::{BTreeSet, BTreeMap, HashMap};
 
-use aoc2021::*;
 use itertools::{Itertools, iproduct};
+use lazy_static::lazy_static;
+
+use aoc2021::*;
 use parse::parse_input;
 
 const DAY: usize = 8;
@@ -86,44 +82,42 @@ fn part_2(parsed: &Parsed) -> usize {
 // .    f  e    f  .    f  e    f  .    f
 // .    f  e    f  .    f  e    f  .    f
 //  gggg    gggg    ....    gggg    gggg
-const DIGITAL_DISPLAY: Lazy<Vec<BTreeSet<Wire>>> = Lazy::new(||
-    [
-        "abcefg",  // 0
-        "cf",      // 1
-        "acdeg",   // 2
-        "acdfg",   // 3
-        "bcdf",    // 4
-        "abdfg",   // 5
-        "abdefg",  // 6
-        "acf",     // 7
-        "abcdefg", // 8
-        "abcdfg",  // 9
-    ]
-        .into_iter()
-        .map(|s| s.chars().collect())
-        .collect()
-);
+lazy_static! {
+    static ref DIGITAL_DISPLAY: Vec<BTreeSet<Wire>> =
+        [
+            "abcefg",  // 0
+            "cf",      // 1
+            "acdeg",   // 2
+            "acdfg",   // 3
+            "bcdf",    // 4
+            "abdfg",   // 5
+            "abdefg",  // 6
+            "acf",     // 7
+            "abcdefg", // 8
+            "abcdfg",  // 9
+        ]
+            .into_iter()
+            .map(|s| s.chars().collect())
+            .collect();
 
-const NUM_WIRES_TO_DIGITS: Lazy<HashMap<usize, BTreeSet<usize>>> = Lazy::new(||
-    DIGITAL_DISPLAY.iter().enumerate()
-        .map(|(i, ws)| (ws.len(), i))
-        .into_grouping_map()
-        .fold(BTreeSet::new(), |mut acc, _, v| { acc.insert(v); acc })
-);
+    static ref NUM_WIRES_TO_DIGITS: HashMap<usize, BTreeSet<usize>> =
+        DIGITAL_DISPLAY.iter().enumerate()
+            .map(|(i, ws)| (ws.len(), i))
+            .into_grouping_map()
+            .fold(BTreeSet::new(), |mut acc, _, v| { acc.insert(v); acc });
 
-// const NUM_WIRES_WITH_SINGLE_OPTION: [usize; 4] = [2, 3, 4, 7];
-const NUM_WIRES_WITH_SINGLE_OPTION: Lazy<BTreeSet<usize>> = Lazy::new(||
-    NUM_WIRES_TO_DIGITS.iter()
-        .filter_map(|(n, wires)| (wires.len() == 1).then_some(n))
-        .cloned()
-        .collect()
-);
-const NUM_COMMON_WIRES: Lazy<HashMap<(usize, usize), usize>> = Lazy::new(||
-    iproduct!(0..DIGITAL_DISPLAY.len(), 0..DIGITAL_DISPLAY.len())
-        .filter(|(a, b)| a != b)
-        .map(|(a, b)| ((a, b), DIGITAL_DISPLAY[a].intersection(&DIGITAL_DISPLAY[b]).count()))
-        .collect()
-);
+    // const NUM_WIRES_WITH_SINGLE_OPTION: [usize; 4] = [2, 3, 4, 7];
+    static ref NUM_WIRES_WITH_SINGLE_OPTION: BTreeSet<usize> =
+        NUM_WIRES_TO_DIGITS.iter()
+            .filter_map(|(n, wires)| (wires.len() == 1).then_some(n))
+            .cloned()
+            .collect();
+    static ref NUM_COMMON_WIRES: HashMap<(usize, usize), usize> =
+        iproduct!(0..DIGITAL_DISPLAY.len(), 0..DIGITAL_DISPLAY.len())
+            .filter(|(a, b)| a != b)
+            .map(|(a, b)| ((a, b), DIGITAL_DISPLAY[a].intersection(&DIGITAL_DISPLAY[b]).count()))
+            .collect();
+}
 
 // This function is way too cursed.
 // I wanted to generalize my approach with finding common intersections
