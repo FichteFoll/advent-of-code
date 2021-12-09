@@ -1,8 +1,9 @@
 #![feature(test)]
 
-use std::collections::{VecDeque, BTreeSet};
+use std::collections::VecDeque;
 
 use itertools::Itertools;
+use fnv::FnvHashSet;
 
 use aoc2021::*;
 use aoc2021::grid2d::Grid2D;
@@ -55,7 +56,7 @@ fn basins(parsed: &Parsed) -> Vec<usize> {
         .map(|(pt, _)| {
             // use A* to fill basins
             let mut queue: VecDeque<_> = [pt].into();
-            let mut pts = BTreeSet::new();
+            let mut pts = FnvHashSet::default();
             while let Some(cur_pt) = queue.pop_front() {
                 if !pts.insert(cur_pt) {
                     continue;
