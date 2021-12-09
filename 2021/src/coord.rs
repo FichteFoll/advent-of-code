@@ -1,6 +1,8 @@
 use std::fmt::{Display, Formatter};
 use std::ops::{Add, Div, Sub};
 
+use itertools::{Itertools, iproduct};
+
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Point<const N: usize> {
     pub coord: [i32; N],
@@ -14,6 +16,7 @@ impl<const N: usize> Default for Point<N> {
 
 impl<const N: usize> Point<N> {
     pub const ZERO: Self = Self { coord: [0; N] };
+    pub const NUM_NEIGHBORS: usize = 3usize.pow(N as u32) - 1;
 
     pub fn new(coord: [i32; N]) -> Self {
         Point { coord }
@@ -41,10 +44,37 @@ impl<const N: usize> Point<N> {
         self.coord[2]
     }
 
-    // TODO
-    // pub fn neighbors(&self) -> Vec<Point<N>> {
-    //     vec![];
-    // }
+    pub fn direct_neighbors(&self) -> Vec<Self> {
+        (0..N)
+            .flat_map(|i| {
+                [-1, 1].into_iter()
+                    .map(move |offset| {
+                        let mut coord = self.coord.clone();
+                        coord[i] += offset;
+                        Point { coord }
+                    })
+            })
+            .collect()
+    }
+
+    pub fn neighbors(&self) -> Vec<Self> {
+        iproduct!(
+            (0..N).powerset(),
+            (0..N).powerset()
+        )
+            .filter(|(pos, neg)| pos != neg)
+            .map(|(pos, neg)| {
+                let mut coord = self.coord.clone();
+                for i in pos {
+                    coord[i] += 1;
+                }
+                for i in neg {
+                    coord[i] -= 1;
+                }
+                Point { coord }
+            })
+            .collect()
+    }
 
     pub fn normalized(&self) -> Self {
         if self.coord.iter().filter(|&&n| n != 0).count() == 1 {

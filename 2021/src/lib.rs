@@ -2,6 +2,7 @@
 // for at least more than one task.
 
 pub mod coord;
+pub mod grid2d;
 pub mod test;
 
 pub fn read_file(day: usize) -> String {
