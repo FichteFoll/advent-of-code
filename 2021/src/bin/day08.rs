@@ -135,6 +135,8 @@ fn digit_to_int_map(line: &Line) -> BTreeMap<Digit, usize> {
         .map(|(n, vec)| (n, vec.into_iter().collect()))
         .collect();
     let mut map = BTreeMap::new();
+    // Start with the known single result segment (here: wire) counts
+    // and add them to our `map`.
     for n in NUM_WIRES_WITH_SINGLE_OPTION.iter() {
         if let Some(groups) = by_num_wires.get(n) {
             let d = *NUM_WIRES_TO_DIGITS.get(n).unwrap().first().unwrap();
@@ -144,7 +146,15 @@ fn digit_to_int_map(line: &Line) -> BTreeMap<Digit, usize> {
         }
     }
 
-    // to find: 2, 3, 5, 6, 9, 0
+    // The remaining numbers of segments are 5 and 6.
+    // The numbers to find are: 2, 3, 5, 6, 9, 0.
+    // We proceed by counting the number of intersecting segments
+    // with an unknown number and all already known numbers
+    // and compare that with our precomputed map `NUM_COMMON_WIRES`.
+    // When all counts for an unknown number match,
+    // it is a valid candidate for this combination of segments
+    // and if there is only one such candidate,
+    // it is committed to the map.
     for num_wires in [5, 6] {
         if let Some(groups) = by_num_wires.get(&num_wires) {
             for group in groups {
@@ -163,6 +173,8 @@ fn digit_to_int_map(line: &Line) -> BTreeMap<Digit, usize> {
                     .collect();
                 if opts.len() == 1 {
                     map.insert(group.clone(), opts[0]);
+                } else {
+                    unimplemented!("opts.len() != 0 is not considered");
                 }
             }
         };
