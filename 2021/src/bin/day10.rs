@@ -52,11 +52,11 @@ fn part_2(parsed: &Parsed) -> usize {
         .map(|line| parse_line(line))
         .filter_map(|err| match err {
             Corrupt { .. } => None,
-            Incomplete { expected } => Some(expected),
+            Incomplete { stack } => Some(stack),
             Unknown { .. } => panic!("{:?}", err),
         })
-        .map(|expected|
-            expected.into_iter()
+        .map(|stack|
+            stack.into_iter()
                 .map(|c| points.iter().position(|&x| x == c).unwrap() + 1)
                 .fold(0, |acc, x| acc * 5 + x)
         )
@@ -68,8 +68,8 @@ fn part_2(parsed: &Parsed) -> usize {
 #[allow(dead_code)]
 #[derive(Debug)]
 enum LineError {
-    Corrupt { expected: char, c: char },
-    Incomplete { expected: VecDeque<char> },
+    Corrupt { wanted: char, c: char },
+    Incomplete { stack: VecDeque<char> },
     Unknown { c: char },
 }
 
@@ -83,20 +83,20 @@ lazy_static!{
 }
 
 fn parse_line(line: &str) -> LineError {
-    let mut expected: VecDeque<char> = VecDeque::with_capacity(110);
+    let mut stack: VecDeque<char> = VecDeque::with_capacity(110);
     for c in line.chars() {
         if let Some(&new_closing) = PAIRS.get(&c) {
-            expected.push_front(new_closing);
-        } else if let Some(next_expected) = expected.pop_front() {
-            if next_expected != c {
-                return Corrupt { expected: next_expected, c };
+            stack.push_front(new_closing);
+        } else if let Some(wanted) = stack.pop_front() {
+            if wanted != c {
+                return Corrupt { wanted, c };
             }
         } else {
             return Unknown { c };
         }
     }
-    if !expected.is_empty() {
-        return Incomplete { expected };
+    if !stack.is_empty() {
+        return Incomplete { stack };
     }
     panic!("expected all lines to be invalid");
 }
