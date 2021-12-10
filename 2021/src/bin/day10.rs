@@ -88,7 +88,7 @@ lazy_static!{
 }
 
 fn parse_line(line: &str) -> LineError {
-    let mut expected: VecDeque<char> = VecDeque::new();
+    let mut expected: VecDeque<char> = VecDeque::with_capacity(110);
     for c in line.chars() {
         if let Some(&new_closing) = PAIRS.get(&c) {
             expected.push_front(new_closing);
