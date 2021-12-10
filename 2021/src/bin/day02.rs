@@ -3,9 +3,9 @@
 use std::str::FromStr;
 use std::num::ParseIntError;
 
-use custom_error::custom_error;
-
 use aoc2021::*;
+
+use thiserror::Error;
 
 const DAY: usize = 2;
 type Parsed = Vec<Command>;
@@ -17,10 +17,14 @@ enum Command {
     Down(usize),
 }
 
-custom_error!{ParseError
-    NoSpace = "no space in line",
-    BadCommand{cmd: String} = "unexpected command: {cmd}",
-    BadInt{source: ParseIntError} = "Unable to parse integer",
+#[derive(Debug, Error)]
+enum ParseError {
+    #[error("no space found")]
+    NoSpace,
+    #[error("bad command: {0}")]
+    BadCommand(String),
+    #[error("unable to parse integer: {0}")]
+    BadInt(#[from] ParseIntError),
 }
 
 impl FromStr for Command {
@@ -34,7 +38,7 @@ impl FromStr for Command {
             "forward" => Ok(Forward(step)),
             "up" => Ok(Up(step)),
             "down" => Ok(Down(step)),
-            _ => Err(ParseError::BadCommand { cmd: word.to_owned() }),
+            _ => Err(ParseError::BadCommand(word.to_owned())),
         }
     }
 }

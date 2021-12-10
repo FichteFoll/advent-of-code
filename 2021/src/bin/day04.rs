@@ -35,7 +35,7 @@ mod parse {
     use std::num::ParseIntError;
     use std::str::FromStr;
 
-    use custom_error::custom_error;
+    use thiserror::Error;
 
     use super::*;
 
@@ -43,9 +43,12 @@ mod parse {
         input.trim().parse().unwrap()
     }
 
-    custom_error!{pub ParseError
-        BadInt {source: ParseIntError} = "Unable to parse integer",
-        NoDraws = "Couldn't find line with draws",
+    #[derive(Debug, Error)]
+    pub enum ParseError {
+        #[error("Unable to parse integer")]
+        BadInt(#[from] ParseIntError),
+        #[error("Couldn't find line with draws")]
+        NoDraws,
     }
 
     impl FromStr for Parsed {
