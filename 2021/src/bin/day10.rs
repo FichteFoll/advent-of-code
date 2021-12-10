@@ -7,7 +7,7 @@ use lazy_static::lazy_static;
 
 use aoc2021::*;
 use parse::parse_input;
-use thiserror::Error;
+use LineError::*;
 
 const DAY: usize = 10;
 
@@ -33,29 +33,54 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
+    let points: HashMap<_, usize> = [
+        (')', 3),
+        (']', 57),
+        ('}', 1197),
+        ('>', 25137),
+    ].into();
+
     parsed.iter()
-        .map(|line| parse_line(line).err().unwrap())
-        .filter_map(|err| match &err {
-            LineError::Corrupt { c, .. } => POINTS.get(&c),
-            _ => None,
+        .map(|line| parse_line(line))
+        .filter_map(|err| match err {
+            Corrupt { c, .. } => points.get(&c),
+            Incomplete { .. } => None,
+            Unknown { .. } => panic!("{:?}", err),
         })
         .sum()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    0
+fn part_2(parsed: &Parsed) -> usize {
+    let points: HashMap<_, usize> = [
+        (')', 1),
+        (']', 2),
+        ('}', 3),
+        ('>', 4),
+    ].into();
+
+    let mut scores: Vec<_> = parsed.iter()
+        .map(|line| parse_line(line))
+        .filter_map(|err| match err {
+            Corrupt { .. } => None,
+            Incomplete { expected } => Some(expected),
+            Unknown { .. } => panic!("{:?}", err),
+        })
+        .map(|expected|
+            expected.into_iter()
+                .map(|c| points.get(&c).unwrap())
+                .fold(0, |acc, x| acc * 5 + x)
+        )
+        .collect();
+    let i = scores.len() / 2;
+    *scores.select_nth_unstable(i).1
 }
 
-#[derive(Error, Debug)]
+#[allow(dead_code)]
+#[derive(Debug)]
 enum LineError {
-    #[error("expected {expected}, found {c}")]
     Corrupt { expected: char, c: char },
-
-    #[error("expected {expected:?}, found EOL")]
     Incomplete { expected: VecDeque<char> },
-
-    // #[error("unexpected character {c}")]
-    // Unknown { c: char },
+    Unknown { c: char },
 }
 
 lazy_static!{
@@ -65,32 +90,23 @@ lazy_static!{
         ('{', '}'),
         ('<', '>'),
     ].into();
-
-    static ref POINTS: HashMap<char, usize> = [
-        (')', 3),
-        (']', 57),
-        ('}', 1197),
-        ('>', 25137),
-    ].into();
-    // static ref OPENING: Vec<char> = PAIRS.keys().cloned().collect();
-    // static ref CLOSING: Vec<char> = PAIRS.values().cloned().collect();
 }
 
-fn parse_line(line: &str) -> Result<(), LineError> {
+fn parse_line(line: &str) -> LineError {
     let mut expected: VecDeque<char> = VecDeque::new();
     for c in line.chars() {
         if let Some(&new_closing) = PAIRS.get(&c) {
             expected.push_front(new_closing);
         } else if let Some(next_expected) = expected.pop_front() {
             if next_expected != c {
-                return Err(LineError::Corrupt { expected: next_expected, c });
+                return Corrupt { expected: next_expected, c };
             }
         } else {
-            panic!("shouldn't reach this");
+            return Unknown { c };
         }
     }
     if !expected.is_empty() {
-        return Err(LineError::Incomplete { expected });
+        return Incomplete { expected };
     }
     panic!("expected all lines to be invalid");
 }
@@ -114,8 +130,8 @@ mod tests {
         ";
 
     test!(part_1() == 26397);
-    // test!(part_2() == 0);
+    test!(part_2() == 288957);
     bench_parse!(Vec::len, 102);
     bench!(part_1() == 389589);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 1190420163);
 }
