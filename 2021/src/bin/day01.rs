@@ -6,6 +6,13 @@ use aoc2021::*;
 const DAY: usize = 1;
 type Parsed = Vec<usize>;
 
+fn main() {
+    let input = read_input!();
+    let parsed = parse_input(&input);
+    println!("Part 1: {}", part_1(&parsed));
+    println!("Part 2: {}", part_2(&parsed));
+}
+
 fn parse_input(input: &str) -> Parsed {
     input
         .trim()
@@ -24,13 +31,6 @@ fn part_2(parsed: &Parsed) -> usize {
     parsed.array_windows()
         .filter(|[a, _, _, b]| a < b)
         .count()
-}
-
-fn main() {
-    let input = read_input!();
-    let parsed = parse_input(&input);
-    println!("Part 1: {}", part_1(&parsed));
-    println!("Part 2: {}", part_2(&parsed));
 }
 
 #[cfg(test)]

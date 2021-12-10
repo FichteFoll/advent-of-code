@@ -1,54 +1,65 @@
 #![feature(test)]
 
-use std::str::FromStr;
-use std::num::ParseIntError;
-
 use aoc2021::*;
-
-use thiserror::Error;
+use parse::parse_input;
 
 const DAY: usize = 2;
 type Parsed = Vec<Command>;
 
 #[derive(Debug)]
-enum Command {
+pub enum Command {
     Forward(usize),
     Up(usize),
     Down(usize),
 }
 
-#[derive(Debug, Error)]
-enum ParseError {
-    #[error("no space found")]
-    NoSpace,
-    #[error("bad command: {0}")]
-    BadCommand(String),
-    #[error("unable to parse integer: {0}")]
-    BadInt(#[from] ParseIntError),
+fn main() {
+    let input = read_input!();
+    let parsed = parse_input(&input);
+    println!("Part 1: {}", part_1(&parsed));
+    println!("Part 2: {}", part_2(&parsed));
 }
 
-impl FromStr for Command {
-    type Err = ParseError;
+mod parse {
+    use super::*;
+    use std::str::FromStr;
+    use std::num::ParseIntError;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use Command::*;
-        let (word, step_str) = s.split_once(" ").ok_or(ParseError::NoSpace)?;
-        let step = step_str.parse()?;
-        match word {
-            "forward" => Ok(Forward(step)),
-            "up" => Ok(Up(step)),
-            "down" => Ok(Down(step)),
-            _ => Err(ParseError::BadCommand(word.to_owned())),
+    use thiserror::Error;
+
+    pub fn parse_input(input: &str) -> Parsed {
+        input
+            .trim()
+            .split('\n')
+            .map(|line| line.parse().unwrap())
+            .collect()
+    }
+
+    #[derive(Debug, Error)]
+    pub enum ParseError {
+        #[error("no space found")]
+        NoSpace,
+        #[error("bad command: {0}")]
+        BadCommand(String),
+        #[error("unable to parse integer: {0}")]
+        BadInt(#[from] ParseIntError),
+    }
+
+    impl FromStr for Command {
+        type Err = ParseError;
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            use Command::*;
+            let (word, step_str) = s.split_once(" ").ok_or(ParseError::NoSpace)?;
+            let step = step_str.parse()?;
+            match word {
+                "forward" => Ok(Forward(step)),
+                "up" => Ok(Up(step)),
+                "down" => Ok(Down(step)),
+                _ => Err(ParseError::BadCommand(word.to_owned())),
+            }
         }
     }
-}
-
-fn parse_input(input: &str) -> Parsed {
-    input
-        .trim()
-        .split('\n')
-        .map(|line| line.parse().unwrap())
-        .collect()
 }
 
 fn part_1(parsed: &Parsed) -> usize {
@@ -75,13 +86,6 @@ fn part_2(parsed: &Parsed) -> usize {
             }
         });
     distance * depth
-}
-
-fn main() {
-    let input = read_input!();
-    let parsed = parse_input(&input);
-    println!("Part 1: {}", part_1(&parsed));
-    println!("Part 2: {}", part_2(&parsed));
 }
 
 #[cfg(test)]

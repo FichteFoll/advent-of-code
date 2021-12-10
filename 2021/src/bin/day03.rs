@@ -8,6 +8,13 @@ struct Parsed {
     digits: usize,
 }
 
+fn main() {
+    let input = read_input!();
+    let parsed = parse_input(&input);
+    println!("Part 1: {}", part_1(&parsed));
+    println!("Part 2: {}", part_2(&parsed));
+}
+
 fn parse_input(input: &str) -> Parsed {
     let mut lines = input
         .trim()
@@ -67,13 +74,6 @@ fn part_2(parsed: &Parsed) -> usize {
     let oxygen = rating(parsed, true);
     let co2 = rating(parsed, false);
     oxygen * co2
-}
-
-fn main() {
-    let input = read_input!();
-    let parsed = parse_input(&input);
-    println!("Part 1: {}", part_1(&parsed));
-    println!("Part 2: {}", part_2(&parsed));
 }
 
 #[cfg(test)]
