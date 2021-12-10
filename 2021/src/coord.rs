@@ -29,17 +29,17 @@ impl<const N: usize> Point<N> {
         Self { coord }
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn x(&self) -> i32 {
         self.coord[0]
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn y(&self) -> i32 {
         self.coord[1]
     }
 
-    #[inline]
+    #[inline(always)]
     pub fn z(&self) -> i32 {
         self.coord[2]
     }
