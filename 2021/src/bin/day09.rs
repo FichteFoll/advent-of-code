@@ -7,7 +7,6 @@ use itertools::Itertools;
 use aoc2021::*;
 use aoc2021::grid2d::Grid2D;
 use aoc2021::coord::Point;
-use parse::parse_input;
 
 const DAY: usize = 9;
 
@@ -20,16 +19,12 @@ fn main() {
     println!("Part 2: {}", part_2(&parsed));
 }
 
-mod parse {
-    use super::*;
-
-    pub fn parse_input(input: &str) -> Parsed {
-        input
-            .trim()
-            .split('\n')
-            .map(|line| line.bytes().map(|b| b - b'0'))
-            .collect()
-    }
+fn parse_input(input: &str) -> Parsed {
+    input
+        .trim()
+        .split('\n')
+        .map(|line| line.bytes().map(|b| b - b'0'))
+        .collect()
 }
 
 fn part_1(parsed: &Parsed) -> usize {

@@ -8,12 +8,11 @@ use itertools::{Itertools, iproduct};
 use lazy_static::lazy_static;
 
 use aoc2021::*;
-use parse::parse_input;
 
 const DAY: usize = 8;
 
 type Parsed = Vec<Line>;
-pub struct Line { digits: Vec<Digit>, output: Vec<Digit> }
+struct Line { digits: Vec<Digit>, output: Vec<Digit> }
 type Digit = BTreeSet<Segment>;
 type Segment = char;
 
@@ -24,25 +23,21 @@ fn main() {
     println!("Part 2: {}", part_2(&parsed));
 }
 
-mod parse {
-    use super::*;
-
-    pub fn parse_input(input: &str) -> Parsed {
-        input
-            .trim()
-            .split('\n')
-            .map(|line| {
-                let (left, right) = line.split_once(" | ").unwrap();
-                let digits = left.split_whitespace()
-                    .map(|digit| digit.chars().collect())
-                    .collect();
-                let output = right.split_whitespace()
-                    .map(|digit| digit.chars().collect())
-                    .collect();
-                Line { digits, output }
-            })
-            .collect()
-    }
+fn parse_input(input: &str) -> Parsed {
+    input
+        .trim()
+        .split('\n')
+        .map(|line| {
+            let (left, right) = line.split_once(" | ").unwrap();
+            let digits = left.split_whitespace()
+                .map(|digit| digit.chars().collect())
+                .collect();
+            let output = right.split_whitespace()
+                .map(|digit| digit.chars().collect())
+                .collect();
+            Line { digits, output }
+        })
+        .collect()
 }
 
 fn part_1(parsed: &Parsed) -> usize {

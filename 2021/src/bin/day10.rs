@@ -6,7 +6,6 @@ use std::collections::{HashMap, VecDeque};
 use lazy_static::lazy_static;
 
 use aoc2021::*;
-use parse::parse_input;
 use LineError::*;
 
 const DAY: usize = 10;
@@ -20,16 +19,12 @@ fn main() {
     println!("Part 2: {}", part_2(&parsed));
 }
 
-mod parse {
-    use super::*;
-
-    pub fn parse_input(input: &str) -> Parsed {
-        input
-            .trim()
-            .split('\n')
-            .map(|s| s.into())
-            .collect()
-    }
+fn parse_input(input: &str) -> Parsed {
+    input
+        .trim()
+        .split('\n')
+        .map(|s| s.into())
+        .collect()
 }
 
 fn part_1(parsed: &Parsed) -> usize {
