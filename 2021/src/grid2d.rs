@@ -59,14 +59,10 @@ impl<T> Grid2D<T> {
     }
 
     pub fn new_map<F>(&self, f: F) -> Self
-        where F: Fn(&T) -> T
+        where F: Fn(&T) -> T + Copy
     {
         self.grid.iter()
-            .map(|row| {
-                row.iter()
-                   .map(|cell| f(cell))
-                   .collect::<Vec<_>>()
-            })
+            .map(|row| row.iter().map(f))
             .collect()
     }
 

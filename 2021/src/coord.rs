@@ -49,7 +49,7 @@ impl<const N: usize> Point<N> {
             .flat_map(|i| {
                 [-1, 1].into_iter()
                     .map(move |offset| {
-                        let mut coord = self.coord.clone();
+                        let mut coord = self.coord;
                         coord[i] += offset;
                         Point { coord }
                     })
@@ -64,7 +64,7 @@ impl<const N: usize> Point<N> {
         )
             .filter(|(pos, neg)| pos != neg)
             .map(|(pos, neg)| {
-                let mut coord = self.coord.clone();
+                let mut coord = self.coord;
                 for i in pos {
                     coord[i] += 1;
                 }

@@ -2,10 +2,11 @@
 
 use std::collections::{VecDeque, BTreeSet};
 
+use itertools::Itertools;
+
 use aoc2021::*;
 use aoc2021::grid2d::Grid2D;
 use aoc2021::coord::Point;
-use itertools::Itertools;
 use parse::parse_input;
 
 const DAY: usize = 9;
@@ -61,11 +62,11 @@ fn basins(parsed: &Parsed) -> Vec<usize> {
             let mut queue: VecDeque<_> = [pt].into();
             let mut pts = BTreeSet::new();
             while let Some(cur_pt) = queue.pop_front() {
-                if !pts.insert(cur_pt.clone()) {
+                if !pts.insert(cur_pt) {
                     continue;
                 }
                 let new = cur_pt.direct_neighbors().into_iter()
-                    .filter(|pt| parsed.get(&pt).filter(|&&n| n != 9).is_some());
+                    .filter(|pt| parsed.get(pt).filter(|&&n| n != 9).is_some());
                 queue.extend(new);
             }
             pts.len()
