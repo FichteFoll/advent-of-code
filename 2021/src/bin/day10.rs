@@ -38,9 +38,8 @@ fn part_1(parsed: &Parsed) -> usize {
     parsed.iter()
         .map(|line| parse_line(line))
         .filter_map(|err| match err {
-            Corrupt { c, .. } => points.get(&c),
+            Corrupt { c } => points.get(&c),
             Incomplete { .. } => None,
-            Unknown { .. } => panic!("{:?}", err),
         })
         .sum()
 }
@@ -53,7 +52,6 @@ fn part_2(parsed: &Parsed) -> usize {
         .filter_map(|err| match err {
             Corrupt { .. } => None,
             Incomplete { stack } => Some(stack),
-            Unknown { .. } => panic!("{:?}", err),
         })
         .map(|stack|
             stack.into_iter()
@@ -65,12 +63,9 @@ fn part_2(parsed: &Parsed) -> usize {
     *scores.select_nth_unstable(i).1
 }
 
-#[allow(dead_code)]
-#[derive(Debug)]
 enum LineError {
-    Corrupt { wanted: char, c: char },
+    Corrupt { c: char },
     Incomplete { stack: VecDeque<char> },
-    Unknown { c: char },
 }
 
 lazy_static!{
@@ -89,16 +84,16 @@ fn parse_line(line: &str) -> LineError {
             stack.push_front(new_closing);
         } else if let Some(wanted) = stack.pop_front() {
             if wanted != c {
-                return Corrupt { wanted, c };
+                return Corrupt { c };
             }
         } else {
-            return Unknown { c };
+            panic!("unexpected char {c:?}");
         }
     }
     if !stack.is_empty() {
         return Incomplete { stack };
     }
-    panic!("expected all lines to be invalid");
+    panic!("unexpectedly valid lines");
 }
 
 #[cfg(test)]
