@@ -51,12 +51,7 @@ fn part_1(parsed: &Parsed) -> usize {
 }
 
 fn part_2(parsed: &Parsed) -> usize {
-    let points: HashMap<_, usize> = [
-        (')', 1),
-        (']', 2),
-        ('}', 3),
-        ('>', 4),
-    ].into();
+    let points = [')', ']', '}', '>'];
 
     let mut scores: Vec<_> = parsed.iter()
         .map(|line| parse_line(line))
@@ -67,7 +62,7 @@ fn part_2(parsed: &Parsed) -> usize {
         })
         .map(|expected|
             expected.into_iter()
-                .map(|c| points.get(&c).unwrap())
+                .map(|c| points.iter().position(|&x| x == c).unwrap() + 1)
                 .fold(0, |acc, x| acc * 5 + x)
         )
         .collect();
