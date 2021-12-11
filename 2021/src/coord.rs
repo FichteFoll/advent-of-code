@@ -62,6 +62,8 @@ impl<const N: usize> Point<N> {
             (0..N).powerset(),
             (0..N).powerset()
         )
+            .map(Point::<N>::difference)
+            .unique()
             .filter(|(pos, neg)| pos != neg)
             .map(|(pos, neg)| {
                 let mut coord = self.coord;
@@ -75,6 +77,14 @@ impl<const N: usize> Point<N> {
             })
             .collect()
     }
+
+    fn difference<T>((pos, neg): (Vec<T>, Vec<T>)) -> (Vec<T>, Vec<T>)
+        where T: Eq + Clone
+    {
+        let posb = &pos.clone();
+        (pos, neg.iter().cloned().filter(|x| !posb.contains(x)).collect())
+    }
+
 
     pub fn normalized(&self) -> Self {
         if self.coord.iter().filter(|&&n| n != 0).count() == 1 {
@@ -220,4 +230,20 @@ fn gcd(a: i32, b: i32) -> i32 {
         y = x % y;
     }
     x
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use std::collections::HashSet;
+
+    #[test]
+    fn test_neighbors_2() {
+        let pt = Point::<2>::new([0, 0]);
+        let pts: Vec<_> = pt.neighbors();
+        println!("{pts:?}");
+        assert_eq!(pts.len(), 8);
+        let pts_hashed: HashSet<_> = pts.iter().cloned().collect();
+        assert_eq!(pts.len(), pts_hashed.len());
+    }
 }

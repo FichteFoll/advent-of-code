@@ -72,6 +72,7 @@ fn basins(parsed: &Parsed) -> Vec<usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use aoc2021::grid2d::Size;
     extern crate test;
 
     const TEST_INPUT: &str = "\
@@ -84,7 +85,7 @@ mod tests {
 
     test!(part_1() == 15);
     test!(part_2() == 1134);
-    bench_parse!(|x: &Grid2D<_>| x.size, (100, 100));
+    bench_parse!(|x: &Grid2D<_>| x.size, Size(100, 100));
     bench!(part_1() == 452);
     bench!(part_2() == 1263735);
 }
