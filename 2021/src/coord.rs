@@ -246,4 +246,14 @@ mod test {
         let pts_hashed: HashSet<_> = pts.iter().cloned().collect();
         assert_eq!(pts.len(), pts_hashed.len());
     }
+
+    #[test]
+    fn test_neighbors_3() {
+        let pt = Point::<3>::new([0, 0, 0]);
+        let pts: Vec<_> = pt.neighbors();
+        println!("{pts:?}");
+        assert_eq!(pts.len(), 26);
+        let pts_hashed: HashSet<_> = pts.iter().cloned().collect();
+        assert_eq!(pts.len(), pts_hashed.len());
+    }
 }
