@@ -27,7 +27,7 @@ fn parse_input(input: &str) -> Parsed {
 
 fn part_1(parsed: &Parsed) -> usize {
     let mut grid = parsed.clone();
-    (0..100).fold(0, |acc, _| acc + explode(&mut grid))
+    (0..100).map(|_| explode(&mut grid)).sum()
 }
 
 fn part_2(parsed: &Parsed) -> usize {
