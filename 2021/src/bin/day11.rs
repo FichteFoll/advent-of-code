@@ -26,40 +26,44 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    explode(parsed, 100)
+    let mut grid = parsed.clone();
+    (0..100).fold(0, |acc, _| acc + explode(&mut grid))
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    0
+fn part_2(parsed: &Parsed) -> usize {
+    let mut grid = parsed.clone();
+    let max = grid.size.0 * grid.size.1;
+    for i in 1.. {
+        if explode(&mut grid) == max {
+            return i;
+        }
+    }
+    panic!("didn't terminate");
 }
 
-fn explode(parsed: &Parsed, steps: usize) -> usize {
-    let mut board = parsed.clone();
+fn explode(board: &mut Parsed) -> usize {
     let size = board.size;
     let mut count = 0;
     let mut queue: VecDeque<Point<2>> = VecDeque::with_capacity(100);
-    for _ in 0..steps {
-        queue.clear();
-        // visit every point at least once and increase
-        for (pt, n) in board.iter_enumerate_mut() {
-            *n = (*n + 1) % 10;
-            if *n == 0 {
-                queue.extend(size.contained(pt.neighbors()));
-                count += 1;
-            }
+    // visit every point at least once and increase
+    for (pt, n) in board.iter_enumerate_mut() {
+        *n = (*n + 1) % 10;
+        if *n == 0 {
+            queue.extend(size.contained(pt.neighbors()));
+            count += 1;
         }
-        // visit neighbors and increase them again,
-        // but not if they flashed already!
-        while let Some(pt) = queue.pop_front() {
-            let n = board.get_mut(&pt).unwrap();
-            if *n == 0 {
-                continue;
-            }
-            *n = (*n + 1) % 10;
-            if *n == 0 {
-                queue.extend(size.contained(pt.neighbors()));
-                count += 1;
-            }
+    }
+    // visit neighbors and increase them again,
+    // but not if they flashed already!
+    while let Some(pt) = queue.pop_front() {
+        let n = board.get_mut(&pt).unwrap();
+        if *n == 0 {
+            continue;
+        }
+        *n = (*n + 1) % 10;
+        if *n == 0 {
+            queue.extend(size.contained(pt.neighbors()));
+            count += 1;
         }
     }
     count
@@ -81,14 +85,15 @@ mod tests {
             19991\n\
             11111\n\
             ";
-        let parsed = parse_input(input);
-        assert_eq!(explode(&parsed, 1), 9)
+        let mut parsed = parse_input(input);
+        assert_eq!(explode(&mut parsed), 9)
     }
 
     #[test]
     fn test_explode_10() {
-        let parsed = parse_input(TEST_INPUT);
-        assert_eq!(explode(&parsed, 10), 204)
+        let mut parsed = parse_input(TEST_INPUT);
+        let result = (0..10).fold(0, |acc, _| acc + explode(&mut parsed));
+        assert_eq!(result, 204)
     }
 
     const TEST_INPUT: &str = "\
@@ -105,8 +110,8 @@ mod tests {
         ";
 
     test!(part_1() == 1656);
-    // test!(part_2() == 0);
+    test!(part_2() == 195);
     bench_parse!(|x: &Grid2D<u8>| x.size, Size(10, 10));
     bench!(part_1() == 1729);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 237);
 }
