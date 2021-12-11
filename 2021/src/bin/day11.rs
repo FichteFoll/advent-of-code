@@ -33,12 +33,7 @@ fn part_1(parsed: &Parsed) -> usize {
 fn part_2(parsed: &Parsed) -> usize {
     let mut grid = parsed.clone();
     let max = grid.size.0 * grid.size.1;
-    for i in 1.. {
-        if explode(&mut grid) == max {
-            return i;
-        }
-    }
-    panic!("didn't terminate");
+    (0..).position(|_| explode(&mut grid) == max).unwrap() + 1
 }
 
 fn explode(board: &mut Parsed) -> usize {
