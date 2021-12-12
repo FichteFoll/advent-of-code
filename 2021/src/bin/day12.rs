@@ -14,6 +14,7 @@ type Parsed = MultiMap<String, String>;
 struct Path<'a> {
     path: Vec<&'a str>,
     visited: HashSet<&'a str>,
+    allow_twice: bool,
 }
 
 fn main() {
@@ -33,12 +34,13 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    let start = vec![Path { path: vec!["start"], visited: ["start"].into() }];
+    let start = vec![Path { path: vec!["start"], visited: ["start"].into(), allow_twice: false }];
     bfs(parsed, start)
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    0
+fn part_2(parsed: &Parsed) -> usize {
+    let start = vec![Path { path: vec!["start"], visited: ["start"].into(), allow_twice: true }];
+    bfs(parsed, start)
 }
 
 fn bfs<'a>(parsed: &'a Parsed, mut cur_paths: Vec<Path<'a>>) -> usize {
@@ -50,15 +52,16 @@ fn bfs<'a>(parsed: &'a Parsed, mut cur_paths: Vec<Path<'a>>) -> usize {
             let children = parsed.get_vec(last).unwrap();
             let extend = children.iter()
                 .filter(|&c| match c.as_str() {
+                    "start" => false,
                     "end" => { count += 1; false },
-                    s if is_lower_case(s) => !path.visited.contains(s),
+                    s if is_lower_case(s) => !path.visited.contains(s) || path.allow_twice,
                     _ => true,
                 })
                 .map(|c| {
                     let mut new_path = path.clone();
                     new_path.path.push(c);
                     if is_lower_case(c) {
-                        new_path.visited.insert(c);
+                        new_path.allow_twice &= new_path.visited.insert(c);
                     }
                     new_path
                 });
@@ -123,9 +126,11 @@ mod tests {
         ";
 
     test!(simple, TEST_INPUT_SIMPLE, part_1() == 10);
+    test!(simple, TEST_INPUT_SIMPLE, part_2() == 36);
     test!(slightly_larger, TEST_INPUT_SLIGHTLY_LARGER, part_1() == 19);
+    test!(slightly_larger, TEST_INPUT_SLIGHTLY_LARGER, part_2() == 103);
     test!(even_larger, TEST_INPUT_EVEN_LARGER, part_1() == 226);
-    // test!(part_2() == 0);
+    test!(even_larger, TEST_INPUT_EVEN_LARGER, part_2() == 3509);
     bench_parse!(MultiMap::len, 13);
     bench!(part_1() == 4720);
     // bench!(part_2() == 0);
