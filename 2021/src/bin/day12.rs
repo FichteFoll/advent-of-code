@@ -1,14 +1,22 @@
 #![feature(test)]
 
-use std::collections::HashSet;
-
-use multimap::MultiMap;
+use std::{collections::{HashSet, HashMap, VecDeque}, hash::Hash};
 
 use aoc2021::*;
+use parse::parse_input;
+
 
 const DAY: usize = 12;
 
-type Parsed = MultiMap<String, String>;
+type Parsed<'a> = HashMap<Node<'a>, Vec<Node<'a>>>;
+
+#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+pub enum Node<'a> {
+    Start,
+    End,
+    Small(&'a str),
+    Big(&'a str),
+}
 
 fn main() {
     let input = read_input!();
@@ -17,63 +25,87 @@ fn main() {
     println!("Part 2: {}", part_2(&parsed));
 }
 
-fn parse_input(input: &str) -> Parsed {
-    input
-        .trim()
-        .split('\n')
-        .map(|line| line.split_once('-').unwrap())
-        .flat_map(|(a, b)| [(a.into(), b.into()), (b.into(), a.into())])
-        .collect()
+mod parse {
+    use itertools::Itertools;
+
+    use super::*;
+
+    pub fn parse_input(input: &str) -> Parsed {
+        input
+            .trim()
+            .split('\n')
+            .map(|line| line.split_once('-').unwrap())
+            .flat_map(|(a, b)| [(a.into(), b.into()), (b.into(), a.into())])
+            .into_group_map()
+    }
+
+    impl<'a> From<&'a str> for Node<'a> {
+        fn from(s: &'a str) -> Self {
+            match s {
+                "start" => Node::Start,
+                "end" => Node::End,
+                _ if s.chars().all(|c| c.is_ascii_lowercase()) => Node::Small(s),
+                _ => Node::Big(s),
+            }
+        }
+    }
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    let start = vec![Path { path: vec!["start"], visited: HashSet::new(), allow_twice: false }];
-    bfs(parsed, start)
+    num_paths(parsed, false)
 }
 
 fn part_2(parsed: &Parsed) -> usize {
-    let start = vec![Path { path: vec!["start"], visited: HashSet::new(), allow_twice: true }];
-    bfs(parsed, start)
+    num_paths(parsed, true)
 }
 
 #[derive(Clone, Debug)]
 struct Path<'a> {
-    path: Vec<&'a str>,
+    pos: &'a Node<'a>,
     visited: HashSet<&'a str>,
     allow_twice: bool,
 }
 
-fn bfs<'a>(parsed: &'a Parsed, mut cur_paths: Vec<Path<'a>>) -> usize {
+fn num_paths(parsed: &Parsed, allow_twice: bool) -> usize {
+    let mut queue: VecDeque<_> = parsed.get(&Node::Start).unwrap().iter()
+        .map(|pos| Path { pos, visited: HashSet::new(), allow_twice })
+        .collect();
     let mut count = 0;
-    while !cur_paths.is_empty() {
-        cur_paths = cur_paths.into_iter()
-            .flat_map(|path| {
-                let last = path.path.last().unwrap().to_owned();
-                let children = parsed.get_vec(last).unwrap();
-                children.into_iter()
-                    .filter(|&c| match c.as_str() {
-                        "start" => false,
-                        "end" => { count += 1; false },
-                        s if is_lower_case(s) => !path.visited.contains(s) || path.allow_twice,
-                        _ => true,
-                    })
-                    .map(|c| {
-                        let mut new_path = path.clone();
-                        new_path.path.push(c);
-                        if is_lower_case(c) {
-                            new_path.allow_twice &= new_path.visited.insert(c);
-                        }
-                        new_path
-                    })
-                    .collect::<Vec<_>>()
-            })
-            .collect();
+    while let Some(path) = queue.pop_front() {
+        match step(parsed, path) {
+            StepResult::Extend(extend) => queue.extend(extend),
+            StepResult::Add(add) => count += add,
+        };
     }
     count
 }
 
-fn is_lower_case(s: &str) -> bool {
-    s.to_lowercase() == s
+enum StepResult<'a> {
+    Extend(Vec<Path<'a>>),
+    Add(usize),
+}
+
+#[inline]
+fn step<'a>(parsed: &'a HashMap<Node<'a>, Vec<Node<'a>>>, path: Path<'a>) -> StepResult<'a> {
+    match path.pos {
+        Node::Start => StepResult::Add(0),
+        Node::End => StepResult::Add(1),
+        Node::Small(name) if !path.visited.contains(name) || path.allow_twice => StepResult::Extend(
+            parsed.get(path.pos).unwrap().iter()
+                .map(|pos| {
+                    let mut visited = path.visited.clone();
+                    let allow_twice = path.allow_twice & visited.insert(name);
+                    Path { pos, visited, allow_twice }
+                })
+                .collect()
+        ),
+        Node::Small(_) => StepResult::Add(0),
+        Node::Big(_) => StepResult::Extend(
+            parsed.get(path.pos).unwrap().iter()
+                .map(|pos| Path { pos, visited: path.visited.clone(), ..path })
+                .collect()
+        ),
+    }
 }
 
 #[cfg(test)]
@@ -131,9 +163,9 @@ mod tests {
     test!(slightly_larger, TEST_INPUT_SLIGHTLY_LARGER, part_2() == 103);
     test!(even_larger, TEST_INPUT_EVEN_LARGER, part_1() == 226);
     test!(even_larger, TEST_INPUT_EVEN_LARGER, part_2() == 3509);
-    bench_parse!(MultiMap::len, 13);
+    bench_parse!(HashMap::len, 13);
     bench!(part_1() == 4720);
-    test!(&read_input!(), part_2() == 147848);
-    // takes about 300ms for a single run
-    // bench!(part_2() == 147848);
+    // test!(&read_input!(), part_2() == 147848);
+    // takes about 250ms for a single run
+    bench!(part_2() == 147848);
 }
