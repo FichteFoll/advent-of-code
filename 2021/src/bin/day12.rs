@@ -10,13 +10,6 @@ const DAY: usize = 12;
 
 type Parsed = MultiMap<String, String>;
 
-#[derive(Clone, Debug)]
-struct Path<'a> {
-    path: Vec<&'a str>,
-    visited: HashSet<&'a str>,
-    allow_twice: bool,
-}
-
 fn main() {
     let input = read_input!();
     let parsed = parse_input(&input);
@@ -28,46 +21,53 @@ fn parse_input(input: &str) -> Parsed {
     input
         .trim()
         .split('\n')
-        .map(|line| line.split_once('-').unwrap_or_else(|| panic!("no '-' in {line}")))
+        .map(|line| line.split_once('-').unwrap())
         .flat_map(|(a, b)| [(a.into(), b.into()), (b.into(), a.into())])
         .collect()
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    let start = vec![Path { path: vec!["start"], visited: ["start"].into(), allow_twice: false }];
+    let start = vec![Path { path: vec!["start"], visited: HashSet::new(), allow_twice: false }];
     bfs(parsed, start)
 }
 
 fn part_2(parsed: &Parsed) -> usize {
-    let start = vec![Path { path: vec!["start"], visited: ["start"].into(), allow_twice: true }];
+    let start = vec![Path { path: vec!["start"], visited: HashSet::new(), allow_twice: true }];
     bfs(parsed, start)
+}
+
+#[derive(Clone, Debug)]
+struct Path<'a> {
+    path: Vec<&'a str>,
+    visited: HashSet<&'a str>,
+    allow_twice: bool,
 }
 
 fn bfs<'a>(parsed: &'a Parsed, mut cur_paths: Vec<Path<'a>>) -> usize {
     let mut count = 0;
     while !cur_paths.is_empty() {
-        let mut next_paths = vec![];
-        for path in cur_paths {
-            let last = path.path.last().unwrap().to_owned();
-            let children = parsed.get_vec(last).unwrap();
-            let extend = children.iter()
-                .filter(|&c| match c.as_str() {
-                    "start" => false,
-                    "end" => { count += 1; false },
-                    s if is_lower_case(s) => !path.visited.contains(s) || path.allow_twice,
-                    _ => true,
-                })
-                .map(|c| {
-                    let mut new_path = path.clone();
-                    new_path.path.push(c);
-                    if is_lower_case(c) {
-                        new_path.allow_twice &= new_path.visited.insert(c);
-                    }
-                    new_path
-                });
-            next_paths.extend(extend);
-        }
-        cur_paths = next_paths;
+        cur_paths = cur_paths.into_iter()
+            .flat_map(|path| {
+                let last = path.path.last().unwrap().to_owned();
+                let children = parsed.get_vec(last).unwrap();
+                children.into_iter()
+                    .filter(|&c| match c.as_str() {
+                        "start" => false,
+                        "end" => { count += 1; false },
+                        s if is_lower_case(s) => !path.visited.contains(s) || path.allow_twice,
+                        _ => true,
+                    })
+                    .map(|c| {
+                        let mut new_path = path.clone();
+                        new_path.path.push(c);
+                        if is_lower_case(c) {
+                            new_path.allow_twice &= new_path.visited.insert(c);
+                        }
+                        new_path
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect();
     }
     count
 }
@@ -133,5 +133,7 @@ mod tests {
     test!(even_larger, TEST_INPUT_EVEN_LARGER, part_2() == 3509);
     bench_parse!(MultiMap::len, 13);
     bench!(part_1() == 4720);
-    // bench!(part_2() == 0);
+    test!(&read_input!(), part_2() == 147848);
+    // takes about 300ms for a single run
+    // bench!(part_2() == 147848);
 }
