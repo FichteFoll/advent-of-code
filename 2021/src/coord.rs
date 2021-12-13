@@ -44,6 +44,21 @@ impl<const N: usize> Point<N> {
         self.coord[2]
     }
 
+    #[inline(always)]
+    pub fn x_mut(&mut self) -> &mut i32 {
+        &mut self.coord[0]
+    }
+
+    #[inline(always)]
+    pub fn y_mut(&mut self) -> &mut i32 {
+        &mut self.coord[1]
+    }
+
+    #[inline(always)]
+    pub fn z_mut(&mut self) -> &mut i32 {
+        &mut self.coord[2]
+    }
+
     pub fn direct_neighbors(&self) -> Vec<Self> {
         (0..N)
             .flat_map(|i| {
