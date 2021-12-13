@@ -99,15 +99,15 @@ fn print_grid(grid: &Grid) -> String {
     let max_y = grid.iter().map(|pt| pt.y()).max().unwrap();
     let mut buf = Vec::with_capacity((max_x as usize + 2) * (max_y as usize + 1));
     for y in 0..=max_y {
-        buf.push(b'\n'); // newline first for formatting reasons
+        buf.push('\n'); // newline first for formatting reasons
         for x in 0..=max_x {
             buf.push(match grid.contains(&Point::new([x, y])) {
-                true => b'#',
-                false => b'.',
+                true => '#',
+                false => '.',
             });
         }
     }
-    String::from_utf8(buf).unwrap()
+    buf.into_iter().collect()
 }
 
 #[cfg(test)]
