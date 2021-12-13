@@ -76,8 +76,9 @@ fn part_1((grid, folds): &Parsed) -> usize {
     fold(grid, folds[0]).len()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    0
+fn part_2((grid, folds): &Parsed) -> String {
+    let final_grid = folds.iter().fold(grid.clone(), |acc, &f| fold(acc, f));
+    print_grid(&final_grid)
 }
 
 fn fold(grid: Grid, line: Line) -> Grid {
@@ -93,18 +94,20 @@ fn fold(grid: Grid, line: Line) -> Grid {
         .collect()
 }
 
-fn print_grid(grid: &Grid) {
+fn print_grid(grid: &Grid) -> String {
     let max_x = grid.iter().map(|pt| pt.x()).max().unwrap();
     let max_y = grid.iter().map(|pt| pt.y()).max().unwrap();
+    let mut buf = Vec::with_capacity((max_x as usize + 2) * (max_y as usize + 1));
     for y in 0..=max_y {
+        buf.push(b'\n'); // newline first for formatting reasons
         for x in 0..=max_x {
-            print!("{}", match grid.contains(&Point::new([x, y])) {
-                true => '#',
-                false => '.',
+            buf.push(match grid.contains(&Point::new([x, y])) {
+                true => b'#',
+                false => b'.',
             });
         }
-        println!();
     }
+    String::from_utf8(buf).unwrap()
 }
 
 #[cfg(test)]
@@ -136,9 +139,26 @@ mod tests {
         fold along x=5\n\
         ";
 
+    const TEST_EXPECTED: &str = "\n\
+        #####\n\
+        #...#\n\
+        #...#\n\
+        #...#\n\
+        #####\
+        ";
+
     test!(part_1() == 17);
-    // test!(part_2() == 0);
+    test!(part_2() == TEST_EXPECTED);
     bench_parse!(|x: &Parsed| (x.0.len(), x.1.len()), (897, 12));
     bench!(part_1() == 759);
-    // bench!(part_2() == 0);
+
+    const EXPECTED: &str = "\n\
+        #..#.####..##..###..####.#..#.###..###.\n\
+        #..#.#....#..#.#..#....#.#.#..#..#.#..#\n\
+        ####.###..#....#..#...#..##...#..#.#..#\n\
+        #..#.#....#....###...#...#.#..###..###.\n\
+        #..#.#....#..#.#.#..#....#.#..#....#.#.\n\
+        #..#.####..##..#..#.####.#..#.#....#..#\
+        ";
+    bench!(part_2() == EXPECTED);
 }
