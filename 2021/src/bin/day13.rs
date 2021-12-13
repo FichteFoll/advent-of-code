@@ -1,3 +1,4 @@
+#![feature(hash_drain_filter)]
 #![feature(test)]
 
 use fnv::FnvHashSet as HashSet;
@@ -81,17 +82,23 @@ fn part_2((grid, folds): &Parsed) -> String {
     print_grid(&final_grid)
 }
 
-fn fold(grid: Grid, line: Line) -> Grid {
-    grid.into_iter()
+fn fold(mut grid: Grid, line: Line) -> Grid {
+    let extend: Vec<_> = grid
+        .drain_filter(|pt| match line {
+            Line::X(n) if pt.x() > n => true,
+            Line::Y(n) if pt.y() > n => true,
+            _ => false,
+        })
         .map(|mut pt| {
             match line {
-                Line::X(n) if pt.x() > n => *pt.x_mut() -= (pt.x() - n) * 2,
-                Line::Y(n) if pt.y() > n => *pt.y_mut() -= (pt.y() - n) * 2,
-                _ => (),
+                Line::X(n) => *pt.x_mut() -= (pt.x() - n) * 2,
+                Line::Y(n) => *pt.y_mut() -= (pt.y() - n) * 2,
             };
             pt
         })
-        .collect()
+        .collect();
+    grid.extend(extend);
+    grid
 }
 
 fn print_grid(grid: &Grid) -> String {
