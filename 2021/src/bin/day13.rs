@@ -1,4 +1,3 @@
-#![feature(hash_drain_filter)]
 #![feature(test)]
 
 use fnv::FnvHashSet as HashSet;
@@ -9,8 +8,9 @@ use parse::parse_input;
 
 const DAY: usize = 13;
 
-type Grid = HashSet<Point<2>>;
-type Parsed = (Grid, Vec<Line>);
+type HGrid = HashSet<Point<2>>;
+type VGrid = Vec<Point<2>>;
+type Parsed = (VGrid, Vec<Line>);
 
 #[derive(Clone, Copy, Debug)]
 pub enum Line{
@@ -73,35 +73,30 @@ mod parse {
 }
 
 fn part_1((grid, folds): &Parsed) -> usize {
-    let grid = grid.clone();
-    fold(grid, folds[0]).len()
+    let mut vgrid = grid.clone();
+    fold(&mut vgrid, folds[0]);
+    HashSet::from_iter(vgrid).len()
 }
 
 fn part_2((grid, folds): &Parsed) -> String {
-    let final_grid = folds.iter().fold(grid.clone(), |acc, &f| fold(acc, f));
-    print_grid(&final_grid)
+    let mut vgrid = grid.clone();
+    for &f in folds {
+        fold(&mut vgrid, f);
+    }
+    print_grid(&HashSet::from_iter(vgrid))
 }
 
-fn fold(mut grid: Grid, line: Line) -> Grid {
-    let extend: Vec<_> = grid
-        .drain_filter(|pt| match line {
-            Line::X(n) if pt.x() > n => true,
-            Line::Y(n) if pt.y() > n => true,
-            _ => false,
-        })
-        .map(|mut pt| {
-            match line {
-                Line::X(n) => *pt.x_mut() -= (pt.x() - n) * 2,
-                Line::Y(n) => *pt.y_mut() -= (pt.y() - n) * 2,
-            };
-            pt
-        })
-        .collect();
-    grid.extend(extend);
-    grid
+fn fold(grid: &mut VGrid, line: Line) {
+    for pt in grid.iter_mut() {
+        match line {
+            Line::X(n) if pt.x() > n => *pt.x_mut() -= (pt.x() - n) * 2,
+            Line::Y(n) if pt.y() > n => *pt.y_mut() -= (pt.y() - n) * 2,
+            _ => (),
+        };
+    }
 }
 
-fn print_grid(grid: &Grid) -> String {
+fn print_grid(grid: &HGrid) -> String {
     let max_x = grid.iter().map(|pt| pt.x()).max().unwrap();
     let max_y = grid.iter().map(|pt| pt.y()).max().unwrap();
     let mut buf = Vec::with_capacity((max_x as usize + 2) * (max_y as usize + 1));
