@@ -1,6 +1,6 @@
 #![feature(test)]
 
-use std::collections::HashSet;
+use fnv::FnvHashSet as HashSet;
 
 use aoc2021::*;
 use aoc2021::coord::Point;
