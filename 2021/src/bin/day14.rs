@@ -1,6 +1,7 @@
 #![feature(test)]
 
-use std::collections::HashMap;
+// use std::collections::HashMap;
+use fnv::FnvHashMap as HashMap;
 
 use aoc2021::*;
 use itertools::{Itertools, MinMaxResult};
@@ -40,10 +41,10 @@ type CharMap = HashMap<char, usize>;
 type Cache = HashMap<((char, char), usize), CharMap>;
 
 fn explode((template, rules): &Parsed, times: usize) -> usize {
-    let mut cache: Cache = HashMap::new();
+    let mut cache: Cache = HashMap::default();
     let mut map = template.iter().cloned().tuple_windows()
         .map(|pair| explode_once(rules, &mut cache, pair, times))
-        .fold(CharMap::new(), join_map);
+        .fold(CharMap::default(), join_map);
     let last_char = *template.iter().last().unwrap();
     *map.entry(last_char).or_default() += 1;
     match map.into_values().minmax() {
@@ -54,20 +55,20 @@ fn explode((template, rules): &Parsed, times: usize) -> usize {
 
 // Expand the given `pair` `times` times and return the char counts.
 // Does not count the right-hand side of the pair, however.
-fn explode_once<'a>(rules: &Rules, mut cache: &mut Cache, pair: (char, char), times: usize) -> CharMap {
+fn explode_once(rules: &Rules, cache: &mut Cache, pair: (char, char), times: usize) -> CharMap {
     if let Some(result) = cache.get(&(pair, times)) {
         result.clone()
     } else {
         let middle = *rules.get(&pair).unwrap();
         let result = if times == 1 {
-            let mut result = CharMap::new();
+            let mut result = CharMap::default();
             for c in [pair.0, middle] {
                 *result.entry(c).or_default() += 1;
             }
             result
         } else {
-            let left = explode_once(rules, &mut cache, (pair.0, middle), times - 1).clone();
-            let right = explode_once(rules, &mut cache, (middle, pair.1), times - 1);
+            let left = explode_once(rules, cache, (pair.0, middle), times - 1);
+            let right = explode_once(rules, cache, (middle, pair.1), times - 1);
             join_map(right, left)
         };
         cache.insert((pair, times), result.clone());
