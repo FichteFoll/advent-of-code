@@ -28,46 +28,58 @@ fn parse_input(input: &str) -> Parsed {
     (template.chars().collect(), rules)
 }
 
-fn part_1((template, rules): &Parsed) -> usize {
-    let mut map = template.iter().cloned().tuple_windows()
-        .map(|pair| explode_once(rules, pair, 10))
-        .fold(HashMap::<char, usize>::new(), |mut a, b| {
-            for (c, n) in b {
-                *a.entry(c).or_default() += n;
-            };
-            a
-        });
+fn part_1(parsed: &Parsed) -> usize {
+    explode(parsed, 10)
+}
 
+fn part_2(parsed: &Parsed) -> usize {
+    explode(parsed, 40)
+}
+
+type CharMap = HashMap<char, usize>;
+type Cache = HashMap<((char, char), usize), CharMap>;
+
+fn explode((template, rules): &Parsed, times: usize) -> usize {
+    let mut cache: Cache = HashMap::new();
+    let mut map = template.iter().cloned().tuple_windows()
+        .map(|pair| explode_once(rules, &mut cache, pair, times))
+        .fold(CharMap::new(), join_map);
     let last_char = *template.iter().last().unwrap();
     *map.entry(last_char).or_default() += 1;
-
     match map.into_values().minmax() {
         MinMaxResult::MinMax(min, max) => max - min,
         _ => panic!("not enough elements"),
     }
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    0
-}
-
 // Expand the given `pair` `times` times and return the char counts.
 // Does not count the right-hand side of the pair, however.
-fn explode_once(rules: &Rules, pair: (char, char), times: usize) -> HashMap<char, usize> {
-    let middle = *rules.get(&pair).unwrap();
-    if times == 1 {
-        let mut result = HashMap::new();
-        for c in [pair.0, middle/*, pair.1*/] {
-            *result.entry(c).or_default() += 1;
-        }
-        return result;
+fn explode_once<'a>(rules: &Rules, mut cache: &mut Cache, pair: (char, char), times: usize) -> CharMap {
+    if let Some(result) = cache.get(&(pair, times)) {
+        result.clone()
+    } else {
+        let middle = *rules.get(&pair).unwrap();
+        let result = if times == 1 {
+            let mut result = CharMap::new();
+            for c in [pair.0, middle] {
+                *result.entry(c).or_default() += 1;
+            }
+            result
+        } else {
+            let left = explode_once(rules, &mut cache, (pair.0, middle), times - 1).clone();
+            let right = explode_once(rules, &mut cache, (middle, pair.1), times - 1);
+            join_map(right, left)
+        };
+        cache.insert((pair, times), result.clone());
+        result
     }
-    let mut left_map = explode_once(rules, (pair.0, middle), times - 1);
-    let right_map = explode_once(rules, (middle, pair.1), times - 1);
-    for (c, n) in right_map {
-        *left_map.entry(c).or_default() += n;
-    }
-    left_map
+}
+
+fn join_map(mut a: CharMap, b: CharMap) -> CharMap {
+    for (c, n) in b {
+        *a.entry(c).or_default() += n;
+    };
+    a
 }
 
 #[cfg(test)]
@@ -97,8 +109,8 @@ mod tests {
         ";
 
     test!(part_1() == 1588);
-    // test!(part_2() == 0);
+    test!(part_2() == 2188189693529);
     bench_parse!(|x: &Parsed| (x.0.len(), x.1.len()), (20, 100));
     bench!(part_1() == 2621);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 2843834241366);
 }
