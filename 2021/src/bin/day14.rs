@@ -1,3 +1,4 @@
+#![feature(array_windows)]
 #![feature(test)]
 
 // use std::collections::HashMap;
@@ -8,8 +9,8 @@ use itertools::{Itertools, MinMaxResult};
 
 const DAY: usize = 14;
 
-type Rules = HashMap<(char, char), char>;
-type Parsed = (Vec<char>, Rules);
+type Rules = HashMap<(u8, u8), u8>;
+type Parsed<'a> = (&'a [u8], Rules);
 
 fn main() {
     let input = read_input!();
@@ -21,12 +22,10 @@ fn main() {
 fn parse_input(input: &str) -> Parsed {
     let (template, rule_lines) = input.trim().split_once("\n\n").unwrap();
     let rules = rule_lines.lines()
-        .map(|line| {
-            let chars: Vec<_> = line.chars().collect();
-            ((chars[0], chars[1]), chars[6])
-        })
+        .map(|line| line.as_bytes())
+        .map(|b| ((b[0], b[1]), b[6]))
         .collect();
-    (template.chars().collect(), rules)
+    (template.as_bytes(), rules)
 }
 
 fn part_1(parsed: &Parsed) -> usize {
@@ -37,13 +36,13 @@ fn part_2(parsed: &Parsed) -> usize {
     explode(parsed, 40)
 }
 
-type CharMap = HashMap<char, usize>;
-type Cache = HashMap<((char, char), usize), CharMap>;
+type CharMap = HashMap<u8, usize>;
+type Cache = HashMap<((u8, u8), usize), CharMap>;
 
 fn explode((template, rules): &Parsed, times: usize) -> usize {
     let mut cache: Cache = HashMap::default();
-    let mut map = template.iter().cloned().tuple_windows()
-        .map(|pair| explode_once(rules, &mut cache, pair, times))
+    let mut map = template.array_windows()
+        .map(|&[a, b]| explode_once(rules, &mut cache, (a, b), times))
         .fold(CharMap::default(), join_map);
     let last_char = *template.iter().last().unwrap();
     *map.entry(last_char).or_default() += 1;
@@ -55,7 +54,7 @@ fn explode((template, rules): &Parsed, times: usize) -> usize {
 
 // Expand the given `pair` `times` times and return the char counts.
 // Does not count the right-hand side of the pair, however.
-fn explode_once(rules: &Rules, cache: &mut Cache, pair: (char, char), times: usize) -> CharMap {
+fn explode_once(rules: &Rules, cache: &mut Cache, pair: (u8, u8), times: usize) -> CharMap {
     if let Some(result) = cache.get(&(pair, times)) {
         result.clone()
     } else {
