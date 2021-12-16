@@ -6,8 +6,7 @@ use parse::parse_input;
 const DAY: usize = 16;
 
 // consider https://crates.io/crates/bitvec
-type RawPackage = Vec<bool>;
-type Parsed = RawPackage;
+type Parsed = Vec<bool>;
 
 fn main() {
     let input = read_input!();
@@ -24,7 +23,7 @@ mod parse {
             .trim()
             .chars()
             .map(|c| u8::from_str_radix(&c.to_string(), 16).unwrap())
-            .flat_map(|nibble| (0..4).rev() .map(|i| nibble >> i & 1 == 1).collect::<Vec<_>>())
+            .flat_map(|nibble| (0..4).rev().map(|i| nibble >> i & 1 == 1).collect::<Vec<_>>())
             .collect()
     }
 }
@@ -55,7 +54,7 @@ struct Package {
 #[derive(Debug, PartialEq, Eq)]
 enum Body {
     Literal(usize),
-    Operator{ type_: u8, children: Vec<Package> },
+    Operator { type_: u8, children: Vec<Package> },
 }
 
 #[derive(Debug)]
@@ -91,11 +90,8 @@ impl Body {
     }
 
     fn parse_operator(type_: u8, slice: &[bool]) -> (Self, usize) {
-        let raw_length = match &slice[0] {
-            false => Length::Bits(to_number!(slice[1..16] => usize)),
-            true => Length::Packets(to_number!(slice[1..12] => usize)),
-        };
-        let mut length = raw_length.bit_length() + 1;
+        let raw_length = Length::from(slice);
+        let mut length = raw_length.bit_length();
         let children = match raw_length {
             Length::Bits(bits) => {
                 let mut sub_slice = &slice[length..length + bits];
@@ -122,7 +118,6 @@ impl Body {
                 children
             },
         };
-        // parse subpkgs
         let body = Body::Operator{ type_, children };
         (body, length)
     }
@@ -140,19 +135,29 @@ impl Body {
                     5 => (values.next().unwrap() > values.next().unwrap()) as usize,
                     6 => (values.next().unwrap() < values.next().unwrap()) as usize,
                     7 => (values.next().unwrap() == values.next().unwrap()) as usize,
-                    _ => unreachable!(),
+                    _ => panic!("unexpected type {type_}"),
                 }
             },
         }
-
     }
 }
 
 impl Length {
+    // is there a better way to do this?
+    const BITS_LENGTH: usize = 15;
+    const PACKETS_LENGTH: usize = 11;
+
+    fn from(slice: &[bool]) -> Self {
+        match &slice[0] {
+            false => Length::Bits(to_number!(&slice[1..=Length::BITS_LENGTH] => usize)),
+            true => Length::Packets(to_number!(&slice[1..=Length::PACKETS_LENGTH] => usize)),
+        }
+    }
+
     fn bit_length(&self) -> usize {
-        match self {
-            Length::Bits(_) => 15,
-            Length::Packets(_) => 11,
+        1 + match self {
+            Length::Bits(_) => Length::BITS_LENGTH,
+            Length::Packets(_) => Length::PACKETS_LENGTH,
         }
     }
 }
