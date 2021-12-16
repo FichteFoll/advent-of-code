@@ -30,12 +30,11 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    let pkg = Package::parse(parsed);
-    sum_version(&pkg)
+    sum_version(&Package::parse(parsed))
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    0
+fn part_2(parsed: &Parsed) -> usize {
+    Package::parse(parsed).body.value()
 }
 
 fn sum_version(pkg: &Package) -> usize {
@@ -69,8 +68,6 @@ impl Package {
     fn parse(slice: &[bool]) -> Package {
         let version = to_number!(slice[..3] => u8);
         let type_ = to_number!(slice[3..6] => u8);
-        println!("slice: {slice:?}");
-        println!("version: {version}, type_: {type_}");
         if type_ == TYPE_LITERAL {
             let (body, body_length) = Body::parse_literal(&slice[6..]);
             Package { version, body, length: 6 + body_length }
@@ -99,8 +96,6 @@ impl Body {
             true => Length::Packets(to_number!(slice[1..12] => usize)),
         };
         let mut length = raw_length.bit_length() + 1;
-        println!("{raw_length:?}, {length}");
-        println!("length slice: {:?}", &slice[1..16]);
         let children = match raw_length {
             Length::Bits(bits) => {
                 let mut sub_slice = &slice[length..length + bits];
@@ -130,6 +125,26 @@ impl Body {
         // parse subpkgs
         let body = Body::Operator{ type_, children };
         (body, length)
+    }
+
+    fn value(&self) -> usize {
+        match self {
+            &Body::Literal(n) => n,
+            Body::Operator { type_, children } => {
+                let mut values = children.iter().map(|c| c.body.value());
+                match type_ {
+                    0 => values.sum(),
+                    1 => values.product(),
+                    2 => values.min().unwrap(),
+                    3 => values.max().unwrap(),
+                    5 => (values.next().unwrap() > values.next().unwrap()) as usize,
+                    6 => (values.next().unwrap() < values.next().unwrap()) as usize,
+                    7 => (values.next().unwrap() == values.next().unwrap()) as usize,
+                    _ => unreachable!(),
+                }
+            },
+        }
+
     }
 }
 
@@ -246,8 +261,16 @@ mod tests {
         "A0016C880162017C3686B18A3D4780",
         part_1() == 31
     );
-    // test!(part_2() == 0);
+
+    test!(sum, "C200B40A82", part_2() == 3);
+    test!(product, "04005AC33890", part_2() == 54);
+    test!(min, "880086C3E88112", part_2() == 7);
+    test!(max, "CE00C43D881120", part_2() == 9);
+    test!(lt, "D8005AC2A8F0", part_2() == 1);
+    test!(gt, "F600BC2D8F", part_2() == 0);
+    test!(equation, "9C0141080250320F1802104A08", part_2() == 1);
+
     bench_parse!(Vec::len, 1400 * 4);
-    // bench!(part_1() == 0);
-    // bench!(part_2() == 0);
+    bench!(part_1() == 906);
+    bench!(part_2() == 819324480368);
 }
