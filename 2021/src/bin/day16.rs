@@ -30,36 +30,36 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    let pkg = Package::parse(&parsed);
-    // TODO sum over versions
-    0
+    let pkg = Package::parse(parsed);
+    sum_version(&pkg)
 }
 
 fn part_2(_parsed: &Parsed) -> usize {
     0
 }
 
+fn sum_version(pkg: &Package) -> usize {
+    pkg.version as usize + match &pkg.body {
+        Body::Literal(_) => 0,
+        Body::Operator { children, .. } => children.iter().map(sum_version).sum(),
+    }
+}
+
 const TYPE_LITERAL: u8 = 4;
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 struct Package {
-    header: Header,
+    version: u8,
     body: Body,
     length: usize,
 }
-
-#[derive(Clone, Debug, PartialEq, Eq)]
-struct Header {
-    version: u8,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq)]
 enum Body {
     Literal(usize),
     Operator{ type_: u8, children: Vec<Package> },
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 enum Length {
     Bits(usize),
     Packets(usize),
@@ -68,16 +68,15 @@ enum Length {
 impl Package {
     fn parse(slice: &[bool]) -> Package {
         let version = to_number!(slice[..3] => u8);
-        let header = Header { version };
         let type_ = to_number!(slice[3..6] => u8);
         println!("slice: {slice:?}");
         println!("version: {version}, type_: {type_}");
         if type_ == TYPE_LITERAL {
             let (body, body_length) = Body::parse_literal(&slice[6..]);
-            Package { header, body, length: 6 + body_length }
+            Package { version, body, length: 6 + body_length }
         } else {
             let (body, body_length) = Body::parse_operator(type_, &slice[6..]);
-            Package { header, body, length: 6 + body_length }
+            Package { version, body, length: 6 + body_length }
         }
     }
 }
@@ -108,7 +107,7 @@ impl Body {
                 let expected_length = length + bits;
                 let mut children = Vec::new();
                 while !sub_slice.is_empty() {
-                    let package = Package::parse(&sub_slice);
+                    let package = Package::parse(sub_slice);
                     length += package.length;
                     sub_slice = &sub_slice[package.length..];
                     children.push(package);
@@ -116,7 +115,17 @@ impl Body {
                 assert_eq!(length, expected_length);
                 children
             },
-            _ => unimplemented!(),
+            Length::Packets(count) => {
+                let mut sub_slice = &slice[length..];
+                let mut children = Vec::new();
+                for _ in 0..count {
+                    let package = Package::parse(sub_slice);
+                    sub_slice = &sub_slice[package.length..];
+                    length += package.length;
+                    children.push(package);
+                }
+                children
+            },
         };
         // parse subpkgs
         let body = Body::Operator{ type_, children };
@@ -150,12 +159,12 @@ mod tests {
         let input = "D2FE28";
         let parsed = parse_input(input);
         let pkg = Package::parse(&parsed);
-        assert_eq!(pkg.header.version, 6);
-        match pkg.body {
-            Body::Literal(n) => assert_eq!(n, 2021),
-            _ => unreachable!(),
-        }
-        assert_eq!(pkg.length, 21);
+        let expected = Package {
+            version: 6,
+            body: Body::Literal(2021),
+            length: 21,
+        };
+        assert_eq!(pkg, expected);
     }
 
     #[test]
@@ -164,17 +173,17 @@ mod tests {
         let parsed = parse_input(input);
         let pkg = Package::parse(&parsed);
         let expected = Package {
-            header: Header { version: 1 },
+            version: 1,
             body: Body::Operator {
                 type_: 6,
                 children: vec![
                     Package {
-                        header: Header { version: 6 },
+                        version: 6,
                         body: Body::Literal(10),
                         length: 11,
                     },
                     Package {
-                        header: Header { version: 2 },
+                        version: 2,
                         body: Body::Literal(20),
                         length: 16,
                     },
@@ -191,22 +200,22 @@ mod tests {
         let parsed = parse_input(input);
         let pkg = Package::parse(&parsed);
         let expected = Package {
-            header: Header { version: 7 },
+            version: 7,
             body: Body::Operator {
                 type_: 3,
                 children: vec![
                     Package {
-                        header: Header { version: 5 },
+                        version: 2,
                         body: Body::Literal(1),
                         length: 11,
                     },
                     Package {
-                        header: Header { version: 4 },
+                        version: 4,
                         body: Body::Literal(2),
                         length: 11,
                     },
                     Package {
-                        header: Header { version: 1 },
+                        version: 1,
                         body: Body::Literal(3),
                         length: 11,
                     },
