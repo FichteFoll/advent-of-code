@@ -58,7 +58,7 @@ fn part_2((x_target, y_target): &Parsed) -> usize {
                 x += vx;
                 y += vy;
                 vy -= 1;
-                vx = (vx as u32).saturating_sub(1) as i32;
+                vx -= vx.signum();
                 if x_target.contains(&x) && y_target.contains(&y) {
                     return true;
                 }
