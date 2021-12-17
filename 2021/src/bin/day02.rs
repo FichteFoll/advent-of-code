@@ -50,7 +50,7 @@ mod parse {
 
         fn from_str(s: &str) -> Result<Self, Self::Err> {
             use Command::*;
-            let (word, step_str) = s.split_once(" ").ok_or(ParseError::NoSpace)?;
+            let (word, step_str) = s.split_once(' ').ok_or(ParseError::NoSpace)?;
             let step = step_str.parse()?;
             match word {
                 "forward" => Ok(Forward(step)),

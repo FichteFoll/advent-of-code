@@ -16,11 +16,11 @@ pub struct Size(pub usize, pub usize);
 
 impl<T> Grid2D<T> {
     pub fn get(&self, pt: &Point<2>) -> Option<&T> {
-        self.grid.get(pt.y() as usize).map(|row| row.get(pt.x() as usize)).flatten()
+        self.grid.get(pt.y() as usize).and_then(|row| row.get(pt.x() as usize))
     }
 
     pub fn get_mut(&mut self, pt: &Point<2>) -> Option<&mut T> {
-        self.grid.get_mut(pt.y() as usize).map(|row| row.get_mut(pt.x() as usize)).flatten()
+        self.grid.get_mut(pt.y() as usize).and_then(|row| row.get_mut(pt.x() as usize))
     }
 
     pub fn iter(&self) -> impl Iterator<Item=&T> {

@@ -1,4 +1,4 @@
-#![feature(test, destructuring_assignment)]
+#![feature(test)]
 
 fn read_input() -> String {
     std::fs::read_to_string("input/day08.txt").expect("can’t read file")
