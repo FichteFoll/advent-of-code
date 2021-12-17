@@ -47,6 +47,8 @@ fn part_1((_, y_target): &Parsed) -> i32 {
 }
 
 fn part_2((x_target, y_target): &Parsed) -> usize {
+    assert!(*y_target.start() < 0, "This algorithm doesn't work for y >= 0");
+    assert!(*x_target.start() > 0, "This algorithm doesn't work for x <= 0");
     // ty_0 <= vy_0 <= (-ty_0 - 1)
     // min_vx(tx_0) <= vx_0 <= tx_1
     let y_range = *y_target.start()..=-y_target.start() - 1;
