@@ -227,18 +227,12 @@ impl SnailNum {
             Pair(box left, box right) => {
                 match left.explode(level + 1) {
                     (new_left, Some(Explosion(left_exp, Some(carry)))) => {
-                        let new_right = match right {
-                            Terminal(x) => Terminal(x + carry),
-                            _ => right.add_left(carry),
-                        };
+                        let new_right = right.add_left(carry);
                         (Pair(new_left.into(), new_right.into()), Some(Explosion(left_exp, None)))
                     },
                     (new_left, None) => match right.explode(level + 1) {
                         (new_right, Some(Explosion(Some(carry), right_exp))) => {
-                            let new_new_left = match new_left {
-                                Terminal(x) => Terminal(x + carry),
-                                _ => new_left.add_right(carry),
-                            };
+                            let new_new_left = new_left.add_right(carry);
                             (Pair(new_new_left.into(), new_right.into()), Some(Explosion(None, right_exp)))
                         },
                         (new_right, exp) =>
