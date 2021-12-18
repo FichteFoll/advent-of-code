@@ -44,29 +44,34 @@ mod parse {
         Unclosed,
         #[error("Bad Pair; expected 2, found {0}")]
         BadCount(usize),
-        #[error("Closing bracket without opening")]
-        UnexpectedClose,
+        #[error("Expected end of line")]
+        ExpectedEol,
         #[error("Input was empty")]
         Empty,
         #[error("Unrecognized character {0:?}")]
         BadChar(char),
         #[error("Expected '[', found {0:?}")]
         ExpectedOpen(char),
+        #[error("Unexpected '['")]
+        UnexpectedOpen,
     }
 
     impl FromStr for SnailNum {
         type Err = ParseError;
 
         fn from_str(s: &str) -> Result<Self, Self::Err> {
-            let mut stack: Vec<Vec<SnailNum>> = vec![vec![]];
+            let mut stack: Vec<Vec<SnailNum>> = vec![];
             let mut digits: Vec<char> = vec![];
 
             fn drain_digits(digits: &mut Vec<char>) -> SnailNum {
                 Terminal((&digits.drain(..).collect::<String>()).parse().unwrap())
             }
 
-            for c in s.chars() {
+            let mut chars = s.chars();
+            while let Some(c) = chars.next() {
                 match (c, stack.last_mut()) {
+                    ('[', _) if !digits.is_empty() =>
+                        return Err(ParseError::UnexpectedOpen),
                     ('[', _) =>
                         stack.push(vec![]),
                     (_, None) =>
@@ -80,10 +85,12 @@ mod parse {
                         }
                         let mut iter = stack.pop().unwrap().into_iter();
                         let new = Pair(iter.next().unwrap().into(), iter.next().unwrap().into());
-                        if stack.len() == 1 {
-                            return Ok(new);
+                        if let Some(prev) = stack.last_mut() {
+                            prev.push(new);
+                        } else if chars.next().is_some() {
+                            return Err(ParseError::ExpectedEol)
                         } else {
-                            stack.last_mut().ok_or(ParseError::UnexpectedClose)?.push(new);
+                            return Ok(new);
                         }
                     },
                     (',', Some(curr)) if !digits.is_empty() =>
@@ -95,7 +102,11 @@ mod parse {
                         return Err(ParseError::BadChar(c)),
                 }
             }
-            Err(ParseError::Empty)
+            if stack.pop().is_some() {
+                Err(ParseError::Unclosed)
+            } else {
+                Err(ParseError::Empty)
+            }
         }
     }
 
@@ -115,12 +126,14 @@ mod parse {
             }
 
             test_err!(unclosed, "[", Unclosed);
-            test_err!(unexpected_close, "]", UnexpectedClose);
+            test_err!(expected_open_1, "]", ExpectedOpen(']'));
+            test_err!(expected_open_2, "12", ExpectedOpen('1'));
+            test_err!(expected_eol, "[1,2]]", ExpectedEol);
             test_err!(too_few, "[1]", BadCount(1));
             test_err!(too_many, "[1,2,3]", BadCount(3));
             test_err!(empty, "", Empty);
-            test_err!(expected_open, "12", ExpectedOpen('1'));
             test_err!(bad_char, "[a,2]", BadChar('a'));
+            test_err!(unexpected_open, "[12[", UnexpectedOpen);
         }
 
         mod success {
