@@ -205,19 +205,17 @@ impl SnailNum {
     const MAX_NUM: usize = 10;
 
     fn reduce(self) -> Self {
-        let mut new_self = self;
+        let mut next_self = self;
         loop {
-            // TODO find better destructuring assignment
-            let exploded = new_self.explode(0);
-            new_self = exploded.0;
-            if exploded.1.is_some() {
+            let exploded;
+            (next_self, exploded) = next_self.explode(0);
+            if exploded.is_some() {
                 continue;
             }
-            let split = new_self.split();
-            new_self = split.0;
-            if !split.1 {
-                return new_self;
-            }
+            next_self = match next_self.split() {
+                (split_self, true) => split_self,
+                (new_self, false) => break new_self,
+            };
         }
     }
 
