@@ -202,57 +202,47 @@ impl SnailNum {
     const MAX_DEPTH: usize = 4;
     const MAX_NUM: usize = 10;
 
-    fn reduce(self) -> Self {
-        let mut next_self = self;
-        loop {
-            let exploded;
-            (next_self, exploded) = next_self.explode(0);
-            if exploded.is_some() {
-                continue;
-            }
-            if !next_self.split() {
-                return next_self;
-            }
-        }
+    fn reduce(&mut self) {
+        while self.explode(0).is_some() || self.split() {}
     }
 
-    fn explode(self, level: usize) -> (Self, Option<Explosion>) {
+    fn explode(&mut self, level: usize) -> Option<Explosion> {
         match self {
-            Terminal(_) => (self, None),
-            Pair(box Terminal(a), box Terminal(b)) if level >= SnailNum::MAX_DEPTH =>
-                (Terminal(0), Some(Explosion(Some(a), Some(b)))),
-            Pair(box left, box right) => {
+            Terminal(_) => None,
+            &mut Pair(box Terminal(a), box Terminal(b)) if level >= SnailNum::MAX_DEPTH => {
+                *self = Terminal(0);
+                Some(Explosion(Some(a), Some(b)))
+            }
+            Pair(left, right) => {
                 match left.explode(level + 1) {
-                    (new_left, Some(Explosion(left_exp, Some(carry)))) => {
-                        let new_right = right.add_left(carry);
-                        (Pair(new_left.into(), new_right.into()), Some(Explosion(left_exp, None)))
-                    },
-                    (new_left, None) => match right.explode(level + 1) {
-                        (new_right, Some(Explosion(Some(carry), right_exp))) => {
-                            let new_new_left = new_left.add_right(carry);
-                            (Pair(new_new_left.into(), new_right.into()), Some(Explosion(None, right_exp)))
-                        },
-                        (new_right, exp) =>
-                            (Pair(new_left.into(), new_right.into()), exp),
-                    },
-                    (new_left, exp) =>
-                        (Pair(new_left.into(), right.into()), exp),
+                    Some(Explosion(left_exp, Some(carry))) => {
+                        right.add_left(carry);
+                        Some(Explosion(left_exp, None))
+                    }
+                    None => match right.explode(level + 1) {
+                        Some(Explosion(Some(carry), right_exp)) => {
+                            left.add_right(carry);
+                            Some(Explosion(None, right_exp))
+                        }
+                        exp => exp,
+                    }
+                    exp => exp,
                 }
             }
         }
     }
 
-    fn add_left(self, carry: usize) -> Self {
+    fn add_left(&mut self, carry: usize) {
         match self {
-            Terminal(x) => Terminal(x + carry),
-            Pair(box left, right) => Pair(left.add_left(carry).into(), right),
+            Terminal(x) => *x += carry,
+            Pair(left, _) => left.add_left(carry),
         }
     }
 
-    fn add_right(self, carry: usize) -> Self {
+    fn add_right(&mut self, carry: usize) {
         match self {
-            Terminal(x) => Terminal(x + carry),
-            Pair(left, box right) => Pair(left, right.add_right(carry).into()),
+            Terminal(x) => *x += carry,
+            Pair(_, right) => right.add_right(carry),
         }
     }
 
@@ -278,7 +268,9 @@ impl SnailNum {
 impl Add for SnailNum {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
-        Pair(self.into(), rhs.into()).reduce()
+        let mut pair = Pair(self.into(), rhs.into());
+        pair.reduce();
+        pair
     }
 }
 
@@ -314,40 +306,15 @@ mod tests {
     bench!(part_1() == 4207);
     bench!(part_2() == 4635);
 
-
-    #[test]
-    fn explode_no_explosion() {
-        let num: SnailNum = "[[[[0,1],2],3],4]".parse().unwrap();
-        let (exploded, explosion) = num.clone().explode(0);
-        assert_eq!(exploded, num);
-        assert_eq!(explosion, None);
-    }
-
-    #[test]
-    fn explode_left_carry() {
-        let num: SnailNum = "[[[[[9,8],1],2],3],4]".parse().unwrap();
-        let expected: SnailNum = "[[[[0,9],2],3],4]".parse().unwrap();
-        let (exploded, explosion) = num.explode(0);
-        assert_eq!(exploded, expected);
-        assert_eq!(explosion, Some(Explosion(Some(9), None)));
-    }
-
-    #[test]
-    fn explode_right_carry() {
-        let num: SnailNum = "[7,[6,[5,[4,[3,2]]]]]".parse().unwrap();
-        let expected: SnailNum = "[7,[6,[5,[7,0]]]]".parse().unwrap();
-        let (exploded, explosion) = num.explode(0);
-        assert_eq!(exploded, expected);
-        assert_eq!(explosion, Some(Explosion(None, Some(2))));
-    }
-
-    #[test]
-    fn explode_right_no_carry() {
-        let num: SnailNum = "[[6,[5,[4,[3,2]]]],1]".parse().unwrap();
-        let expected: SnailNum = "[[6,[5,[7,0]]],3]".parse().unwrap();
-        let (exploded, explosion) = num.explode(0);
-        assert_eq!(exploded, expected);
-        assert_eq!(explosion, Some(Explosion(None, None)));
+    #[test_case("[[[[[9,8],1],2],3],4]", "[[[[0,9],2],3],4]", Some(Explosion(Some(9), None)); "left carry")]
+    #[test_case("[7,[6,[5,[4,[3,2]]]]]", "[7,[6,[5,[7,0]]]]", Some(Explosion(None, Some(2))); "right carry")]
+    #[test_case("[[6,[5,[4,[3,2]]]],1]", "[[6,[5,[7,0]]],3]", Some(Explosion(None, None)); "no carry")]
+    #[test_case("[[[[0,1],2],3],4]", "[[[[0,1],2],3],4]", None; "none")]
+    fn explode(input: &str, expected_str: &str, result: Option<Explosion>) {
+        let mut num: SnailNum = input.parse().unwrap();
+        let expected: SnailNum = expected_str.parse().unwrap();
+        assert_eq!(num.explode(0), result);
+        assert_eq!(num, expected);
     }
 
     #[test_case(Terminal(9) => Terminal(9); "does not split 9")]
