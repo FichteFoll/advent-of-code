@@ -55,15 +55,24 @@ fn part_2((x_target, y_target): &Parsed) -> usize {
     let x_range = min_vx(*x_target.start())..=*x_target.end();
     iproduct!(x_range, y_range)
         .filter(|(mut vx, mut vy)| {
-            let (mut x, mut y) = (0, 0);
+            let (mut x, mut y) = (vx, vy);
+            if vy > 0 {
+                // simulate steps until we reach 0 again + one more
+                let step = vy * 2 + 1;
+                vy = -vy - 1;
+                y = vy;
+                // faster than (0.max(vx - step)..=vx.sum())
+                x = (1..=vx).sum::<i32>() - (1..(vx - step)).sum::<i32>();
+                vx = 0.max(vx - step);
+            }
             while x <= *x_target.end() && y >= *y_target.start() {
-                x += vx;
-                y += vy;
-                vy -= 1;
-                vx -= vx.signum();
                 if x_target.contains(&x) && y_target.contains(&y) {
                     return true;
                 }
+                vy -= 1;
+                vx -= vx.signum();
+                x += vx;
+                y += vy;
             }
             false
         })
@@ -71,7 +80,8 @@ fn part_2((x_target, y_target): &Parsed) -> usize {
 }
 
 fn min_vx(min_x: i32) -> i32 {
-    // This is a normal quadratic equation.
+    // This is a standard quadratic equation,
+    // but thanks to `<=` we can ignore the other solution.
     // tx_0 <= vx_0 * (vx_0 + 1) / 2
     // tx_0 * 2 <= vx_0 * (vx_0 + 1)
     // tx_0 * 2 <= vx_0² + vx_0
