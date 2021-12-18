@@ -25,7 +25,6 @@ pub enum SnailNum {
 use SnailNum::{Terminal, Pair};
 
 mod parse {
-    use core::panic;
     use std::str::FromStr;
     use thiserror::Error;
     use std::num::ParseIntError;
@@ -102,75 +101,33 @@ mod parse {
             Err(ParseError::Empty)
         }
     }
-}
 
-fn part_1(parsed: &Parsed) -> usize {
-    0
-}
-
-fn part_2(_parsed: &Parsed) -> usize {
-    0
-}
-
-#[cfg(test)]
-mod tests {
-
-    use super::*;
-    extern crate test;
-
-    const TEST_INPUT: &str = "\
-        ";
-
-    mod parse {
+    #[cfg(test)]
+    mod tests {
         mod error {
-            use crate::*;
-            use crate::parse::ParseError;
+            use super::super::{*, ParseError::*};
 
-            #[test]
-            fn unclosed() {
-                let result = "[".parse::<SnailNum>();
-                assert_eq!(result, Err(ParseError::Unclosed));
+            macro_rules! test_err {
+                ($name:ident, $str:expr, $err:expr) => {
+                    #[test]
+                    fn $name() {
+                        let result = $str.parse::<SnailNum>();
+                        assert_eq!(result, Err($err));
+                    }
+                }
             }
 
-            #[test]
-            fn unexpected_close() {
-                let result = "[1,2]]".parse::<SnailNum>();
-                assert_eq!(result, Err(ParseError::UnexpectedClose));
-            }
-
-            #[test]
-            fn too_few() {
-                let result = "[1]".parse::<SnailNum>();
-                assert_eq!(result, Err(ParseError::BadCount(1)));
-            }
-
-            #[test]
-            fn too_many() {
-                let result = "[1,2,3]".parse::<SnailNum>();
-                assert_eq!(result, Err(ParseError::BadCount(3)));
-            }
-
-            #[test]
-            fn empty() {
-                let result = "".parse::<SnailNum>();
-                assert_eq!(result, Err(ParseError::Empty));
-            }
-
-            #[test]
-            fn expected_open() {
-                let result = "12".parse::<SnailNum>();
-                assert_eq!(result, Err(ParseError::ExpectedOpen('1')));
-            }
-
-            #[test]
-            fn bad_char() {
-                let result = "[a,2]".parse::<SnailNum>();
-                assert_eq!(result, Err(ParseError::BadChar('a')));
-            }
+            test_err!(unclosed, "[", Unclosed);
+            test_err!(unexpected_close, "]", UnexpectedClose);
+            test_err!(too_few, "[1]", BadCount(1));
+            test_err!(too_many, "[1,2,3]", BadCount(3));
+            test_err!(empty, "", Empty);
+            test_err!(expected_open, "12", ExpectedOpen('1'));
+            test_err!(bad_char, "[a,2]", BadChar('a'));
         }
 
         mod success {
-            use crate::*;
+            use super::super::*;
 
             #[test]
             fn one_level() {
@@ -206,6 +163,23 @@ mod tests {
             }
         }
     }
+}
+
+fn part_1(parsed: &Parsed) -> usize {
+    0
+}
+
+fn part_2(_parsed: &Parsed) -> usize {
+    0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    extern crate test;
+
+    const TEST_INPUT: &str = "\
+        ";
 
     test!(part_1() == 4140);
     // test!(part_2() == 0);
