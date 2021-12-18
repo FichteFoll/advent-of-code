@@ -317,7 +317,7 @@ mod tests {
     test!(part_1() == 4140);
     // test!(part_2() == 0);
     bench_parse!(Vec::len, 100);
-    // bench!(part_1() == 0);
+    bench!(part_1() == 4207);
     // bench!(part_2() == 0);
 
 
