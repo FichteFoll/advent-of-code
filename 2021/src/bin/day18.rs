@@ -4,6 +4,8 @@
 use std::ops::Add;
 use std::iter::Sum;
 
+use itertools::Itertools;
+
 use aoc2021::*;
 use parse::parse_input;
 
@@ -183,8 +185,12 @@ fn part_1(parsed: &Parsed) -> usize {
     sum.magnitude()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    0
+fn part_2(parsed: &Parsed) -> usize {
+    parsed.iter()
+        .permutations(2)
+        .map(|vec| (vec[0].clone() + vec[1].clone()).magnitude())
+        .max()
+        .unwrap()
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -315,10 +321,10 @@ mod tests {
         ";
 
     test!(part_1() == 4140);
-    // test!(part_2() == 0);
+    test!(part_2() == 3993);
     bench_parse!(Vec::len, 100);
     bench!(part_1() == 4207);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 4635);
 
 
     #[test]
