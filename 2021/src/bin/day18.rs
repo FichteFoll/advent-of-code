@@ -1,4 +1,4 @@
-#![feature(if_let_guard)]
+#![feature(box_patterns)]
 #![feature(test)]
 
 use aoc2021::*;
@@ -15,7 +15,7 @@ fn main() {
     println!("Part 2: {}", part_2(&parsed));
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SnailNum {
     Terminal(usize),
     Pair(Box<SnailNum>, Box<SnailNum>),
@@ -183,6 +183,78 @@ fn part_2(_parsed: &Parsed) -> usize {
     0
 }
 
+#[derive(Debug, PartialEq, Eq)]
+struct Explosion(Option<usize>, Option<usize>);
+
+impl SnailNum {
+    fn reduce(self) -> Self {
+        let mut new_self = self;
+        loop {
+            // TODO find better destructuring assignment
+            let mut exploded = new_self.explode(0);
+            let split = exploded.0.split();
+            if exploded.1.is_none() && split.1.is_none() {
+                return split.0;
+            }
+            new_self = split.0;
+        }
+    }
+
+    fn explode(self, level: usize) -> (Self, Option<Explosion>) {
+        match self {
+            Terminal(_) => (self, None),
+            Pair(box Terminal(a), box Terminal(b)) if level >= 4 =>
+                (Terminal(0), Some(Explosion(Some(a), Some(b)))),
+            Pair(box left, box right) => {
+                match left.explode(level + 1) {
+                    (new_left, Some(Explosion(left_exp, Some(carry)))) => {
+                        let new_right = match right {
+                            Terminal(x) => Terminal(x + carry),
+                            _ => right.add_left(carry),
+                        };
+                        (Pair(new_left.into(), new_right.into()), Some(Explosion(left_exp, None)))
+                    },
+                    (new_left, None) => match right.explode(level + 1) {
+                        (new_right, Some(Explosion(Some(carry), right_exp))) => {
+                            let new_new_left = match new_left {
+                                Terminal(x) => Terminal(x + carry),
+                                _ => new_left.add_right(carry),
+                            };
+                            (Pair(new_new_left.into(), new_right.into()), Some(Explosion(None, right_exp)))
+                        },
+                        (new_right, exp) =>
+                            (Pair(new_left.into(), new_right.into()), exp),
+                    },
+                    (new_left, exp) =>
+                        (Pair(new_left.into(), right.into()), exp),
+                }
+            }
+        }
+    }
+
+    fn add_left(self, carry: usize) -> Self {
+        match self {
+            Terminal(x) => Terminal(x + carry),
+            Pair(box left, right) => Pair(left.add_left(carry).into(), right),
+        }
+    }
+
+    fn add_right(self, carry: usize) -> Self {
+        match self {
+            Terminal(x) => Terminal(x + carry),
+            Pair(left, box right) => Pair(left, right.add_right(carry).into()),
+        }
+    }
+
+    fn split(&mut self) -> (Self, Option<bool>) {
+        todo!()
+    }
+
+    fn magnitude(self) -> usize {
+        todo!("calc magnitude")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -196,4 +268,40 @@ mod tests {
     bench_parse!(Vec::len, 100);
     // bench!(part_1() == 0);
     // bench!(part_2() == 0);
+
+
+    #[test]
+    fn explode_no_explosion() {
+        let num: SnailNum = "[[[[0,1],2],3],4]".parse().unwrap();
+        let (exploded, explosion) = num.clone().explode(0);
+        assert_eq!(exploded, num);
+        assert_eq!(explosion, None);
+    }
+
+    #[test]
+    fn explode_left_carry() {
+        let num: SnailNum = "[[[[[9,8],1],2],3],4]".parse().unwrap();
+        let expected: SnailNum = "[[[[0,9],2],3],4]".parse().unwrap();
+        let (exploded, explosion) = num.explode(0);
+        assert_eq!(exploded, expected);
+        assert_eq!(explosion, Some(Explosion(Some(9), None)));
+    }
+
+    #[test]
+    fn explode_right_carry() {
+        let num: SnailNum = "[7,[6,[5,[4,[3,2]]]]]".parse().unwrap();
+        let expected: SnailNum = "[7,[6,[5,[7,0]]]]".parse().unwrap();
+        let (exploded, explosion) = num.explode(0);
+        assert_eq!(exploded, expected);
+        assert_eq!(explosion, Some(Explosion(None, Some(2))));
+    }
+
+    #[test]
+    fn explode_right_no_carry() {
+        let num: SnailNum = "[[6,[5,[4,[3,2]]]],1]".parse().unwrap();
+        let expected: SnailNum = "[[6,[5,[7,0]]],3]".parse().unwrap();
+        let (exploded, explosion) = num.explode(0);
+        assert_eq!(exploded, expected);
+        assert_eq!(explosion, Some(Explosion(None, None)));
+    }
 }
