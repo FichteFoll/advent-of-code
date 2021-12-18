@@ -78,12 +78,10 @@ mod parse {
                         stack.push(vec![]);
                         false
                     }
-                    (']', Some(curr), true) => {
-                        if curr.len() != 2 {
-                            return Err(ParseError::BadCount(curr.len()));
-                        }
-                        let mut iter = stack.pop().unwrap().into_iter();
-                        let new = Pair(iter.next().unwrap().into(), iter.next().unwrap().into());
+                    (']', Some(_), true) => {
+                        let [a, b]: [_; 2] = stack.pop().unwrap().try_into()
+                            .map_err(|v: Vec<SnailNum>| ParseError::BadCount(v.len()))?;
+                        let new = Pair(a.into(), b.into());
                         if let Some(prev) = stack.last_mut() {
                             prev.push(new);
                             true
