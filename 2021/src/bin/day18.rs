@@ -187,13 +187,16 @@ fn part_2(_parsed: &Parsed) -> usize {
 struct Explosion(Option<usize>, Option<usize>);
 
 impl SnailNum {
+    const MAX_DEPTH: usize = 4;
+    const MAX_NUM: usize = 10;
+
     fn reduce(self) -> Self {
         let mut new_self = self;
         loop {
             // TODO find better destructuring assignment
-            let mut exploded = new_self.explode(0);
+            let exploded = new_self.explode(0);
             let split = exploded.0.split();
-            if exploded.1.is_none() && split.1.is_none() {
+            if exploded.1.is_none() && !split.1 {
                 return split.0;
             }
             new_self = split.0;
@@ -203,7 +206,7 @@ impl SnailNum {
     fn explode(self, level: usize) -> (Self, Option<Explosion>) {
         match self {
             Terminal(_) => (self, None),
-            Pair(box Terminal(a), box Terminal(b)) if level >= 4 =>
+            Pair(box Terminal(a), box Terminal(b)) if level >= SnailNum::MAX_DEPTH =>
                 (Terminal(0), Some(Explosion(Some(a), Some(b)))),
             Pair(box left, box right) => {
                 match left.explode(level + 1) {
@@ -246,8 +249,18 @@ impl SnailNum {
         }
     }
 
-    fn split(&mut self) -> (Self, Option<bool>) {
-        todo!()
+    fn split(self) -> (Self, bool) {
+        match self {
+            Terminal(n) if n >= SnailNum::MAX_NUM =>
+                (Pair(Terminal(n / 2).into(), Terminal((n + 1) / 2).into()), true),
+            Terminal(_) =>
+                (self, false),
+            Pair(box left, box right) => {
+                let (new_left, split_left) = left.split();
+                let (new_right, split_right) = right.split();
+                (Pair(new_left.into(), new_right.into()), split_left | split_right)
+            },
+        }
     }
 
     fn magnitude(self) -> usize {
@@ -303,5 +316,13 @@ mod tests {
         let (exploded, explosion) = num.explode(0);
         assert_eq!(exploded, expected);
         assert_eq!(explosion, Some(Explosion(None, None)));
+    }
+
+    #[test]
+    fn split() {
+        assert_eq!(Terminal(9).split(), (Terminal(9), false));
+        assert_eq!(Terminal(10).split(), (Pair(Terminal(5).into(), Terminal(5).into()), true));
+        assert_eq!(Terminal(11).split(), (Pair(Terminal(5).into(), Terminal(6).into()), true));
+        assert_eq!(Terminal(12).split(), (Pair(Terminal(6).into(), Terminal(6).into()), true));
     }
 }
