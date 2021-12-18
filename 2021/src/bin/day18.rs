@@ -1,6 +1,9 @@
 #![feature(box_patterns)]
 #![feature(test)]
 
+use std::ops::Add;
+use std::iter::Sum;
+
 use aoc2021::*;
 use parse::parse_input;
 
@@ -176,7 +179,8 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    0
+    let sum: SnailNum = parsed.iter().cloned().sum();
+    sum.magnitude()
 }
 
 fn part_2(_parsed: &Parsed) -> usize {
@@ -268,6 +272,20 @@ impl SnailNum {
     }
 }
 
+impl Add for SnailNum {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        Pair(self.into(), rhs.into()).reduce()
+    }
+}
+
+impl Sum for SnailNum {
+    fn sum<I: Iterator<Item = Self>>(mut iter: I) -> Self {
+        let first = iter.next().expect("must have at least one element");
+        iter.fold(first, |acc, n| acc + n)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -324,5 +342,23 @@ mod tests {
         assert_eq!(Terminal(10).split(), (Pair(Terminal(5).into(), Terminal(5).into()), true));
         assert_eq!(Terminal(11).split(), (Pair(Terminal(5).into(), Terminal(6).into()), true));
         assert_eq!(Terminal(12).split(), (Pair(Terminal(6).into(), Terminal(6).into()), true));
+    }
+
+    #[test]
+    fn sum_no_reduce() {
+        let input = "[1,1]\n[2,2]\n[3,3]\n[4,4]";
+        let expected: SnailNum = "[[[[1,1],[2,2]],[3,3]],[4,4]]".parse().unwrap();
+        let parsed = parse_input(input);
+        let sum: SnailNum = parsed.into_iter().sum();
+        assert_eq!(sum, expected);
+    }
+
+    #[test]
+    fn sum_reduce() {
+        let input = "[1,1]\n[2,2]\n[3,3]\n[4,4]\n[5,5]\n[6,6]";
+        let expected: SnailNum = "[[[[5,0],[7,4]],[5,5]],[6,6]]".parse().unwrap();
+        let parsed = parse_input(input);
+        let sum: SnailNum = parsed.into_iter().sum();
+        assert_eq!(sum, expected);
     }
 }
