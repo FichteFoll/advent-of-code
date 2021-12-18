@@ -212,10 +212,9 @@ impl SnailNum {
             if exploded.is_some() {
                 continue;
             }
-            next_self = match next_self.split() {
-                (split_self, true) => split_self,
-                (new_self, false) => break new_self,
-            };
+            if !next_self.split() {
+                return next_self;
+            }
         }
     }
 
@@ -259,20 +258,14 @@ impl SnailNum {
         }
     }
 
-    fn split(self) -> (Self, bool) {
+    fn split(&mut self) -> bool {
         match self {
-            Terminal(n) if n >= SnailNum::MAX_NUM =>
-                (Pair(Terminal(n / 2).into(), Terminal((n + 1) / 2).into()), true),
-            Terminal(_) =>
-                (self, false),
-            Pair(box left, box right) => {
-                let (new_left, split_left) = left.split();
-                let (new_right, split_right) = match split_left {
-                    true => (right, true),
-                    false => right.split(),
-                };
-                (Pair(new_left.into(), new_right.into()), split_right)
-            },
+            &mut Terminal(n) if n >= SnailNum::MAX_NUM => {
+                *self = Pair(Terminal(n / 2).into(), Terminal((n + 1) / 2).into());
+                true
+            }
+            Terminal(_) => false,
+            Pair(box left, box right) => left.split() || right.split(),
         }
     }
 
@@ -302,6 +295,7 @@ impl Sum for SnailNum {
 mod tests {
     use super::*;
     extern crate test;
+    use test_case::test_case;
 
     const TEST_INPUT: &str = "\
         [[[0,[5,8]],[[1,7],[9,6]]],[[4,[1,2]],[[1,4],2]]]\n\
@@ -358,12 +352,13 @@ mod tests {
         assert_eq!(explosion, Some(Explosion(None, None)));
     }
 
-    #[test]
-    fn split() {
-        assert_eq!(Terminal(9).split(), (Terminal(9), false));
-        assert_eq!(Terminal(10).split(), (Pair(Terminal(5).into(), Terminal(5).into()), true));
-        assert_eq!(Terminal(11).split(), (Pair(Terminal(5).into(), Terminal(6).into()), true));
-        assert_eq!(Terminal(12).split(), (Pair(Terminal(6).into(), Terminal(6).into()), true));
+    #[test_case(Terminal(9) => Terminal(9); "does not split 9")]
+    #[test_case(Terminal(10) => Pair(Terminal(5).into(), Terminal(5).into()); "splits 10")]
+    #[test_case(Terminal(11) => Pair(Terminal(5).into(), Terminal(6).into()); "splits 11")]
+    #[test_case(Terminal(12) => Pair(Terminal(6).into(), Terminal(6).into()); "splits 12")]
+    fn split(mut n: SnailNum) -> SnailNum {
+        n.split();
+        n
     }
 
     #[test]
