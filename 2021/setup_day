@@ -45,7 +45,7 @@ mod parse {
     pub fn parse_input(input: &str) -> Parsed {
         input
             .trim()
-            .split('\n')
+            .lines()
             .map(|line| line.parse().unwrap())
             .collect()
     }
