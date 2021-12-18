@@ -55,10 +55,12 @@ mod parse {
         Empty,
         #[error("Unrecognized character {0:?}")]
         BadChar(char),
-        #[error("Expected '[', found {0:?}")]
-        ExpectedOpen(char),
+        #[error("Expected {0:?} found {0:?}")]
+        Expected(char, char),
         #[error("Unexpected '['")]
         UnexpectedOpen,
+        #[error("Unexpected ']'")]
+        UnexpectedClose,
     }
 
     impl FromStr for SnailNum {
@@ -66,25 +68,17 @@ mod parse {
 
         fn from_str(s: &str) -> Result<Self, Self::Err> {
             let mut stack: Vec<Vec<SnailNum>> = vec![];
-            let mut digits: Vec<char> = vec![];
-
-            fn drain_digits(digits: &mut Vec<char>) -> SnailNum {
-                Terminal((&digits.drain(..).collect::<String>()).parse().unwrap())
-            }
-
+            let mut after_token = false;
             let mut chars = s.chars();
             while let Some(c) = chars.next() {
-                match (c, stack.last_mut()) {
-                    ('[', _) if !digits.is_empty() =>
+                after_token = match (c, stack.last_mut(), after_token) {
+                    ('[', _, true) =>
                         return Err(ParseError::UnexpectedOpen),
-                    ('[', _) =>
-                        stack.push(vec![]),
-                    (_, None) =>
-                        return Err(ParseError::ExpectedOpen(c)),
-                    (']', Some(curr)) => {
-                        if !digits.is_empty() {
-                            curr.push(drain_digits(&mut digits));
-                        }
+                    ('[', _, false) => {
+                        stack.push(vec![]);
+                        false
+                    }
+                    (']', Some(curr), true) => {
                         if curr.len() != 2 {
                             return Err(ParseError::BadCount(curr.len()));
                         }
@@ -92,20 +86,26 @@ mod parse {
                         let new = Pair(iter.next().unwrap().into(), iter.next().unwrap().into());
                         if let Some(prev) = stack.last_mut() {
                             prev.push(new);
+                            true
                         } else if chars.next().is_some() {
-                            return Err(ParseError::ExpectedEol)
+                            return Err(ParseError::ExpectedEol);
                         } else {
                             return Ok(new);
                         }
-                    },
-                    (',', Some(curr)) if !digits.is_empty() =>
-                        curr.push(drain_digits(&mut digits)),
-                    (',', _) => (),
-                    _ if c.is_digit(10) =>
-                        digits.push(c),
-                    _ =>
-                        return Err(ParseError::BadChar(c)),
-                }
+                    }
+                    (']', _, false) =>
+                        return Err(ParseError::UnexpectedClose),
+                    (_, None, _) =>
+                        return Err(ParseError::Expected('[', c)),
+                    (',', _, true) =>
+                        false,
+                    (_, Some(curr), false) => {
+                        curr.push(Terminal(c.to_digit(10).ok_or(ParseError::BadChar(c))? as _));
+                        true
+                    }
+                    (_, Some(_), true) =>
+                        return Err(ParseError::Expected(',', c)),
+                };
             }
             if stack.pop().is_some() {
                 Err(ParseError::Unclosed)
@@ -131,14 +131,18 @@ mod parse {
             }
 
             test_err!(unclosed, "[", Unclosed);
-            test_err!(expected_open_1, "]", ExpectedOpen(']'));
-            test_err!(expected_open_2, "12", ExpectedOpen('1'));
+            test_err!(expected_open_1, "]", UnexpectedClose);
+            test_err!(expected_open_2, "12", Expected('[', '1'));
             test_err!(expected_eol, "[1,2]]", ExpectedEol);
             test_err!(too_few, "[1]", BadCount(1));
             test_err!(too_many, "[1,2,3]", BadCount(3));
             test_err!(empty, "", Empty);
             test_err!(bad_char, "[a,2]", BadChar('a'));
-            test_err!(unexpected_open, "[12[", UnexpectedOpen);
+            test_err!(unexpected_open, "[1[", UnexpectedOpen);
+            test_err!(two_commas, "[1,,2]", BadChar(','));
+            test_err!(leading_comma, "[,1,2]", BadChar(','));
+            test_err!(missing_comma, "[,1,2]", BadChar(','));
+            test_err!(expected_comma, "[12]", Expected(',', '2'));
         }
 
         mod success {
