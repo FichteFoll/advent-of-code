@@ -27,7 +27,6 @@ use SnailNum::{Terminal, Pair};
 mod parse {
     use std::str::FromStr;
     use thiserror::Error;
-    use std::num::ParseIntError;
 
     use super::*;
 
@@ -41,8 +40,6 @@ mod parse {
 
     #[derive(Error, Debug, PartialEq, Eq)]
     pub enum ParseError {
-        #[error("Bad number")]
-        BadInt(#[from] ParseIntError),
         #[error("Unclosed pair")]
         Unclosed,
         #[error("Bad Pair; expected 2, found {0}")]
@@ -64,8 +61,8 @@ mod parse {
             let mut stack: Vec<Vec<SnailNum>> = vec![vec![]];
             let mut digits: Vec<char> = vec![];
 
-            fn drain_digits(digits: &mut Vec<char>) -> Result<SnailNum, ParseError> {
-                Ok(Terminal((&digits.drain(..).collect::<String>()).parse()?))
+            fn drain_digits(digits: &mut Vec<char>) -> SnailNum {
+                Terminal((&digits.drain(..).collect::<String>()).parse().unwrap())
             }
 
             for c in s.chars() {
@@ -76,7 +73,7 @@ mod parse {
                         return Err(ParseError::ExpectedOpen(c)),
                     (']', Some(curr)) => {
                         if !digits.is_empty() {
-                            curr.push(drain_digits(&mut digits)?);
+                            curr.push(drain_digits(&mut digits));
                         }
                         if curr.len() != 2 {
                             return Err(ParseError::BadCount(curr.len()));
@@ -90,7 +87,7 @@ mod parse {
                         }
                     },
                     (',', Some(curr)) if !digits.is_empty() =>
-                        curr.push(drain_digits(&mut digits)?),
+                        curr.push(drain_digits(&mut digits)),
                     (',', _) => (),
                     _ if c.is_digit(10) =>
                         digits.push(c),
