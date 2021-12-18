@@ -115,32 +115,24 @@ mod parse {
 
     #[cfg(test)]
     mod tests {
-        mod error {
-            use super::super::{*, ParseError::*};
+        use test_case::test_case;
+        use super::{*, ParseError::*};
 
-            macro_rules! test_err {
-                ($name:ident, $str:expr, $err:expr) => {
-                    #[test]
-                    fn $name() {
-                        let result = $str.parse::<SnailNum>();
-                        assert_eq!(result, Err($err));
-                    }
-                }
-            }
-
-            test_err!(unclosed, "[", Unclosed);
-            test_err!(expected_open_1, "]", UnexpectedClose);
-            test_err!(expected_open_2, "12", Expected('[', '1'));
-            test_err!(expected_eol, "[1,2]]", ExpectedEol);
-            test_err!(too_few, "[1]", BadCount(1));
-            test_err!(too_many, "[1,2,3]", BadCount(3));
-            test_err!(empty, "", Empty);
-            test_err!(bad_char, "[a,2]", BadChar('a'));
-            test_err!(unexpected_open, "[1[", UnexpectedOpen);
-            test_err!(two_commas, "[1,,2]", BadChar(','));
-            test_err!(leading_comma, "[,1,2]", BadChar(','));
-            test_err!(missing_comma, "[,1,2]", BadChar(','));
-            test_err!(expected_comma, "[12]", Expected(',', '2'));
+        #[test_case("[" => Unclosed; "unclosed")]
+        #[test_case("]" => UnexpectedClose; "expected open 1")]
+        #[test_case("12" => Expected('[', '1'); "expected open 2")]
+        #[test_case("[1,2]]" => ExpectedEol; "expected eol")]
+        #[test_case("[1]" => BadCount(1); "too few")]
+        #[test_case("[1,2,3]" => BadCount(3); "too many")]
+        #[test_case("" => Empty; "empty")]
+        #[test_case("[a,2]" => BadChar('a'); "bad char")]
+        #[test_case("[1[" => UnexpectedOpen; "unexpected open")]
+        #[test_case("[1,,2]" => BadChar(','); "two commas")]
+        #[test_case("[,1,2]" => BadChar(','); "leading comma")]
+        #[test_case("[,1,2]" => BadChar(','); "missing comma")]
+        #[test_case("[12]" => Expected(',', '2'); "expected comma")]
+        fn error(input: &str) -> ParseError {
+            input.parse::<SnailNum>().err().unwrap()
         }
 
         mod success {
