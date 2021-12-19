@@ -237,6 +237,38 @@ mod point2 {
     }
 }
 
+mod point3 {
+    use super::Point;
+
+    impl Point<3> {
+        pub fn rotate_right_3(&mut self, axis: usize, by: i32) {
+            self.rotate_left_3(axis, 360 - by);
+        }
+
+        pub fn rotate_left_3(&mut self, axis: usize, by: i32) {
+            assert!(axis < 3, "invalid axis");
+            let axes: Vec<_> = (0..3).cycle().skip(axis + 1).take(2).collect();
+            // let axes = [[1, 2], [2, 0], [0, 1]][axis];
+            match by % 360 {
+                0 => (),
+                180 => {
+                    self.coord[axes[0]] *= -1;
+                    self.coord[axes[1]] *= -1;
+                },
+                90 => {
+                    self.coord.swap(axes[0], axes[1]);
+                    self.coord[axes[1]] *= -1;
+                },
+                270 => {
+                    self.coord.swap(axes[0], axes[1]);
+                    self.coord[axes[0]] *= -1;
+                },
+                _ => panic!("invalid rotation {}", by),
+            }
+        }
+    }
+}
+
 fn gcd(a: i32, b: i32) -> i32 {
     let mut x = a;
     let mut y = b;
@@ -254,7 +286,7 @@ mod test {
 
     #[test]
     fn test_neighbors_2() {
-        let pt = Point::<2>::new([0, 0]);
+        let pt = Point::new([0, 0]);
         let pts: Vec<_> = pt.neighbors();
         println!("{pts:?}");
         assert_eq!(pts.len(), 8);
@@ -264,11 +296,22 @@ mod test {
 
     #[test]
     fn test_neighbors_3() {
-        let pt = Point::<3>::new([0, 0, 0]);
+        let pt = Point::new([0, 0, 0]);
         let pts: Vec<_> = pt.neighbors();
         println!("{pts:?}");
         assert_eq!(pts.len(), 26);
         let pts_hashed: HashSet<_> = pts.iter().cloned().collect();
         assert_eq!(pts.len(), pts_hashed.len());
+    }
+
+    #[test]
+    fn test_rotate_3_left() {
+        let mut pt = Point::new([1, 2, 3]);
+        pt.rotate_left_3(0, 90); // rotate around x axis
+        assert_eq!(pt, Point::new([1, 3, -2]));
+        pt.rotate_left_3(1, 90); // rotate around y axis
+        assert_eq!(pt, Point::new([2, 3, 1]));
+        pt.rotate_left_3(2, 90); // rotate around z axis
+        assert_eq!(pt, Point::new([3, -2, 1]));
     }
 }
