@@ -131,6 +131,22 @@ impl<const N: usize> Display for Point<N> {
     }
 }
 
+impl<const N: usize> From<[i32; N]> for Point<N> {
+    fn from(coord: [i32; N]) -> Self {
+        Point { coord }
+    }
+}
+
+// Cannot implement generically for T: TryInto<[i32; N]>,
+// because of https://github.com/rust-lang/rust/issues/50133.
+impl<const N: usize> TryFrom<Vec<i32>> for Point<N> {
+    type Error = <Vec<i32> as TryInto<[i32; N]>>::Error;
+    fn try_from(value: Vec<i32>) -> Result<Self, Self::Error> {
+        let coord: [_; N] = value.try_into()?;
+        Ok(Point { coord })
+    }
+}
+
 impl<const N: usize> Add for Point<N> {
     type Output = Self;
     fn add(self, rhs: Self) -> Self::Output {
@@ -143,8 +159,32 @@ impl<const N: usize> Add for Point<N> {
     }
 }
 
+impl<const N: usize> Add for &Point<N> {
+    type Output = Point<N>;
+    fn add(self, rhs: Self) -> Self::Output {
+        let mut coord = self.coord;
+        #[allow(clippy::needless_range_loop)]
+        for i in 0..N {
+            coord[i] += rhs.coord[i];
+        }
+        Self::Output { coord }
+    }
+}
+
 impl<const N: usize> Sub for Point<N> {
     type Output = Self;
+    fn sub(self, rhs: Self) -> Self::Output {
+        let mut coord = self.coord;
+        #[allow(clippy::needless_range_loop)]
+        for i in 0..N {
+            coord[i] -= rhs.coord[i];
+        }
+        Self::Output { coord }
+    }
+}
+
+impl<const N: usize> Sub for &Point<N> {
+    type Output = Point<N>;
     fn sub(self, rhs: Self) -> Self::Output {
         let mut coord = self.coord;
         #[allow(clippy::needless_range_loop)]
