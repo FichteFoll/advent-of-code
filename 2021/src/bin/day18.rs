@@ -245,7 +245,7 @@ impl SnailNum {
                 true
             }
             Terminal(_) => false,
-            Pair(box left, box right) => left.split() || right.split(),
+            Pair(left, right) => left.split() || right.split(),
         }
     }
 
