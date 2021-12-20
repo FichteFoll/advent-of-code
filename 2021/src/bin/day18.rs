@@ -343,7 +343,6 @@ mod tests {
     #[test_case("[[[[5,0],[7,4]],[5,5]],[6,6]]" => 1137)]
     #[test_case("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]" => 3488)]
     #[test_case("[[[[6,6],[7,6]],[[7,7],[7,0]]],[[[7,7],[7,7]],[[7,8],[9,9]]]]" => 4140)]
-    #[test]
     fn magnitude(input: &str) -> usize {
         let num: SnailNum = input.parse::<SnailNum>().unwrap();
         num.magnitude()

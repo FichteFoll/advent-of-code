@@ -101,7 +101,8 @@ impl<const N: usize> Point<N> {
     }
 
 
-    pub fn normalized(&self) -> Self {
+   #[must_use]
+   pub fn normalized(&self) -> Self {
         if self.coord.iter().filter(|&&n| n != 0).count() == 1 {
             let mut coord = [0i32; N];
             #[allow(clippy::needless_range_loop)]

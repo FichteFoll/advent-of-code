@@ -52,6 +52,7 @@ impl<T> Grid2D<T> {
             .collect()
     }
 
+   #[must_use]
     pub fn new_map<F>(&self, f: F) -> Self
         where F: Fn(&T) -> T + Copy
     {
@@ -60,6 +61,7 @@ impl<T> Grid2D<T> {
             .collect()
     }
 
+   #[must_use]
     pub fn new_map_enumerate<F>(&self, f: F) -> Self
         where F: Fn(&Point<2>, &T) -> T
     {
