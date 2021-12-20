@@ -146,7 +146,7 @@ impl<T> Display for Grid2D<T>
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::collections::HashSet;
+    use crate::collections::HashSet;
 
     #[test]
     fn test_contained_neighbors_grid() {

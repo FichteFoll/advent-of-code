@@ -1,11 +1,10 @@
 #![feature(array_windows)]
 #![feature(test)]
 
-// use std::collections::HashMap;
-use fnv::FnvHashMap as HashMap;
+use itertools::{Itertools, MinMaxResult};
 
 use aoc2021::*;
-use itertools::{Itertools, MinMaxResult};
+use aoc2021::collections::HashMap;
 
 const DAY: usize = 14;
 

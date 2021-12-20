@@ -1,14 +1,16 @@
 #![feature(test)]
 
-use std::{collections::{HashSet, HashMap, VecDeque}, hash::Hash};
-
+use std::hash::Hash;
+use std::collections::VecDeque;
+use std::collections::HashMap as StdHashMap;
 use aoc2021::*;
+use aoc2021::collections::HashSet;
 use parse::parse_input;
 
 
 const DAY: usize = 12;
 
-type Parsed<'a> = HashMap<Node<'a>, Vec<Node<'a>>>;
+type Parsed<'a> = StdHashMap<Node<'a>, Vec<Node<'a>>>;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum Node<'a> {
@@ -68,7 +70,7 @@ struct Path<'a> {
 
 fn num_paths(parsed: &Parsed, allow_twice: bool) -> usize {
     let mut queue: VecDeque<_> = parsed.get(&Node::Start).unwrap().iter()
-        .map(|pos| Path { pos, visited: HashSet::new(), allow_twice })
+        .map(|pos| Path { pos, visited: HashSet::default(), allow_twice })
         .collect();
     let mut count = 0;
     while let Some(path) = queue.pop_front() {
@@ -86,7 +88,7 @@ enum StepResult<'a> {
 }
 
 #[inline]
-fn step<'a>(parsed: &'a HashMap<Node<'a>, Vec<Node<'a>>>, path: Path<'a>) -> StepResult<'a> {
+fn step<'a>(parsed: &'a Parsed<'a>, path: Path<'a>) -> StepResult<'a> {
     match path.pos {
         Node::Start => StepResult::Add(0),
         Node::End => StepResult::Add(1),
@@ -163,7 +165,7 @@ mod tests {
     test!(slightly_larger, TEST_INPUT_SLIGHTLY_LARGER, part_2() == 103);
     test!(even_larger, TEST_INPUT_EVEN_LARGER, part_1() == 226);
     test!(even_larger, TEST_INPUT_EVEN_LARGER, part_2() == 3509);
-    bench_parse!(HashMap::len, 13);
+    bench_parse!(StdHashMap::len, 13);
     bench!(part_1() == 4720);
     // test!(&read_input!(), part_2() == 147848);
     // takes about 250ms for a single run

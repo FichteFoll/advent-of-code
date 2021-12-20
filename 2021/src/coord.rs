@@ -322,7 +322,7 @@ fn gcd(a: i32, b: i32) -> i32 {
 #[cfg(test)]
 mod test {
     use super::*;
-    use std::collections::HashSet;
+    use crate::collections::HashSet;
 
     #[test]
     fn test_neighbors_2() {

@@ -1,8 +1,7 @@
 #![feature(test)]
 
-use fnv::FnvHashSet as HashSet;
-
 use aoc2021::*;
+use aoc2021::collections::HashSet;
 use aoc2021::coord::Point;
 use parse::parse_input;
 

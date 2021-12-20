@@ -10,10 +10,14 @@ edition = "2021"
 # auto_ops = "^0.3.0"
 # bimap = "^0.6.1"
 # either = "^1.6.1"
-fnv = "^1.0.7"
+fnv = { version = "^1.0.7", optional = true }
 itertools = "^0.10.1"
 lazy_static = "^1.4.0"
 # multimap = { version = "^0.8.3", default-features = false }
 paste = "^1.0.6"
 test-case = "^1.2.1"
 thiserror = "^1.0.30"
+
+[features]
+default = ["hash_fnv"]
+hash_fnv = ["fnv"]

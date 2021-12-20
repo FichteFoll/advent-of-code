@@ -1,13 +1,12 @@
 #![feature(bool_to_option)]
 #![feature(test)]
 
-// use std::collections::{HashMap, HashSet};
 use std::collections::VecDeque;
 
-use fnv::{FnvHashSet as HashSet, FnvHashMap as HashMap};
 use itertools::{Itertools, iproduct};
 
 use aoc2021::*;
+use aoc2021::collections::{HashMap, HashSet};
 use aoc2021::coord::Point;
 
 const DAY: usize = 19;

@@ -3,11 +3,11 @@
 use std::collections::VecDeque;
 
 use itertools::Itertools;
-use fnv::FnvHashSet;
 
 use aoc2021::*;
 use aoc2021::grid2d::Grid2D;
 use aoc2021::coord::Point;
+use aoc2021::collections::HashSet;
 
 const DAY: usize = 9;
 
@@ -56,7 +56,7 @@ fn basins(parsed: &Parsed) -> Vec<usize> {
         .map(|(pt, _)| {
             // use A* to fill basins
             let mut queue: VecDeque<_> = [pt].into();
-            let mut pts = FnvHashSet::default();
+            let mut pts = HashSet::default();
             while let Some(cur_pt) = queue.pop_front() {
                 if !pts.insert(cur_pt) {
                     continue;
