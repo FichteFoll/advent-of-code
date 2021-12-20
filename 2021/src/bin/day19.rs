@@ -1,7 +1,9 @@
 #![feature(bool_to_option)]
 #![feature(test)]
 
-use std::collections::{HashSet, VecDeque};
+use std::collections::{HashMap, HashSet, VecDeque};
+
+use itertools::iproduct;
 
 use aoc2021::*;
 use aoc2021::coord::Point;
@@ -50,22 +52,21 @@ fn part_1(parsed: &Parsed) -> usize {
             .find_map(|(i, other)| {
                 println!("remaining[{i}]");
                 (0..24).find_map(|rot| {
-                    println!("rot: {rot}");
                     let rotated: Vec<_> = other.iter()
                         .cloned()
-                        .map(|pt| { rotate_3d(&pt, rot); pt })
+                        .map(|pt| rotate_3d(&pt, rot))
                         .collect();
-                    println!("rotated: {rotated:?}");
-                    let (offset, common) = common_beacons(&reference, &rotated);
-                    println!("common: {common}");
-                    (common >= 12).then(|| {
-                        let shifted: Vec<_> = rotated.into_iter().map(|pt| pt - offset).collect();
-                        (i, shifted)
-                    })
+                    if let Some((offset, _)) = common_beacons(&reference, &rotated, 12) {
+                        let shifted: Vec<_> = rotated.into_iter().map(|pt| pt + offset).collect();
+                        println!("found scanner at {offset} with rot {rot}");
+                        Some((i, shifted))
+                    } else {
+                        None
+                    }
                 })
             });
         if let Some((i, beacons)) = matched {
-            println!("found match with item {i}");
+            println!("found match for item {i}");
             queue.push_back(beacons.clone());
             from_scanner_0.extend(beacons);
             remaining.remove(i);
@@ -80,64 +81,24 @@ fn part_2(_parsed: &Parsed) -> usize {
     todo!()
 }
 
+fn distance_map<const N: usize>(pts: &[Point<N>]) -> HashMap<Point<N>, HashSet<Point<N>>> {
+    pts.iter()
+        .map(|a| (*a, pts.iter().filter_map(|b| (b != a).then_some(b - a)).collect()))
+        .collect()
+}
+
 // Find a combination of indices with the most common offset between the point pairs
 // and return that offset + the number.
-fn common_beacons<const N: usize>(a: &[Point<N>], b: &[Point<N>]) -> (Point<N>, usize) {
-    let mut a_s: Vec<_> = a.iter().collect();
-    a_s.sort_unstable();
-    let mut b_s: Vec<_> = b.iter().collect();
-    b_s.sort_unstable();
-    let mut highest = 0;
-    let mut longest_diff = Point::default();
-    for a_pt in a_s {
-        // unlikely to have a zero point as the difference
-        let mut current = 0;
-        let mut last_diff = Point::default();
-        for b_pt in b_s.iter() {
-            // let span = a_pt + b_pt;
-            let diff = a_pt - b_pt;
-            if diff.coord.iter().any(|x| x.abs() > 1000) {
-                // these can never overlap, so skip
-                continue;
-            }
-            if diff != last_diff {
-                if current > highest {
-                    highest = current;
-                    (last_diff, longest_diff) = (diff, last_diff);
-                }
-                current = 0;
-            }
-            current += 1;
-        }
-    }
-    (longest_diff, highest)
-
-
-    // --- scanner 0 --- (0,0)
-    // -999,0 (extra)
-    // 0,2
-    // 3,3
-    // 4,1
-
-    // --- scanner 1 --- (5,2)
-    // -5,0
-    // -3,999 (extra)
-    // -2,1
-    // -1,-1
-
-
-    // TODO this is way too fucking slow (figures with (>12)! iterations, duh)
-    // (0..b.len()).permutations(b.len())
-    //     .flat_map(|b_indices| {
-    //         println!("testing order: {b_indices:?}");
-    //         let b_iter = b_indices.into_iter().map(|j| b[j]);
-    //         a.iter().zip(b_iter)
-    //             .into_group_map_by(|(a, b)| *a - b) // group by their difference
-    //             .into_iter()
-    //             .map(|(k, v)| (k, v.len()))
-    //     })
-    //     .max_by_key(|p| p.1) // TODO would we ever be interested in multiple maxima?
-    //     .unwrap()
+fn common_beacons<const N: usize>(a: &[Point<N>], b: &[Point<N>], threshold: usize) -> Option<(Point<N>, usize)> {
+    // TODO cache a_map between calls in part_1
+    iproduct!(
+        distance_map(a).iter(),
+        distance_map(b).iter()
+    )
+        .find_map(|((a_pt, a_dist), (b_pt, b_dist))| {
+            let common = (a_dist & b_dist).len() + 1; // the origin was stripped
+            (common >= threshold).then(|| (a_pt - b_pt, common))
+        })
 }
 
 fn rotate_3d(pt: &Point<3>, index: usize) -> Point<3> {
@@ -159,17 +120,6 @@ fn rotate_3d(pt: &Point<3>, index: usize) -> Point<3> {
     new_pt.rotate_left_3(axis, rot as i32 * 90);
     new_pt
 }
-
-
-// --- scanner 0 --- (0,0)
-// 3,3
-// 0,2
-// 4,1
-
-// --- scanner 1 --- (5,2)
-// -2,1
-// -5,0
-// -1,-1
 
 #[cfg(test)]
 mod tests {
@@ -194,11 +144,31 @@ mod tests {
                 .map(|pt| rotate_3d(&pt, rot))
                 .collect();
             println!("rotated: {rotated:?}");
-            let (offset, common) = common_beacons(reference, &rotated);
-            println!("common: {common}");
-            (common >= 12).then_some((offset, common))
+            let res = common_beacons(reference, &rotated, 12);
+            println!("res: {res:?}");
+            res
         });
         assert_eq!(result, Some((Point::new([68, -1246, -43]), 12)));
+    }
+
+    #[test]
+    fn find_common_3beacons_2scanners_2d_same_orientation() {
+        let input = "\
+            --- scanner 0 ---\n\
+            0,2\n\
+            4,1\n\
+            3,3\n\
+            \n\
+            --- scanner 1 ---\n\
+            -1,-1\n\
+            -5,0\n\
+            -2,1\n\
+            ";
+        let parsed = parse_input_nd::<2>(input);
+        assert_eq!(
+            common_beacons(&parsed[0], &parsed[1], 3),
+            Some((Point::new([5, 2]), 3))
+        );
     }
 
     #[test]
@@ -218,28 +188,8 @@ mod tests {
             ";
         let parsed = parse_input_nd::<2>(input);
         assert_eq!(
-            common_beacons(&parsed[0], &parsed[1]),
-            (Point::new([5, 2]), 3)
-        );
-    }
-
-    #[test]
-    fn find_common_3beacons_2scanners_2d_same_orientation() {
-        let input = "\
-            --- scanner 0 ---\n\
-            0,2\n\
-            4,1\n\
-            3,3\n\
-            \n\
-            --- scanner 1 ---\n\
-            -1,-1\n\
-            -5,0\n\
-            -2,1\n\
-            ";
-        let parsed = parse_input_nd::<2>(input);
-        assert_eq!(
-            common_beacons(&parsed[0], &parsed[1]),
-            (Point::new([5, 2]), 3)
+            common_beacons(&parsed[0], &parsed[1], 3),
+            Some((Point::new([5, 2]), 3))
         );
     }
 
