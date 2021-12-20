@@ -51,12 +51,12 @@ mod parse {
     }
 }
 
-fn part_1(parsed: &Parsed) -> usize {
-    0
+fn part_1(_parsed: &Parsed) -> usize {
+    todo!()
 }
 
 fn part_2(_parsed: &Parsed) -> usize {
-    0
+    todo!()
 }
 
 #[cfg(test)]
