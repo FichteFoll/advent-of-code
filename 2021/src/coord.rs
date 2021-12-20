@@ -276,6 +276,12 @@ mod point2 {
             Self { coord: [tpl.0, tpl.1] }
         }
     }
+
+    impl From<&(i32, i32)> for Point<2> {
+        fn from(tpl: &(i32, i32)) -> Self {
+            Self { coord: [tpl.0, tpl.1] }
+        }
+    }
 }
 
 mod point3 {
