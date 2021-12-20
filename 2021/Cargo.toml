@@ -15,8 +15,10 @@ itertools = "^0.10.1"
 lazy_static = "^1.4.0"
 # multimap = { version = "^0.8.3", default-features = false }
 paste = "^1.0.6"
-test-case = "^1.2.1"
 thiserror = "^1.0.30"
+
+[dev-dependencies]
+test-case = "^1.2.1"
 
 [features]
 default = ["hash_fnv"]
