@@ -1,9 +1,11 @@
 #![feature(bool_to_option)]
 #![feature(test)]
 
-use std::collections::{HashMap, HashSet, VecDeque};
+// use std::collections::{HashMap, HashSet};
+use std::collections::VecDeque;
 
-use itertools::iproduct;
+use fnv::{FnvHashSet as HashSet, FnvHashMap as HashMap};
+use itertools::{Itertools, iproduct};
 
 use aoc2021::*;
 use aoc2021::coord::Point;
@@ -15,6 +17,7 @@ type Parsed = Vec<Vec<Point<3>>>;
 fn main() {
     let input = read_input!();
     let parsed = parse_input(&input);
+    // TODO both parts use the same resolving code
     println!("Part 1: {}", part_1(&parsed));
     println!("Part 2: {}", part_2(&parsed));
 }
@@ -41,60 +44,73 @@ fn parse_input_nd<const N: usize>(input: &str) -> Vec<Vec<Point<N>>> {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
+    unify(parsed).into_iter()
+        .flat_map(|(_, beacons)| beacons)
+        .collect::<HashSet<_>>()
+        .len()
+}
+
+fn part_2(parsed: &Parsed) -> usize {
+    unify(parsed).into_iter()
+        .map(|(scanner, _)| scanner)
+        .permutations(2)
+        .map(|v| (v[0] - v[1]).manhattan())
+        .max()
+        .unwrap() as usize
+}
+
+fn unify(parsed: &Parsed) -> Vec<(Point<3>, Vec<Point<3>>)> {
     let mut queue = VecDeque::new();
-    let mut from_scanner_0: HashSet<_> = parsed[0].iter().cloned().collect();
-    let mut reference = parsed[0].clone();
-    let mut remaining: VecDeque<_> = parsed.iter().skip(1).collect();
+    let mut reference = distance_map(&parsed[0]);
+    let mut remaining: VecDeque<_> = parsed.iter().enumerate().skip(1).collect();
+    let mut rot_map_cache = HashMap::default();
+    let mut result = vec![(Point::default(), parsed[0].clone())];
     while !remaining.is_empty() {
-        println!("#remaining: {}", remaining.len());
         let matched = remaining.iter()
             .enumerate()
-            .find_map(|(i, other)| {
-                println!("remaining[{i}]");
+            .find_map(|(i, (si, other))| {
                 (0..24).find_map(|rot| {
-                    let rotated: Vec<_> = other.iter()
-                        .cloned()
-                        .map(|pt| rotate_3d(&pt, rot))
-                        .collect();
-                    if let Some((offset, _)) = common_beacons(&reference, &rotated, 12) {
-                        let shifted: Vec<_> = rotated.into_iter().map(|pt| pt + offset).collect();
-                        println!("found scanner at {offset} with rot {rot}");
-                        Some((i, shifted))
-                    } else {
-                        None
-                    }
+                    let check = rot_map_cache.entry((*si, rot)).or_insert_with(|| {
+                        let rotated: Vec<_> = other.iter()
+                            .cloned()
+                            .map(|pt| rotate_3d(&pt, rot))
+                            .collect();
+                        distance_map(&rotated)
+                    });
+                    common_beacons_map(&reference, check, 12).map(|(offset, _)| {
+                        let shifted: Vec<_> = check.keys().map(|pt| pt + &offset).collect();
+                        (i, offset, shifted)
+                    })
                 })
             });
-        if let Some((i, beacons)) = matched {
-            println!("found match for item {i}");
-            queue.push_back(beacons.clone());
-            from_scanner_0.extend(beacons);
+        if let Some((i, offset, shifted)) = matched {
+            queue.push_back(distance_map(&shifted));
+            result.push((offset, shifted));
             remaining.remove(i);
         } else {
             reference = queue.pop_front().unwrap();
         }
     }
-    from_scanner_0.len()
+    result
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
-}
+type DistanceMap<const N: usize> = HashMap<Point<N>, HashSet<Point<N>>>;
 
-fn distance_map<const N: usize>(pts: &[Point<N>]) -> HashMap<Point<N>, HashSet<Point<N>>> {
+fn distance_map<const N: usize>(pts: &[Point<N>]) -> DistanceMap<N> {
     pts.iter()
         .map(|a| (*a, pts.iter().filter_map(|b| (b != a).then_some(b - a)).collect()))
         .collect()
 }
 
-// Find a combination of indices with the most common offset between the point pairs
-// and return that offset + the number.
-fn common_beacons<const N: usize>(a: &[Point<N>], b: &[Point<N>], threshold: usize) -> Option<(Point<N>, usize)> {
-    // TODO cache a_map between calls in part_1
-    iproduct!(
-        distance_map(a).iter(),
-        distance_map(b).iter()
-    )
+// Find a point from each map that both show the same distances
+// to at least threshold-1 other points.
+// Return their difference and the actual number of common distances.
+fn common_beacons_map<const N: usize>(
+    map_a: &DistanceMap<N>,
+    map_b: &DistanceMap<N>,
+    threshold: usize,
+) -> Option<(Point<N>, usize)> {
+    iproduct!(map_a.iter(), map_b.iter())
         .find_map(|((a_pt, a_dist), (b_pt, b_dist))| {
             let common = (a_dist & b_dist).len() + 1; // the origin was stripped
             (common >= threshold).then(|| (a_pt - b_pt, common))
@@ -127,10 +143,15 @@ mod tests {
     extern crate test;
 
     test!(part_1() == 79);
-    // test!(part_2() == 0);
+    test!(part_2() == 3621);
     bench_parse!(Vec::len, 30);
-    // bench!(part_1() == 0);
-    // bench!(part_2() == 0);
+    // too slow for benching
+    // bench!(part_1() == 338);
+    // bench!(part_2() == 9862);
+
+    fn common_beacons<const N: usize>(a: &[Point<N>], b: &[Point<N>], threshold: usize) -> Option<(Point<N>, usize)> {
+        common_beacons_map(&distance_map(a), &distance_map(b), threshold)
+    }
 
     #[test]
     fn find_common_12beacons_2scanners_3d_any_orientation() {
@@ -138,14 +159,11 @@ mod tests {
         // I don't know the rotation identifier, so I need to check them all
         let reference = &parsed[0];
         let result = (0..24).find_map(|rot| {
-            println!("rot: {rot}");
             let rotated: Vec<_> = parsed[1].iter()
                 .cloned()
                 .map(|pt| rotate_3d(&pt, rot))
                 .collect();
-            println!("rotated: {rotated:?}");
             let res = common_beacons(reference, &rotated, 12);
-            println!("res: {res:?}");
             res
         });
         assert_eq!(result, Some((Point::new([68, -1246, -43]), 12)));
