@@ -27,7 +27,7 @@ mod parse {
 
     pub fn parse_input(input: &str) -> Parsed {
         let blocks = input.trim().split_once("\n\n").unwrap();
-        let code = blocks.0.lines()
+        let code: Vec<_> = blocks.0.lines()
             .flat_map(|line| line.bytes().map(|b| b == b'#'))
             .collect();
         let image = blocks.1.lines()
@@ -41,58 +41,70 @@ mod parse {
     }
 }
 
-fn part_1((code, image): &Parsed) -> usize {
+fn part_1(parsed: &Parsed) -> usize {
+    solve(parsed, 2)
+}
+
+fn part_2(parsed: &Parsed) -> usize {
+    solve(parsed, 50)
+}
+
+fn solve((code, image): &Parsed, times: usize) -> usize {
+    assert!(!code[0] || !code[511], "the output would be infinity");
     let mut image = image.clone();
-    println!("{:?}\n", code);
-    println!("{}", render(&image));
-    for _ in 0..2 {
-        image = enhance(code, &image);
-        println!("{}", render(&image));
+    let mut carry = false; // state of everything not pictured
+    for _ in 0..times {
+        (image, carry) = enhance(code, &image, carry);
     }
+    assert!(!carry, "output is infinity (impossible, I hope)");
     image.len()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
-}
-
-fn enhance(code: &Code, image: &Image) -> Image {
-    let (x_range, y_range) = min_max(image);
-    iproduct!(x_range, y_range)
+fn enhance(code: &Code, image: &Image, carry: bool) -> (Image, bool) {
+    let (x_range, y_range) = min_max(image, 1);
+    let get_carry = |pt: &Point<2>| {
+        let res = match &pt.coord {
+            [x, _] if x <= x_range.start() || x >= x_range.end() => Some(carry),
+            [_, y] if y <= y_range.start() || y >= y_range.end() => Some(carry),
+            _ => None,
+        };
+        res
+    };
+    let new_image = iproduct!(x_range.clone(), y_range.clone())
         .filter_map(|pair| {
-            let pt: Point<2> = pair.into();
-            let index = convolution_matrix(image, &pt)
-                .into_iter()
+            let center: Point<2> = pair.into();
+            let index = convolution_pt_matrix(&center)
+                .map(|pt| get_carry(&pt).unwrap_or_else(|| image.contains(&pt)))
                 .fold(0, |acc, b| (acc << 1) + b as usize);
-            code[index].then_some(pt)
+            code[index].then_some(center)
         })
-        .collect()
+        .collect();
+    (new_image, carry ^ code[0])
 }
 
-fn min_max(image: &Image) -> (RangeInclusive<i32>, RangeInclusive<i32>) {
+fn min_max(image: &Image, padding: i32) -> (RangeInclusive<i32>, RangeInclusive<i32>) {
     let (x_min, x_max, y_min, y_max) = image.iter().fold(
         (i32::MAX, i32::MIN, i32::MAX, i32::MIN),
         |(x_min, x_max, y_min, y_max), pt|
             (x_min.min(pt.x()), x_max.max(pt.x()), y_min.min(pt.y()), y_max.max(pt.y()))
     );
-    // with a padding of 1
-    (x_min - 1..=x_max + 1, y_min - 1..=y_max + 1)
+    (x_min - padding..=x_max + padding, y_min - padding..=y_max + padding)
 }
 
-fn convolution_matrix(image: &Image, pt: &Point<2>) -> Vec<bool> {
+fn convolution_pt_matrix(pt: &Point<2>) -> impl Iterator<Item=Point<2>> {
+    let pt_ref = *pt;
     iproduct!(-1..=1, -1..=1)
-        .map(|(y_offset, x_offset)| { // iproduct exhausts the latter iter first
-            let mut new_pt = *pt;
+        .map(move |(y_offset, x_offset)| { // iproduct exhausts the latter iter first
+            let mut new_pt = pt_ref;
             *new_pt.x_mut() += x_offset;
             *new_pt.y_mut() += y_offset;
-            image.contains(&new_pt)
+            new_pt
         })
-        .collect()
 }
 
-// #[cfg(test)]
+#[cfg(test)]
 fn render(image: &Image) -> String {
-    let (x_range, y_range) = min_max(image);
+    let (x_range, y_range) = min_max(image, 0);
     let mut buf = Vec::with_capacity(
         ((x_range.end() - x_range.start() + 1) * (y_range.end() - y_range.start())) as usize
     );
@@ -113,7 +125,7 @@ mod tests {
     use super::*;
     extern crate test;
 
-    const TEST_INPUT: &str = "
+    const TEST_INPUT: &str = "\
         ..#.#..#####.#.#.#.###.##.....###.##.#..###.####..#####..#....#..#..##..##\n\
         #..######.###...####..#..#####..##..#.#####...##.#.#..#.##..#.#......#.###\n\
         .######.###.####...#.##.##..#..#..#####.....#.#....###..#.##......#.....#.\n\
@@ -129,41 +141,90 @@ mod tests {
         ..###\n\
         ";
 
+    test!(part_2() == 3351);
+    bench_parse!(|x: &Parsed| (x.0.len(), x.1.len()), (512, 4947));
+    bench!(part_1() == 5682);
+    bench!(part_2() == 17628);
+
     #[test]
     fn test_part_1() {
         let (code, mut image) = parse_input(TEST_INPUT);
         assert_eq!(image.len(), 10);
-        image = enhance(&code, &image);
-        assert_eq!(image.len(), 24);
-        image = enhance(&code, &image);
-        assert_eq!(image.len(), 35);
-        let string = render(&image);
-        println!("{string}\n");
+        let mut carry = false;
+        (image, carry) = enhance(&code, &image, carry);
+        assert_eq!((image.len(), carry), (24, false));
+        (image, carry) = enhance(&code, &image, carry);
+        assert_eq!((image.len(), carry), (35, false));
+        let rendered = render(&image);
+        println!("{rendered}\n");
         let expected_render = "\n\
-            ...........\n\
-            ........#..\n\
-            ..#..#.#...\n\
-            .#.#...###.\n\
-            .#...##.#..\n\
-            .#.....#.#.\n\
-            ..#.#####..\n\
-            ...#.#####.\n\
-            ....##.##..\n\
-            .....###...\n\
-            ...........";
-        assert_eq!(string, expected_render);
+            .......#.\n\
+            .#..#.#..\n\
+            #.#...###\n\
+            #...##.#.\n\
+            #.....#.#\n\
+            .#.#####.\n\
+            ..#.#####\n\
+            ...##.##.\n\
+            ....###..";
+        assert_eq!(rendered, expected_render);
     }
 
-    // test!(part_2() == 0);
-    bench_parse!(|x: &Parsed| (x.0.len(), x.1.len()), (512, 4947));
-    // bench!(part_1() == 0);
-    // bench!(part_2() == 0);
+    #[test]
+    fn test_part_1_case_2() {
+        let (mut code, mut image) = parse_input(TEST_INPUT);
+        assert_eq!(code.len(), 512);
+        code.swap(0, 511); // test the case where the carry flips
+        assert_eq!(image.len(), 10);
+        let mut carry = false;
+        println!("{}\n{carry}", render(&image));
+
+        (image, carry) = enhance(&code, &image, carry);
+
+        let rendered_1 = render(&image);
+        println!("{rendered_1}\n{carry}");
+        let expected_1 = "\n\
+            .##.###\n\
+            #..#.##\n\
+            ##.#..#\n\
+            ####..#\n\
+            .#..##.\n\
+            ####..#\n\
+            ##.#.#.";
+        assert_eq!((image.len(), carry), (30, true));
+        assert_eq!(rendered_1, expected_1);
+
+        (image, carry) = enhance(&code, &image, carry);
+        // [-1,-1]
+        // ### #.# ##. => .
+        assert!(!image.contains(&Point::new([-1, -1])));
+        // [-2,-2]
+        // ### ### ##. => .
+        assert!(!image.contains(&Point::new([-2, -2])));
+
+        let rendered_2 = render(&image);
+        println!("{rendered_2}\n{carry}");
+        let expected_2 = "\n\
+            .....#...\n\
+            ###......\n\
+            .#..###..\n\
+            ......#..\n\
+            .#..###.#\n\
+            #..#####.\n\
+            ...#....#\n\
+            ..#.....#";
+        assert_eq!((image.len(), carry), (24, false));
+        assert_eq!(rendered_2, expected_2);
+    }
 
     #[test]
     fn test_convolution_matrix() {
         let (_, image) = parse_input(TEST_INPUT);
+        let matrix: Vec<_> = convolution_pt_matrix(&Point::new([2, 2]))
+            .map(|pt| image.contains(&pt))
+            .collect();
         assert_eq!(
-            convolution_matrix(&image, &Point::new([2, 2])),
+            matrix,
             vec![false, false, false,
                   true, false, false,
                  false,  true, false]
