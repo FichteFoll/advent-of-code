@@ -6,7 +6,6 @@ use std::hash::Hash;
 
 use aoc2021::*;
 use aoc2021::collections::HashMap;
-use parse::parse_input;
 
 const DAY: usize = 21;
 
@@ -19,35 +18,27 @@ fn main() {
     println!("Part 2: {}", part_2(&parsed));
 }
 
-mod parse {
-    use super::*;
-
-    pub fn parse_input(input: &str) -> Parsed {
-        input
-            .trim()
-            .lines()
-            .map(|line| line.chars().last().unwrap().to_digit(10).unwrap() as usize)
-            .collect()
-    }
+fn parse_input(input: &str) -> Parsed {
+    input
+        .trim()
+        .lines()
+        .map(|line| line.chars().last().unwrap().to_digit(10).unwrap() as usize)
+        .collect()
 }
 
 fn part_1(parsed: &Parsed) -> usize {
+    let mut players = [
+        Player { pos: parsed[0], sum: 0 },
+        Player { pos: parsed[1], sum: 0 },
+    ];
     let mut die = (1..=100).cycle();
-    let mut pos: Vec<_> = parsed.iter()
-        .map(|&n| {
-            let mut iter = (1..=10).cycle();
-            iter.advance_by(n).unwrap();
-            iter
-        })
-        .collect();
-    let mut sum = vec![0; parsed.len()];
     for i in 0.. {
-        let curr = i % 2;
+        let player = &mut players[i % 2];
         let result: usize = next_arr::<usize, 3>(&mut die).unwrap().into_iter().sum();
-        pos[curr].advance_by(result - 1).unwrap();
-        sum[curr] += pos[curr].next().unwrap();
-        if sum[curr] >= 1000 {
-            return sum[(i + 1) % 2] * (i + 1) * 3;
+        player.pos = (player.pos + result - 1) % 10 + 1;
+        *&mut player.sum += player.pos;
+        if player.sum >= 1000 {
+            return players[(i + 1) % 2].sum * (i + 1) * 3;
         }
     };
     unreachable!();
