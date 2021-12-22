@@ -1,3 +1,4 @@
+#![feature(bool_to_option)]
 #![feature(test)]
 
 use std::ops::RangeInclusive;
@@ -16,10 +17,12 @@ fn main() {
     println!("Part 2: {}", part_2(&parsed));
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Cuboid {
     on: bool,
+    // TODO consider using Range
     ranges: Vec<RangeInclusive<i32>>,
+    holes: Vec<Cuboid>,
 }
 
 mod parse {
@@ -56,7 +59,7 @@ mod parse {
             let on = flag == "on";
             let ranges: Vec<_> = ranges_s.split(',').map(parse_range).collect::<Result<_, _>>()?;
             match ranges.len() {
-                3 => Ok(Cuboid { on, ranges }),
+                3 => Ok(Cuboid { on, ranges, holes: vec![] }),
                 d => Err(ParseError::InvalidDimensions(d)),
             }
         }
@@ -71,11 +74,86 @@ mod parse {
 
 fn part_1(parsed: &Parsed) -> usize {
     println!("{parsed:?}");
-    todo!()
+    let mut field = Cuboid {
+        on: false,
+        ranges: vec![-50..=50, -50..=50, -50..=50],
+        holes: vec![]
+    };
+    for other in parsed.iter() {
+        field.intersect(other.clone());
+    }
+    field.count_holes()
 }
 
 fn part_2(_parsed: &Parsed) -> usize {
     todo!()
+}
+
+impl Cuboid {
+    // Intersect self with other, consuming it
+    // and returning the holed-remainder, if any.
+    //
+    fn intersect(&mut self, mut other: Cuboid) -> Option<Cuboid> {
+        // TODO
+        //  - if self & other have the same flag
+        //      1. recurse the intersection into self.holes
+        //      2. subtract the intersection from other (by holeing).
+        //         if other == intersection, return None
+        //  - if they have a different flag
+        //      1. if self contains other completely, return None, else subtract from other
+        //      2. recurse intersection into self.holes
+        //      2.
+
+        // TODO build intersection
+        let intersection = other.clone();
+        // TODO self.ranges == intersection.ranges ????
+        //  For equal flags, I could replace self with other,
+        //  but what about the holes to prevent double-counting?
+        //  And what about differing flags?
+
+        // TODO can we do this more intelligently? scan().nth()?
+        let mut remainder = Some(intersection.clone());
+        for hole in self.holes.iter_mut() {
+            if let Some(curr) = remainder {
+                remainder = match hole.intersect(curr) {
+                    Some(next) if next.count() != 0 => Some(next),
+                    _ => None,
+                }
+            } else {
+                break;
+            }
+        }
+        // let remainder = self.holes.iter_mut().scan(intersection.clone(), |curr, hole| {
+        //     if let Some(new) = hole.intersect(*curr) {
+        //         *curr = new.clone();
+        //         (new.count() != 0).then_some(new)
+        //     } else {
+        //         None
+        //     }
+        // }).nth(self.holes.len());
+
+        if self.on != other.on {
+            if let Some(rem) = remainder {
+                // TODO only if flags differ!
+                self.holes.push(rem);
+            }
+        }
+
+        (intersection.ranges != other.ranges).then(|| {
+            // TODO verify
+            other.holes.push(intersection);
+            other
+        })
+    }
+
+    fn count(&self) -> usize {
+        self.ranges.iter().map(|r| r.clone().count()).product::<usize>()
+            - self.count_holes() // if this underflows, we done goofed
+    }
+
+    fn count_holes(&self) -> usize {
+        self.holes.iter().map(|h| h.count()).sum()
+    }
 }
 
 #[cfg(test)]
