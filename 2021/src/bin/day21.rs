@@ -36,7 +36,7 @@ fn part_1(parsed: &Parsed) -> usize {
         let player = &mut players[i % 2];
         let result: usize = next_arr::<usize, 3>(&mut die).unwrap().into_iter().sum();
         player.pos = (player.pos + result - 1) % 10 + 1;
-        *&mut player.sum += player.pos;
+        player.sum += player.pos;
         if player.sum >= 1000 {
             return players[(i + 1) % 2].sum * (i + 1) * 3;
         }
@@ -78,9 +78,9 @@ fn part_2(parsed: &Parsed) -> u64 {
             player.sum += player.pos;
             let new_count = old_count * times;
             if player.sum >= 21 {
-                *&mut wins[new_state.next_player as usize] += new_count;
+                wins[new_state.next_player as usize] += new_count;
             } else {
-                *&mut new_state.next_player ^= true;
+                new_state.next_player ^= true;
                 *all_states.entry(new_state).or_default() += new_count;
             }
         }
