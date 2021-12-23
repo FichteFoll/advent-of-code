@@ -1,4 +1,6 @@
 #![feature(bool_to_option)]
+#![feature(get_mut_unchecked)]
+#![feature(drain_filter)]
 #![feature(test)]
 
 use std::ops::RangeInclusive;
@@ -17,11 +19,13 @@ fn main() {
     println!("Part 2: {}", part_2(&parsed));
 }
 
-#[derive(Debug, Clone)]
+type Ranges = Vec<RangeInclusive<i32>>;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Cuboid {
     on: bool,
-    // TODO consider using Range
-    ranges: Vec<RangeInclusive<i32>>,
+    // TODO consider using Range if it makes math easier
+    ranges: Ranges,
     holes: Vec<Cuboid>,
 }
 
@@ -80,7 +84,7 @@ fn part_1(parsed: &Parsed) -> usize {
         holes: vec![]
     };
     for other in parsed.iter() {
-        field.intersect(other.clone());
+        field.merge(other.clone());
     }
     field.count_holes()
 }
@@ -93,7 +97,7 @@ impl Cuboid {
     // Intersect self with other, consuming it
     // and returning the holed-remainder, if any.
     //
-    fn intersect(&mut self, mut other: Cuboid) -> Option<Cuboid> {
+    fn merge(&mut self, mut other: Cuboid) -> (bool, Option<Cuboid>) {
         // TODO
         //  - if self & other have the same flag
         //      1. recurse the intersection into self.holes
@@ -104,49 +108,107 @@ impl Cuboid {
         //      2. recurse intersection into self.holes
         //      2.
 
-        // TODO build intersection
-        let intersection = other.clone();
-        // TODO self.ranges == intersection.ranges ????
-        //  For equal flags, I could replace self with other,
-        //  but what about the holes to prevent double-counting?
-        //  And what about differing flags?
+        let same_flag = self.on == other.on;
+        if let Some(intersection) = other.intersection(self) {
 
-        // TODO can we do this more intelligently? scan().nth()?
-        let mut remainder = Some(intersection.clone());
-        for hole in self.holes.iter_mut() {
-            if let Some(curr) = remainder {
-                remainder = match hole.intersect(curr) {
-                    Some(next) if next.count() != 0 => Some(next),
-                    _ => None,
-                }
+            if self.ranges == intersection {
+                // Other should have been reduced sufficiently to account for potential overlaps
+                // with earlier holes, while entirely covering self.
+                // Thus, we remove self and pass other to the next hole.
+                (true, Some(other))
             } else {
-                break;
-            }
-        }
-        // let remainder = self.holes.iter_mut().scan(intersection.clone(), |curr, hole| {
-        //     if let Some(new) = hole.intersect(*curr) {
-        //         *curr = new.clone();
-        //         (new.count() != 0).then_some(new)
-        //     } else {
-        //         None
-        //     }
-        // }).nth(self.holes.len());
+                let mut remainder = Some(Cuboid { ranges: intersection.clone(), ..other.clone() });
+                self.holes.drain_filter(|hole| {
+                    let mut remove = false;
+                    remainder = remainder.clone().and_then(|curr| { // TODO remove this .clone
+                        let new_remainder;
+                        (remove, new_remainder) = hole.merge(curr);
+                        new_remainder.filter(|r| r.count() != 0) // TODO can this even happen?
+                    });
+                    remove
+                });
+                // let mut remainder = Rc::new(Some(intersection.clone()));
+                // self.holes.drain_filter(|hole| {
+                //     let mut remove = false;
+                //     // SAFETY: we have a single thread
+                //     let rem_mut = unsafe { Rc::get_mut_unchecked(&mut remainder) };
+                //     *rem_mut = rem_mut.clone().and_then(|curr| {
+                //         let new_remainder;
+                //         (remove, new_remainder) = hole.intersect(curr);
+                //         new_remainder.filter(|r| r.count() != 0)
+                //     });
+                //     remove
+                // });
+                // for hole in self.holes.iter_mut() {
+                //     if let Some(curr) = remainder {
+                //         remainder = match hole.intersect(curr) {
+                //             Some(next) if next.count() != 0 => Some(next),
+                //             _ => None,
+                //         }
+                //     } else {
+                //         break;
+                //     }
+                // }
+                // let remainder = self.holes.iter_mut().scan(intersection.clone(), |curr, hole| {
+                //     if let Some(new) = hole.intersect(*curr) {
+                //         *curr = new.clone();
+                //         (new.count() != 0).then_some(new)
+                //     } else {
+                //         None
+                //     }
+                // }).nth(self.holes.len());
 
-        if self.on != other.on {
-            if let Some(rem) = remainder {
-                // TODO only if flags differ!
-                self.holes.push(rem);
-            }
-        }
+                let next_return = (intersection != other.ranges).then(|| {
+                    // Other has not been completely consumed, so merge it with the intersection of self.
+                    // TODO verify
+                    other.merge(Cuboid { ranges: intersection, ..self.clone() });
+                    // other.holes.push(Cuboid { ranges: intersection, ..self.clone() });
+                    other
+                });
+                if !same_flag {
+                    if let Some(rem) = remainder {
+                        self.holes.push(rem);
+                    }
+                }
 
-        (intersection.ranges != other.ranges).then(|| {
-            // TODO verify
-            other.holes.push(intersection);
-            other
-        })
+                (false, next_return)
+            }
+        } else {
+            // no intersection, nothing to do
+            (false, Some(other))
+        }
     }
 
+    // fn intersection(&self, other: &Cuboid) -> Option<(Cuboid, Cuboid)> {
+    fn intersection(&self, other: &Cuboid) -> Option<Ranges> {
+        let ranges = Cuboid::ranges_intersection(&self.ranges, &other.ranges);
+        ranges.iter()
+            .all(|r| !r.clone().is_empty())
+            .then(|| {
+                ranges
+                // (self.without_ranges(&ranges), (other.without_ranges(&ranges)))
+            })
+    }
+
+    fn ranges_intersection(a: &Ranges, b: &Ranges) -> Ranges {
+        a.iter().zip(b.iter())
+            .map(|(a, b)| *a.start().max(b.start())..=*a.end().min(b.end()))
+            .collect()
+    }
+
+    // fn without_ranges(&self, ranges: &Ranges) -> Cuboid {
+    //     // TODO strip unnecessary holes => shouldn't be needed, I hope
+    //     let holes =
+    //     Cuboid {
+    //         on: self.on,
+    //         ranges: self.ranges.clone(),
+    //         holes,
+    //     }
+    // }
+
+
     fn count(&self) -> usize {
+        println!("counting {self:?}");
         self.ranges.iter().map(|r| r.clone().count()).product::<usize>()
             - self.count_holes() // if this underflows, we done goofed
     }
@@ -191,4 +253,80 @@ mod tests {
     bench_parse!(Vec::len, 420);
     // bench!(part_1() == 0);
     // bench!(part_2() == 0);
+
+
+    #[test]
+    fn count() {
+        let cub: Cuboid = "on x=-20..26,y=-36..17,z=-47..7".parse().unwrap();
+        assert_eq!(cub.count(), 139590);
+    }
+
+    #[test]
+    fn count_with_hole() {
+        let mut cub: Cuboid = "on x=-20..26,y=-36..17,z=-47..7".parse().unwrap();
+        let hole: Cuboid = "off x=0..26,y=-36..17,z=-47..7".parse().unwrap();
+        assert_eq!(hole.count(), 80190);
+        cub.holes.push(hole);
+        assert_eq!(cub.count(), 139590 - 80190);
+    }
+
+    #[test]
+    fn intersection_full() {
+        let a: Cuboid = "on x=-20..26,y=-36..17,z=-47..7".parse().unwrap();
+        let b: Cuboid = "off x=0..26,y=-36..17,z=-47..7".parse().unwrap();
+        let expected = Some(b.ranges.clone());
+        assert_eq!(&a.intersection(&b), &expected);
+        assert_eq!(&b.intersection(&a), &expected);
+    }
+
+    #[test]
+    fn intersection_partially() {
+        let a: Cuboid = "on x=0..3,y=0..3,z=0..3".parse().unwrap();
+        let b: Cuboid = "on x=0..1,y=2..4,z=-1..0".parse().unwrap();
+        let expected = Some(vec![0..=1, 2..=3, 0..=0]);
+        assert_eq!(&a.intersection(&b), &expected);
+        assert_eq!(&b.intersection(&a), &expected);
+    }
+
+    #[test]
+    fn intersection_none() {
+        let a: Cuboid = "on x=-20..26,y=-36..17,z=-47..7".parse().unwrap();
+        let b: Cuboid = "off x=27..206,y=-36..17,z=-47..7".parse().unwrap();
+        assert_eq!(a.intersection(&b), None);
+        assert_eq!(b.intersection(&a), None);
+    }
+
+    #[test]
+    fn merge_full() {
+        let mut cub: Cuboid = "on x=-20..26,y=-36..17,z=-47..7".parse().unwrap();
+        let hole: Cuboid = "off x=0..26,y=-36..17,z=-47..7".parse().unwrap();
+        assert_eq!(hole.count(), 80190);
+        assert_eq!(cub.merge(hole), (false, None));
+        assert_eq!(cub.count(), 139590 - 80190);
+    }
+
+    #[test]
+    fn merge_full_same_flag() {
+        let mut cub: Cuboid = "on x=-20..26,y=-36..17,z=-47..7".parse().unwrap();
+        let hole: Cuboid = "on x=0..26,y=-36..17,z=-47..7".parse().unwrap();
+        assert_eq!(hole.count(), 80190);
+        assert_eq!(cub.merge(hole), (false, None));
+        assert_eq!(cub.count(), 139590);
+    }
+
+    #[test]
+    fn merge_partial() {
+        let mut cub: Cuboid = "on x=0..3,y=0..3,z=0..3".parse().unwrap();
+        let hole: Cuboid = "off x=0..3,y=-1..5,z=1..2".parse().unwrap();
+        let expected = Cuboid {
+            on: false,
+            ranges: vec![0..=3, -1..=5, 1..=2],
+            holes: vec![
+                Cuboid { on: true, ranges: vec![0..=3, 0..=3, 1..=2], holes: vec![] },
+            ],
+        };
+        assert_eq!(hole.count(), 4 * 7 * 2);
+        assert_eq!(cub.merge(hole), (false, Some(expected)));
+        assert_eq!(cub.count(), 2 * 4 * 4);
+    }
 }
