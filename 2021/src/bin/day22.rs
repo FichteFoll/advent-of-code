@@ -78,11 +78,7 @@ mod parse {
 
 fn part_1(parsed: &Parsed) -> usize {
     println!("{parsed:?}");
-    let mut field = Cuboid {
-        on: false,
-        ranges: vec![-50..=50, -50..=50, -50..=50],
-        holes: vec![]
-    };
+    let mut field = Cuboid::start(-50..=50);
     for other in parsed.iter() {
         field.merge(other.clone());
     }
@@ -94,6 +90,14 @@ fn part_2(_parsed: &Parsed) -> usize {
 }
 
 impl Cuboid {
+    fn start(range: RangeInclusive<i32>) -> Self {
+        Cuboid {
+            on: false,
+            ranges: vec![range.clone(), range.clone(), range.clone()],
+            holes: vec![]
+        }
+    }
+
     // Intersect self with other, consuming it
     // and returning the holed-remainder, if any.
     //
@@ -158,10 +162,11 @@ impl Cuboid {
                 //     }
                 // }).nth(self.holes.len());
 
+                // TODO same flag
                 let next_return = (intersection != other.ranges).then(|| {
                     // Other has not been completely consumed, so merge it with the intersection of self.
                     // TODO verify
-                    other.merge(Cuboid { ranges: intersection, ..self.clone() });
+                    other.merge(Cuboid { on: !other.on, ranges: intersection, holes: self.holes.clone() });
                     // other.holes.push(Cuboid { ranges: intersection, ..self.clone() });
                     other
                 });
@@ -169,6 +174,8 @@ impl Cuboid {
                     if let Some(rem) = remainder {
                         self.holes.push(rem);
                     }
+                } else {
+                    todo!("I *probably* need to do something here, but I cba right now")
                 }
 
                 (false, next_return)
@@ -210,7 +217,8 @@ impl Cuboid {
     fn count(&self) -> usize {
         println!("counting {self:?}");
         self.ranges.iter().map(|r| r.clone().count()).product::<usize>()
-            - self.count_holes() // if this underflows, we done goofed
+            .checked_sub(self.count_holes())
+            .unwrap_or_else(|| panic!("underflow for {self:?}"))
     }
 
     fn count_holes(&self) -> usize {
@@ -329,4 +337,44 @@ mod tests {
         assert_eq!(cub.merge(hole), (false, Some(expected)));
         assert_eq!(cub.count(), 2 * 4 * 4);
     }
+
+    #[test]
+    fn merge_partial_same_flag() {
+        let mut cub: Cuboid = "on x=0..3,y=0..3,z=0..3".parse().unwrap();
+        let hole: Cuboid = "on x=0..3,y=-1..5,z=1..2".parse().unwrap();
+        let expected = Cuboid {
+            on: true,
+            ranges: vec![0..=3, -1..=5, 1..=2],
+            holes: vec![
+                Cuboid { on: false, ranges: vec![0..=3, 0..=3, 1..=2], holes: vec![] },
+            ],
+        };
+        assert_eq!(hole.count(), 4 * 7 * 2);
+        assert_eq!(expected.count(), 4 * 3 * 2);
+        assert_eq!(cub.merge(hole), (false, Some(expected)));
+        assert_eq!(cub.count(), 4 * 4 * 4);
+    }
+
+    #[test]
+    fn merge_simple_example() {
+        let input = "\
+            on x=10..12,y=10..12,z=10..12\n\
+            on x=11..13,y=11..13,z=11..13\n\
+            off x=9..11,y=9..11,z=9..11\n\
+            on x=10..10,y=10..10,z=10..10\n\
+            ";
+        let cubs = parse_input(input);
+        let mut field = Cuboid::start(-50..=50);
+        field.merge(cubs[0].clone());
+        assert_eq!(field.count_holes(), 27);
+        field.merge(cubs[1].clone());
+        assert_eq!(field.count_holes(), 27 + 19);
+        field.merge(cubs[2].clone());
+        assert_eq!(field.count_holes(), 27 + 19 - 8);
+        field.merge(cubs[3].clone());
+        println!("{field:?}");
+        assert_eq!(field.count_holes(), 39);
+    }
+
+    // TODO test subsequent merges with and without overlap
 }
