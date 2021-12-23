@@ -111,73 +111,48 @@ impl Cuboid {
         //      1. if self contains other completely, return None, else subtract from other
         //      2. recurse intersection into self.holes
         //      2.
+        println!("merging {other:?} into {self:?}");
 
         let same_flag = self.on == other.on;
-        if let Some(intersection) = other.intersection(self) {
+        if let Some(intersection) = other.intersection_c(&self.ranges) {
+            let intersection_ranges = intersection.ranges.clone();
 
-            if self.ranges == intersection {
+            if self.ranges == intersection.ranges {
                 // Other should have been reduced sufficiently to account for potential overlaps
                 // with earlier holes, while entirely covering self.
                 // Thus, we remove self and pass other to the next hole.
                 (true, Some(other))
             } else {
-                let mut remainder = Some(Cuboid { ranges: intersection.clone(), ..other.clone() });
+                let mut remainder = Some(intersection);
+                // recurse the intersection into our holes,
+                // keeping track of the remainder
+                // and removing holes that the remainder covers completely.
                 self.holes.drain_filter(|hole| {
                     let mut remove = false;
                     remainder = remainder.clone().and_then(|curr| { // TODO remove this .clone
                         let new_remainder;
                         (remove, new_remainder) = hole.merge(curr);
+                        println!("remove: {remove}; new remainder: {new_remainder:?}");
                         new_remainder.filter(|r| r.count() != 0) // TODO can this even happen?
                     });
                     remove
                 });
-                // let mut remainder = Rc::new(Some(intersection.clone()));
-                // self.holes.drain_filter(|hole| {
-                //     let mut remove = false;
-                //     // SAFETY: we have a single thread
-                //     let rem_mut = unsafe { Rc::get_mut_unchecked(&mut remainder) };
-                //     *rem_mut = rem_mut.clone().and_then(|curr| {
-                //         let new_remainder;
-                //         (remove, new_remainder) = hole.intersect(curr);
-                //         new_remainder.filter(|r| r.count() != 0)
-                //     });
-                //     remove
-                // });
-                // for hole in self.holes.iter_mut() {
-                //     if let Some(curr) = remainder {
-                //         remainder = match hole.intersect(curr) {
-                //             Some(next) if next.count() != 0 => Some(next),
-                //             _ => None,
-                //         }
-                //     } else {
-                //         break;
-                //     }
-                // }
-                // let remainder = self.holes.iter_mut().scan(intersection.clone(), |curr, hole| {
-                //     if let Some(new) = hole.intersect(*curr) {
-                //         *curr = new.clone();
-                //         (new.count() != 0).then_some(new)
-                //     } else {
-                //         None
-                //     }
-                // }).nth(self.holes.len());
 
-                // TODO same flag
-                let next_return = (intersection != other.ranges).then(|| {
-                    // Other has not been completely consumed, so merge it with the intersection of self.
-                    // TODO verify
-                    other.merge(Cuboid { on: !other.on, ranges: intersection, holes: self.holes.clone() });
-                    // other.holes.push(Cuboid { ranges: intersection, ..self.clone() });
-                    other
-                });
                 if !same_flag {
                     if let Some(rem) = remainder {
                         self.holes.push(rem);
                     }
-                } else {
-                    todo!("I *probably* need to do something here, but I cba right now")
+                    // When the flag is the same,
+                    // we don't need need to do anything with the remainder
+                    // because everything remaining is already "on" or "off".
                 }
 
+                let next_return = (intersection_ranges != other.ranges).then(|| {
+                    // Other has not been completely consumed, so consume the intersection of self.
+                    // TODO do I need to pass holes here? i dont think so
+                    other.merge(Cuboid { on: !other.on, ranges: intersection_ranges, holes: vec![] });
+                    other
+                });
                 (false, next_return)
             }
         } else {
@@ -197,25 +172,28 @@ impl Cuboid {
             })
     }
 
+    fn intersection_c(&self, other_ranges: &Ranges) -> Option<Cuboid> {
+        let ranges = Cuboid::ranges_intersection(&self.ranges, other_ranges);
+        ranges.iter()
+            .all(|r| !r.clone().is_empty())
+            .then(|| {
+                Cuboid {
+                    on: self.on,
+                    ranges: ranges.clone(),
+                    holes: self.holes.iter()
+                        .filter_map(|hole| hole.intersection_c(&ranges))
+                        .collect(),
+                }
+            })
+    }
+
     fn ranges_intersection(a: &Ranges, b: &Ranges) -> Ranges {
         a.iter().zip(b.iter())
             .map(|(a, b)| *a.start().max(b.start())..=*a.end().min(b.end()))
             .collect()
     }
 
-    // fn without_ranges(&self, ranges: &Ranges) -> Cuboid {
-    //     // TODO strip unnecessary holes => shouldn't be needed, I hope
-    //     let holes =
-    //     Cuboid {
-    //         on: self.on,
-    //         ranges: self.ranges.clone(),
-    //         holes,
-    //     }
-    // }
-
-
     fn count(&self) -> usize {
-        println!("counting {self:?}");
         self.ranges.iter().map(|r| r.clone().count()).product::<usize>()
             .checked_sub(self.count_holes())
             .unwrap_or_else(|| panic!("underflow for {self:?}"))
@@ -261,7 +239,6 @@ mod tests {
     bench_parse!(Vec::len, 420);
     // bench!(part_1() == 0);
     // bench!(part_2() == 0);
-
 
     #[test]
     fn count() {
