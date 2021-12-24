@@ -34,11 +34,29 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    solve(parsed)
+    solve(parsed.clone())
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(parsed: &Parsed) -> usize {
+    let rooms = rooms_for_part_2(parsed);
+    solve(rooms)
+}
+
+fn rooms_for_part_2(parsed: &Parsed) -> Rooms {
+    let mut rooms = parsed.clone();
+    // Push these into the rooms from position 1:
+    // #D#C#B#A#
+    // #D#B#A#C#
+    rooms[0].insert(1, 'D');
+    rooms[1].insert(1, 'C');
+    rooms[2].insert(1, 'B');
+    rooms[3].insert(1, 'A');
+
+    rooms[0].insert(1, 'D');
+    rooms[1].insert(1, 'B');
+    rooms[2].insert(1, 'A');
+    rooms[3].insert(1, 'C');
+    rooms
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -48,8 +66,8 @@ struct State {
     room_depth: usize,
 }
 
-fn solve(parsed: &Parsed) -> usize {
-    let start = State::new(parsed.clone());
+fn solve(rooms: Rooms) -> usize {
+    let start = State::new(rooms);
     let end = FINAL_ROOMS[start.room_depth].clone();
     // Track the shortest path to a given state
     let mut seen: HashMap<State, usize> = Default::default();
@@ -203,15 +221,34 @@ mod tests {
         ";
 
     test!(part_1() == 12521);
-    // test!(part_2() == 44169);
+    test!(part_2() == 44169);
     bench_parse!(|x| x, &[vec!['C', 'B'], vec!['D', 'A'], vec!['D', 'B'], vec!['A', 'C']]);
     bench!(part_1() == 14510);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 49180);
 
     #[test]
     fn part_1_simple() {
         let parsed = [vec!['B'], vec!['A'], vec!['C'], vec!['D']];
         assert_eq!(part_1(&parsed), 2 + 4 * 10 + 4);
+    }
+
+    #[test]
+    fn test_rooms_for_part_2() {
+        let parsed = parse_input(TEST_INPUT);
+        let rooms = rooms_for_part_2(&parsed);
+        // #############
+        // #...........#
+        // ###B#C#B#D###
+        //   #D#C#B#A#
+        //   #D#B#A#C#
+        //   #A#D#C#A#
+        //   #########
+        assert_eq!(rooms, [
+            vec!['A', 'D', 'D', 'B'],
+            vec!['D', 'B', 'C', 'C'],
+            vec!['C', 'A', 'B', 'B'],
+            vec!['A', 'C', 'A', 'D'],
+        ]);
     }
 
     mod all_successors {
