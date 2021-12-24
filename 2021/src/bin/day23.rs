@@ -8,8 +8,6 @@ use std::ops::Range;
 use aoc2021::*;
 use aoc2021::collections::HashMap;
 
-use lazy_static::lazy_static;
-
 const DAY: usize = 23;
 
 type Rooms = [Vec<char>; 4];
@@ -68,36 +66,26 @@ struct State {
 
 fn solve(rooms: Rooms) -> usize {
     let start = State::new(rooms);
-    let end = FINAL_ROOMS[start.room_depth].clone();
+    let end = [
+        vec!['A'].repeat(start.room_depth),
+        vec!['B'].repeat(start.room_depth),
+        vec!['C'].repeat(start.room_depth),
+        vec!['D'].repeat(start.room_depth),
+    ];
     // Track the shortest path to a given state
     let mut seen: HashMap<State, usize> = Default::default();
     let mut queue: VecDeque<(State, usize)> = [(start, 0)].into();
     while let Some((state, steps)) = queue.pop_front() { // back or front is roughly the same speed
-        debug_assert_eq!(
-            state.hallway.iter().filter(|x| x.is_some()).count() + state.rooms.iter().map(|r| r.len()).sum::<usize>(),
-            8
-        );
         let mut is_smaller = true;
         seen.entry(state.clone())
             .and_modify(|s| { is_smaller = steps < *s; *s = (*s).min(steps) })
             .or_insert(steps);
-        if !is_smaller {
-            // println!("there is a more efficient solution already");
-            continue;
+        if is_smaller {
+            queue.extend(state.all_successors(steps));
         }
-        queue.extend(state.all_successors(steps));
     }
-    *seen.get(&State::new(end)).unwrap()
-}
 
-lazy_static! {
-    static ref FINAL_ROOMS: Vec<[Vec<char>; 4]> =
-        (0..=4).map(|n| [
-            vec!['A'].repeat(n),
-            vec!['B'].repeat(n),
-            vec!['C'].repeat(n),
-            vec!['D'].repeat(n),
-        ]).collect();
+    *seen.get(&State::new(end)).unwrap()
 }
 
 const ROOM_INDEXES: [usize; 4] = [2, 4, 6, 8];
@@ -121,9 +109,6 @@ impl State {
 
     fn all_successors(&self, steps: usize) -> Vec<(Self, usize)> {
         let mut succ = vec![];
-        if self.is_final() {
-            return vec![];
-        }
         // Try various operations on the state and yield/push any that match
         //
         // Move any from hallway into their room
@@ -182,10 +167,6 @@ impl State {
                 .flatten()
         );
         succ
-    }
-
-    fn is_final(&self) -> bool {
-        self.rooms.as_slice() == FINAL_ROOMS[self.room_depth].as_slice()
     }
 }
 
@@ -321,6 +302,13 @@ mod tests {
             start.hallway[1] = Some('A');
             start.hallway[3] = Some('C');
             start.hallway[5] = Some('A');
+            let succ = start.all_successors(0);
+            assert_eq!(succ, vec![]);
+        }
+
+        #[test]
+        fn no_more_moves_final() {
+            let start = State::new([vec!['A'], vec!['B'], vec!['C'], vec!['D']]);
             let succ = start.all_successors(0);
             assert_eq!(succ, vec![]);
         }
