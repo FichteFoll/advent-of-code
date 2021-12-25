@@ -133,7 +133,10 @@ impl Cuboid {
                         let new_remainder;
                         (remove, new_remainder) = hole.merge(curr);
                         println!("remove: {remove}; new remainder: {new_remainder:?}");
-                        new_remainder.filter(|r| r.count() != 0) // TODO can this even happen?
+                        if let Some(rem) = &new_remainder {
+                            assert_ne!(rem.count(), 0, "{rem:?} is empty");
+                        }
+                        new_remainder
                     });
                     remove
                 });
@@ -148,8 +151,8 @@ impl Cuboid {
                 }
 
                 let next_return = (intersection_ranges != other.ranges).then(|| {
-                    // Other has not been completely consumed, so consume the intersection of self.
-                    // TODO do I need to pass holes here? i dont think so
+                    // Other has not been completely consumed, so consume the intersection of self,
+                    // which is already considered
                     other.merge(Cuboid { on: !other.on, ranges: intersection_ranges, holes: vec![] });
                     other
                 });
@@ -351,6 +354,28 @@ mod tests {
         field.merge(cubs[3].clone());
         println!("{field:?}");
         assert_eq!(field.count_holes(), 39);
+    }
+
+    #[test]
+    fn merge_multiple() {
+        let cubs = vec![
+            Cuboid { on: true, ranges: vec![-27..=1, -3..=26, -21..=28], holes: vec![] },
+            Cuboid { on: false, ranges: vec![-27..=1, -3..=26, -21..=-1], holes: vec![] },
+            Cuboid { on: false, ranges: vec![-20..=1, -3..=23, -21..=28], holes: vec![] },
+        ];
+        let expected = Cuboid { on: false, ranges: vec![-50..=50, -50..=50, -50..=50], holes: vec![
+            Cuboid { on: true, ranges: vec![-27..=1, -3..=26, -21..=28], holes: vec![
+                Cuboid { on: false, ranges: vec![-27..=1, -3..=26, -21..=-1], holes: vec![] },
+                Cuboid { on: false, ranges: vec![-20..=1, -3..=23, -21..=28], holes: vec![
+                    Cuboid { on: true, ranges: vec![-20..=1, -3..=23, -21..=-1], holes: vec![] },
+                ] },
+            ] },
+        ] };
+        let mut field = Cuboid::start(-50..=50);
+        for cub in cubs {
+            assert_eq!(field.merge(cub), (false, None));
+        }
+        assert_eq!(field, expected);
     }
 
     // TODO test subsequent merges with and without overlap
