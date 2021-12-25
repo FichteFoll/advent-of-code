@@ -54,7 +54,7 @@ fn low_points(parsed: &Parsed) -> impl Iterator<Item=(Point<2>, &u8)> {
 fn basins(parsed: &Parsed) -> Vec<usize> {
     low_points(parsed)
         .map(|(pt, _)| {
-            // use A* to fill basins
+            // use Dijkstra to fill basins
             let mut queue: VecDeque<_> = [pt].into();
             let mut pts = HashSet::default();
             while let Some(cur_pt) = queue.pop_front() {
