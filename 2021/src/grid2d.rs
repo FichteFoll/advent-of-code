@@ -7,7 +7,7 @@ use crate::coord::Point;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Grid2D<T> {
-    grid: Vec<Vec<T>>,
+    pub grid: Vec<Vec<T>>,
     pub size: Size,
 }
 
