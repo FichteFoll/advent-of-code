@@ -23,6 +23,10 @@ impl<T> Grid2D<T> {
         self.grid.get_mut(pt.y() as usize).and_then(|row| row.get_mut(pt.x() as usize))
     }
 
+    pub fn set(&mut self, pt: &Point<2>, value: T) {
+        self.grid[pt.y() as usize][pt.x() as usize] = value;
+    }
+
     pub fn iter(&self) -> impl Iterator<Item=&T> {
         self.grid.iter()
             .flat_map(|row| row.iter())
@@ -63,12 +67,12 @@ impl<T> Grid2D<T> {
 
    #[must_use]
     pub fn new_map_enumerate<F>(&self, f: F) -> Self
-        where F: Fn(&Point<2>, &T) -> T
+        where F: Fn(Point<2>, &T) -> T
     {
         self.grid.iter().enumerate()
             .map(|(y, row)| {
                 row.iter().enumerate()
-                   .map(|(x, cell)| f(&Point::<2>::new([x as i32, y as i32]), cell))
+                   .map(|(x, cell)| f(Point::<2>::new([x as i32, y as i32]), cell))
                    .collect::<Vec<_>>()
             })
             .collect()
