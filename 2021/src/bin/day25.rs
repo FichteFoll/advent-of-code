@@ -115,7 +115,7 @@ mod tests {
 
     test!(part_1() == 58);
     // test!(part_2() == 0);
-    // bench_parse!(Vec::len, 0);
+    bench_parse!(|x: &Parsed| x.size, Size(139, 137));
     bench!(part_1() == 453);
     // bench!(part_2() == 0);
 
