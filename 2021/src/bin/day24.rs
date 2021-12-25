@@ -144,7 +144,7 @@ impl Monad {
         Monad {
             registers: [0; 4],
             instructions: instrs.into(),
-            input: input.into_iter().cloned().collect(),
+            input: input.iter().cloned().collect(),
         }
     }
 
