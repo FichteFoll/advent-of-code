@@ -1,6 +1,8 @@
 #![feature(test)]
+#![feature(map_first_last)]
+#![feature(map_try_insert)]
 
-use std::collections::VecDeque;
+use std::collections::BTreeSet;
 
 use aoc2021::*;
 use aoc2021::coord::Point;
@@ -35,23 +37,36 @@ fn part_2(parsed: &Parsed) -> usize {
 }
 
 fn solve(grid: &Parsed) -> usize {
-    // basically copied from day 23, which I did before this one
+    // Dijkstra is significantly slower than A* (~40s vs 200ms for part 2).
+    // https://www.redblobgames.com/pathfinding/a-star/introduction.html for a recap.
     let mut seen: HashMap<_, usize> = HashMap::default();
-    let mut queue: VecDeque<_> = [(Point::new([0, 0]), 0)].into();
-    while let Some((pt, steps)) = queue.pop_front() {
+    // We use BTreeSet as a priority queue
+    // with the priority at the tuple's first position.
+    let mut queue: BTreeSet<_> = [(0, 0, Point::new([0, 0]))].into();
+    let end = Point::new([grid.size.0 as i32 - 1, grid.size.1 as i32 - 1]);
+    let mut least_to_end = usize::MAX;
+    while let Some((prio, cost, pt)) = queue.pop_first() {
+        if pt == end {
+            least_to_end = least_to_end.min(cost);
+        } else if prio >= least_to_end {
+            continue;
+        }
         let mut is_smaller = true;
         seen.entry(pt.clone())
-            .and_modify(|s| { is_smaller = steps < *s; *s = (*s).min(steps) })
-            .or_insert(steps);
+            .and_modify(|s| { is_smaller = cost < *s; *s = (*s).min(cost) })
+            .or_insert(cost);
         if is_smaller {
             let successors = grid.contained(pt.direct_neighbors())
                 .into_iter()
-                .map(|npt| (npt, steps + grid.get(&npt).unwrap()));
+                .map(|next_pt| {
+                    let next_cost = cost + grid.get(&next_pt).unwrap();
+                    let next_prio = next_cost + (end - pt).manhattan() as usize;
+                    (next_prio, next_cost, next_pt)
+                });
             queue.extend(successors);
         }
     }
-    let end = Point::new([grid.size.0 as i32 - 1, grid.size.1 as i32 - 1]);
-    *seen.get(&end).unwrap()
+    least_to_end
 }
 
 fn expand_grid(grid: &Parsed) -> Parsed {
@@ -87,8 +102,7 @@ mod tests {
     test!(part_2() == 315);
     bench_parse!(|x: &Parsed| x.size, Size(100, 100));
     bench!(part_1() == 508);
-    // this is quite slow (44s), but I'm okay with that
-    // bench!(part_2() == 2872);
+    bench!(part_2() == 2872);
 
     #[test]
     fn test_expand_grid_1x1() {
