@@ -114,14 +114,20 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> i64 {
-    let params = extract_params(parsed);
-    find_input(&params, 0, 0).unwrap().into_iter()
-        .rev()
-        .fold(0, |acc, digit| acc * 10 + digit)
+    let options: Vec<_> = (1..=9).rev().collect();
+    solve(parsed, &options)
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(parsed: &Parsed) -> i64 {
+    let options: Vec<_> = (1..=9).collect();
+    solve(parsed, &options)
+}
+
+fn solve(parsed: &Parsed, options: &[i64]) -> i64 {
+    let params = extract_params(parsed);
+    find_input(&params, options, 0, 0).unwrap().into_iter()
+        .rev()
+        .fold(0, |acc, digit| acc * 10 + digit)
 }
 
 // All iterations follow the same pattern and differ in 3 numbers.
@@ -158,14 +164,14 @@ fn extract_params(parsed: &Parsed) -> Vec<StepParams> {
         }).collect()
 }
 
-fn find_input(params: &[StepParams], index: usize, z: i64) -> Option<Vec<i64>> {
+fn find_input(params: &[StepParams], options: &[i64], index: usize, z: i64) -> Option<Vec<i64>> {
     if index == BLOCK_COUNT {
         (z == 0).then(|| vec![])
     } else {
-        (1..=9).rev()
-            .find_map(|i| {
+        options.iter()
+            .find_map(|&i| {
                 calc_block(&params[index], z, i)
-                    .and_then(|new_z| find_input(params, index + 1, new_z))
+                    .and_then(|new_z| find_input(params, options.clone(), index + 1, new_z))
                     .map(|mut res| { res.push(i); res })
             })
     }
@@ -200,7 +206,7 @@ mod tests {
 
     bench_parse!(Vec::len, 252);
     bench!(part_1() == 99995969919326);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 48111514719111);
 
 }
 
