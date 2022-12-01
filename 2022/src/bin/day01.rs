@@ -1,4 +1,7 @@
 #![feature(test)]
+#![feature(binary_heap_into_iter_sorted)]
+
+use std::collections::BinaryHeap;
 
 use aoc2022::*;
 
@@ -29,12 +32,11 @@ fn part_1(parsed: &Parsed) -> u64 {
 }
 
 fn part_2(parsed: &Parsed) -> u64 {
-    let mut sums: Vec<u64> = parsed.iter()
+    let sums: BinaryHeap<u64> = parsed.iter()
         .map(|block| block.iter().sum())
         .collect();
 
-    sums.sort_unstable();
-    sums.into_iter().rev().take(3).sum()
+    sums.into_iter_sorted().take(3).sum()
 }
 
 #[cfg(test)]
