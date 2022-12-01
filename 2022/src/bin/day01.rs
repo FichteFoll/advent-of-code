@@ -1,0 +1,62 @@
+#![feature(test)]
+
+use aoc2022::*;
+
+const DAY: usize = 1;
+
+type Parsed = Vec<Vec<u64>>;
+
+fn main() {
+    let input = read_input!();
+    let parsed = parse_input(&input);
+    println!("Part 1: {}", part_1(&parsed));
+    println!("Part 2: {}", part_2(&parsed));
+}
+
+pub fn parse_input(input: &str) -> Parsed {
+    input
+        .trim()
+        .split("\n\n")
+        .map(|block| block.lines().map(|line| line.parse().unwrap()).collect())
+        .collect()
+}
+
+fn part_1(parsed: &Parsed) -> u64 {
+    parsed.iter()
+        .map(|block| block.iter().sum())
+        .max()
+        .unwrap()
+}
+
+fn part_2(_parsed: &Parsed) -> usize {
+    todo!()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    extern crate test;
+
+    const TEST_INPUT: &str = "\
+        1000\n\
+        2000\n\
+        3000\n\
+        \n\
+        4000\n\
+        \n\
+        5000\n\
+        6000\n\
+        \n\
+        7000\n\
+        8000\n\
+        9000\n\
+        \n\
+        10000\n\
+        ";
+
+    test!(part_1() == 24_000);
+    // test!(part_2() == 0);
+    bench_parse!(Vec::len, 266);
+    bench!(part_1() == 69281);
+    // bench!(part_2() == 0);
+}
