@@ -28,8 +28,13 @@ fn part_1(parsed: &Parsed) -> u64 {
         .unwrap()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(parsed: &Parsed) -> u64 {
+    let mut sums: Vec<u64> = parsed.iter()
+        .map(|block| block.iter().sum())
+        .collect();
+
+    sums.sort_unstable();
+    sums.into_iter().rev().take(3).sum()
 }
 
 #[cfg(test)]
@@ -55,8 +60,8 @@ mod tests {
         ";
 
     test!(part_1() == 24_000);
-    // test!(part_2() == 0);
+    test!(part_2() == 45_000);
     bench_parse!(Vec::len, 266);
     bench!(part_1() == 69281);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 201524);
 }
