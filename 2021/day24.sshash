@@ -1,0 +1,286 @@
+          # w = x = y = z = 0
+# INPUT 0
+inp w     # w = inp[0]
+mul x 0   # x = z (= 0)
+add x z   # ^
+mod x 26  # x %= 26 (= 0)
+div z 1   # nop
+add x 10  # x += 10 (= 10)
+eql x w   # x = x != w (= 1)
+eql x 0   # ^
+mul y 0   # y = 25 * x + 1 (= 26)
+add y 25  # ^
+mul y x   # ^
+add y 1   # ^
+mul z y   # z *= y (= 0)
+mul y 0   # y = 0
+add y w   # y += w + 10
+add y 10  # ^
+mul y x   # y *= x (= y; nop)
+add z y   # z += y
+# w = inp[0]
+# x = 1
+# y = inp[0] + 10
+# z = inp[0] + 10
+
+# INPUT 1
+inp w     # w = inp[1]
+mul x 0   # x = z % 26 + 13
+add x z   # ^
+mod x 26  # ^
+div z 1   # nop
+add x 13  # ^
+eql x w   # x = x != w (= 1)
+eql x 0   # ^
+mul y 0   # y = 25 * x + 1 (= 26)
+add y 25  # ^
+mul y x   # ^
+add y 1   # ^
+mul z y   # z *= y
+mul y 0   # y = (w + 5) * x
+add y w   # ^
+add y 5   # ^
+mul y x   # ^
+add z y   # z += y
+# w = inp[1]
+# x = ((inp[0] + 10) % 26 + 13) != inp[1] (= 1)
+# y = inp[1] + 5
+# z = (inp[0] + 10) * 26 + inp[1] + 5
+
+# INPUT 2
+inp w     # w = inp[2]
+mul x 0   # x = z % 26 + 15
+add x z   # ^
+mod x 26  # ^
+div z 1   # nop
+add x 15  # ^
+eql x w   # x = x != w (= 1)
+eql x 0   # ^
+mul y 0   # y = 25 * x + 1 (= 26)
+add y 25  # ^
+mul y x   # ^
+add y 1   # ^
+mul z y   # z *= 26
+mul y 0   # y = (w + 12) * x
+add y w   # ^
+add y 12  # ^
+mul y x   # ^
+add z y   # z += y
+# w = inp[2]
+# x = {something > 10} != inp[1] (= 1)
+# y = inp[2] + 12
+# z = ((inp[0] + 10) * 26 + inp[1] + 5) * 26 + inp[2] + 12
+
+# INPUT 3
+inp w     # w = inp[3]
+mul x 0   # x = z % 26 - 12
+add x z   # ^
+mod x 26  # ^
+div z 26  # z /= 26
+add x -12 # ^
+eql x w   # x = x != w (= ?)
+eql x 0   # ^
+mul y 0   # y = 25 * x + 1 (= ?)
+add y 25  # ^
+mul y x   # ^
+add y 1   # ^
+mul z y   # z *= y
+mul y 0   # y = (inp[3] + 12) * x
+add y w   #
+add y 12  #
+mul y x   #
+add z y   # z += y
+# w = inp[2]
+# x = (((inp[0] + 10) * 26 + inp[1] + 5) * 26 + inp[2] + 12) % 26 - 12 != inp[3]
+# y = (inp[3] + 12) * x
+
+# INPUT 4
+inp w     #
+mul x 0   #
+add x z   #
+mod x 26  #
+div z 1   #
+add x 14  #
+eql x w   # x = x != w (= 1)
+eql x 0   #
+mul y 0   #
+add y 25  #
+mul y x   #
+add y 1   #
+mul z y   #
+mul y 0   #
+add y w   #
+add y 6   #
+mul y x   #
+add z y   #
+# INPUT 5
+inp w     #
+mul x 0   #
+add x z   #
+mod x 26  #
+div z 26  #
+add x -2  #
+eql x w   # x = x != w (= 1)
+eql x 0   #
+mul y 0   #
+add y 25  #
+mul y x   #
+add y 1   #
+mul z y   #
+mul y 0   #
+add y w   #
+add y 4   #
+mul y x   #
+add z y   #
+# INPUT 6
+inp w     #
+mul x 0   #
+add x z   #
+mod x 26  #
+div z 1   #
+add x 13  #
+eql x w   # x = x != w (= 1)
+eql x 0   #
+mul y 0   #
+add y 25  #
+mul y x   #
+add y 1   #
+mul z y   #
+mul y 0   #
+add y w   #
+add y 15  #
+mul y x   #
+add z y   #
+# INPUT 7
+inp w     #
+mul x 0   #
+add x z   #
+mod x 26  #
+div z 26  #
+add x -12 #
+eql x w   # x = x != w (= 1)
+eql x 0   #
+mul y 0   #
+add y 25  #
+mul y x   #
+add y 1   #
+mul z y   #
+mul y 0   #
+add y w   #
+add y 3   #
+mul y x   #
+add z y   #
+# INPUT 8
+inp w     #
+mul x 0   #
+add x z   #
+mod x 26  #
+div z 1   #
+add x 15  #
+eql x w   # x = x != w (= 1)
+eql x 0   #
+mul y 0   #
+add y 25  #
+mul y x   #
+add y 1   #
+mul z y   #
+mul y 0   #
+add y w   #
+add y 7   #
+mul y x   #
+add z y   #
+# INPUT 9
+inp w     #
+mul x 0   #
+add x z   #
+mod x 26  #
+div z 1   #
+add x 11  #
+eql x w   # x = x != w (= 1)
+eql x 0   #
+mul y 0   #
+add y 25  #
+mul y x   #
+add y 1   #
+mul z y   #
+mul y 0   #
+add y w   #
+add y 11  #
+mul y x   #
+add z y   #
+# INPUT 10
+inp w     #
+mul x 0   #
+add x z   #
+mod x 26  #
+div z 26  #
+add x -3  #
+eql x w   # x = x != w (= 1)
+eql x 0   #
+mul y 0   #
+add y 25  #
+mul y x   #
+add y 1   #
+mul z y   #
+mul y 0   #
+add y w   #
+add y 2   #
+mul y x   #
+add z y   #
+# INPUT 11
+inp w     #
+mul x 0   #
+add x z   #
+mod x 26  #
+div z 26  #
+add x -13 #
+eql x w   # x = x != w (= 1)
+eql x 0   #
+mul y 0   #
+add y 25  #
+mul y x   #
+add y 1   #
+mul z y   #
+mul y 0   #
+add y w   #
+add y 12  #
+mul y x   #
+add z y   #
+# INPUT 12
+inp w     #
+mul x 0   #
+add x z   #
+mod x 26  #
+div z 26  #
+add x -12 #
+eql x w   # x = x != w (= 1)
+eql x 0   #
+mul y 0   #
+add y 25  #
+mul y x   #
+add y 1   #
+mul z y   #
+mul y 0   #
+add y w   #
+add y 4   #
+mul y x   #
+add z y   #
+# INPUT 13
+inp w     #
+mul x 0   #
+add x z   #
+mod x 26  #
+div z 26  #
+add x -13 #
+eql x w   # x = x != w (= 1)
+eql x 0   #
+mul y 0   #
+add y 25  #
+mul y x   #
+add y 1   #
+mul z y   #
+mul y 0   #
+add y w   #
+add y 11  #
+mul y x   #
+add z y   #
