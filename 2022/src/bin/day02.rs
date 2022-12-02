@@ -1,18 +1,10 @@
 #![feature(test)]
 
-
 use aoc2022::*;
-use parse::parse_input;
 
 const DAY: usize = 2;
 
-type Parsed = Vec<(Rps, Rps)>;
-
-pub enum Rps {
-    Rock,
-    Paper,
-    Scissors,
-}
+type Parsed = Vec<(usize, usize)>;
 
 fn main() {
     let input = read_input!();
@@ -21,61 +13,43 @@ fn main() {
     println!("Part 2: {}", part_2(&parsed));
 }
 
-mod parse {
-    use super::*;
-    use std::str::FromStr;
 
-    pub fn parse_input(input: &str) -> Parsed {
-        input
-            .trim()
-            .lines()
-            .map(|line| {
-                let (a, b) = line.split_once(' ').unwrap();
-                (a.parse().unwrap(), b.parse().unwrap())
-            })
-            .collect()
-    }
-
-    impl FromStr for Rps {
-        type Err = String;
-
-        fn from_str(s: &str) -> Result<Self, Self::Err> {
-            match s {
-                "A" | "X" => Ok(Rps::Rock),
-                "B" | "Y" => Ok(Rps::Paper),
-                "C" | "Z" => Ok(Rps::Scissors),
-                _ => Err("unknown character".to_owned())
-            }
-        }
-    }
+fn parse_input(input: &str) -> Parsed {
+    input
+        .trim()
+        .lines()
+        .map(|line| {
+            let bytes = line.as_bytes();
+            ((bytes[0] - b'A') as usize, (bytes[2] as u8 - b'X') as usize)
+        })
+        .collect()
 }
 
 fn part_1(parsed: &Parsed) -> usize {
     parsed.iter()
-        .map(|(other, mine)| mine.score_against(other))
+        .map(|&(other, mine)| score_against(mine, other))
         .sum()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(parsed: &Parsed) -> usize {
+    parsed.iter()
+        .map(|&(other, outcome)| {
+            let mine = second_for(other, outcome);
+            outcome * 3 + mine + 1
+        })
+        .sum()
 }
 
-impl Rps {
-    fn score(&self) -> usize {
-        match self {
-            Rps::Rock => 1,
-            Rps::Paper => 2,
-            Rps::Scissors => 3,
-        }
-    }
+fn score_against(this: usize, other: usize) -> usize {
+    // Add 3 first to prevent underflow and 1 for score
+    //   win:  rock - scissors % 3 + 1 = 2
+    //   draw: rock - rock     % 3 + 1 = 1
+    //   loss: rock - paper    % 3 + 1 = 0
+    this + 1 + (4 + this - other) % 3 * 3
+}
 
-    fn score_against(&self, other: &Rps) -> usize {
-        // Add 3 first to prevent underflow
-        //   win:  rock - scissors % 3 + 1 = 2
-        //   draw: rock - rock     % 3 + 1 = 1
-        //   loss: rock - paper    % 3 + 1 = 0
-        self.score() + (4 + self.score() - other.score()) % 3 * 3
-    }
+fn second_for(other: usize, outcome: usize) -> usize {
+    (other + outcome + 2) % 3
 }
 
 #[cfg(test)]
@@ -90,29 +64,60 @@ mod tests {
         ";
 
     test!(part_1() == 15);
-    // test!(part_2() == 0);
+    test!(part_2() == 12);
     bench_parse!(Vec::len, 2500);
     bench!(part_1() == 11063);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 10349);
+
+    const ROCK: usize = 0;
+    const PAPER: usize = 1;
+    const SCISSORS: usize = 2;
+
+    const LOSS: usize = 0;
+    const DRAW: usize = 1;
+    const WIN: usize = 2;
+
+    // very elaborative test suite following
 
     #[test]
     fn test_score_against_draw() {
-        assert_eq!(Rps::Rock.score_against(&Rps::Rock), 1 + 3);
-        assert_eq!(Rps::Paper.score_against(&Rps::Paper), 2 + 3);
-        assert_eq!(Rps::Scissors.score_against(&Rps::Scissors), 3 + 3);
+        assert_eq!(score_against(ROCK, ROCK), 1 + 3);
+        assert_eq!(score_against(PAPER, PAPER), 2 + 3);
+        assert_eq!(score_against(SCISSORS, SCISSORS), 3 + 3);
     }
 
     #[test]
     fn test_score_against_loss() {
-        assert_eq!(Rps::Rock.score_against(&Rps::Paper), 1);
-        assert_eq!(Rps::Paper.score_against(&Rps::Scissors), 2);
-        assert_eq!(Rps::Scissors.score_against(&Rps::Rock), 3);
+        assert_eq!(score_against(ROCK, PAPER), 1);
+        assert_eq!(score_against(PAPER, SCISSORS), 2);
+        assert_eq!(score_against(SCISSORS, ROCK), 3);
     }
 
     #[test]
     fn test_score_against_win() {
-        assert_eq!(Rps::Rock.score_against(&Rps::Scissors), 1 + 6);
-        assert_eq!(Rps::Paper.score_against(&Rps::Rock), 2 + 6);
-        assert_eq!(Rps::Scissors.score_against(&Rps::Paper), 3 + 6);
+        assert_eq!(score_against(ROCK, SCISSORS), 1 + 6);
+        assert_eq!(score_against(PAPER, ROCK), 2 + 6);
+        assert_eq!(score_against(SCISSORS, PAPER), 3 + 6);
+    }
+
+    #[test]
+    fn test_second_for_draw() {
+        assert_eq!(second_for(ROCK, DRAW), ROCK);
+        assert_eq!(second_for(PAPER, DRAW), PAPER);
+        assert_eq!(second_for(SCISSORS, DRAW), SCISSORS);
+    }
+
+    #[test]
+    fn test_second_for_loss() {
+        assert_eq!(second_for(ROCK, LOSS), SCISSORS);
+        assert_eq!(second_for(PAPER, LOSS), ROCK);
+        assert_eq!(second_for(SCISSORS, LOSS), PAPER);
+    }
+
+    #[test]
+    fn test_second_for_win() {
+        assert_eq!(second_for(ROCK, WIN), PAPER);
+        assert_eq!(second_for(PAPER, WIN), SCISSORS);
+        assert_eq!(second_for(SCISSORS, WIN), ROCK);
     }
 }
