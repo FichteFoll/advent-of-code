@@ -4,6 +4,8 @@ These are just my (quick and dirty) solutions to the
 [Advent of Code][] Advent calendar
 for everyone to see, frown and laugh at.
 
+[Advent of Code]: https://adventofcode.com/
+
 Code is split into folders or files by year and day
 with my input included for better reproducibility.
 I did not complete all puzzles,
@@ -50,4 +52,22 @@ by comparing mine against other solutions
 in a different language.
 
 
-[Advent of Code]: https://adventofcode.com/
+## Completed
+
+The following completed counts are a snapshot of the respective year
+before the end of December
+(though until now I have not gone back to a previous year anyway).
+
+```
+day  |         1111111111222222|
+  `->|1234567890123456789012345|
+year |                         | sum
+2017 |++-++++  +++  + + + ++-  |  30
+2018 |+++++++++++  + + ++     -|  31
+2019 |+++++++++++ +++++ +      |  34
+2020 |+++++++++++++++++++ ++-  |  43
+2021 |+++++++++++++++++++++ ++-|  47
+2022 |    work in progress     |  ??
+```
+
+`+` represents two stars, `-` one star
