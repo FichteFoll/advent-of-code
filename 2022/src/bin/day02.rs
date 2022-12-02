@@ -48,6 +48,9 @@ fn score_against(this: usize, other: usize) -> usize {
 }
 
 fn second_for(other: usize, outcome: usize) -> usize {
+    // rock & x => win: 0 + 2 + 2 % 3 = 1 => paper
+    // scissors & x => draw: 2 + 1 + 2 % 3 = 2 => scissors
+    // paper & x => loss: 1 + 0 + 2 % 3 = 0 => rock
     (other + outcome + 2) % 3
 }
 
