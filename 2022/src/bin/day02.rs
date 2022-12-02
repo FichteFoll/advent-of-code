@@ -1,4 +1,5 @@
 #![feature(test)]
+#![feature(array_chunks)]
 
 use aoc2022::*;
 
@@ -15,12 +16,10 @@ fn main() {
 
 
 fn parse_input(input: &str) -> Parsed {
-    input
-        .trim()
-        .lines()
+    // requires trailing newline
+    input.as_bytes().array_chunks::<4>()
         .map(|line| {
-            let bytes = line.as_bytes();
-            ((bytes[0] - b'A') as usize, (bytes[2] as u8 - b'X') as usize)
+            ((line[0] - b'A') as usize, (line[2] as u8 - b'X') as usize)
         })
         .collect()
 }
