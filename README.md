@@ -4,7 +4,7 @@ These are just my (quick and dirty) solutions to the
 [Advent of Code][] Advent calendar
 for everyone to see, frown and laugh at.
 
-Code is split into folders by year and day
+Code is split into folders or files by year and day
 with my input included for better reproducibility.
 I did not complete all puzzles,
 so you'll only see those that I completed.
@@ -41,6 +41,13 @@ For **2020**, I am going back to **Rust**,
 because it has been two years since I last did something with it.
 
 For **2021**, **Rust** it is. It's just so much fun.
+
+It's **2022** and you know the deal (**Rust**).
+It might sound boring,
+but I distract myself from "too much Rust"
+(if that's even possible)
+by comparing mine against other solutions
+in a different language.
 
 
 [Advent of Code]: https://adventofcode.com/
