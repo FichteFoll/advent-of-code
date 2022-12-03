@@ -48,8 +48,14 @@ fn part_1(parsed: &Parsed) -> u32 {
         .sum()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(parsed: &Parsed) -> u32 {
+    parsed.chunks(3)
+        .map(|group| group.iter()
+            .map(|(a, b)| a | b)
+            .fold(u64::MAX, |a, x| a & x)
+            .trailing_zeros() + 1
+        )
+        .sum()
 }
 
 #[cfg(test)]
@@ -67,8 +73,8 @@ mod tests {
         ";
 
     test!(part_1() == 157);
-    // test!(part_2() == 0);
+    test!(part_2() == 70);
     bench_parse!(Vec::len, 300);
     bench!(part_1() == 8202);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 2864);
 }
