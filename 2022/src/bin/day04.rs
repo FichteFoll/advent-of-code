@@ -6,6 +6,7 @@ use aoc2022::*;
 use parse::parse_input;
 
 const DAY: usize = 4;
+
 type Range = RangeInclusive<usize>;
 type Parsed = Vec<(Range, Range)>;
 
@@ -20,41 +21,38 @@ mod parse {
     use super::*;
 
     pub fn parse_input(input: &str) -> Parsed {
-        input
-            .trim()
-            .lines()
+        input.trim().lines()
             .map(|line| {
-                let ranges: Vec<_> = line.split(',').map(|range_str| {
-                    let rs = range_str.split_once('-').unwrap();
-                    Range::new(rs.0.parse().unwrap(), rs.1.parse().unwrap())
-                }).collect();
-                let mut iter = ranges.into_iter();
-                (iter.next().unwrap(), iter.next().unwrap())
+                let parts = line.split_once(',').unwrap();
+                (parse_range(parts.0), parse_range(parts.1))
             })
             .collect()
+    }
+
+    fn parse_range(range_str: &str) -> Range {
+        let rs = range_str.split_once('-').unwrap();
+        Range::new(rs.0.parse().unwrap(), rs.1.parse().unwrap())
     }
 }
 
 fn part_1(parsed: &Parsed) -> usize {
     parsed.iter()
-        .filter(either_contains)
+        .filter(|(a, b)| {
+            a.start() >= b.start() && a.end() <= b.end()
+                || b.start() >= a.start() && b.end() <= a.end()
+        })
         .count()
 }
 
 fn part_2(parsed: &Parsed) -> usize {
     parsed.iter()
-        .filter(overlaps)
+        .filter(|(a, b)| {
+            a.contains(b.start())
+                || a.contains(b.end())
+                || b.contains(a.start())
+                || b.contains(a.end())
+        })
         .count()
-}
-
-fn either_contains<'a>((a, b): &'a &(Range, Range)) -> bool {
-    return a.start() >= b.start() && a.end() <= b.end()
-        || b.start() >= a.start() && b.end() <= a.end();
-}
-
-fn overlaps<'a>((a, b): &'a &(Range, Range)) -> bool {
-    return a.contains(b.start()) || a.contains(b.end())
-        || b.contains(a.start()) || b.contains(a.end());
 }
 
 #[cfg(test)]
