@@ -41,13 +41,20 @@ fn part_1(parsed: &Parsed) -> usize {
         .count()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(parsed: &Parsed) -> usize {
+    parsed.iter()
+        .filter(overlaps)
+        .count()
 }
 
 fn either_contains<'a>((a, b): &'a &(Range, Range)) -> bool {
     return a.start() >= b.start() && a.end() <= b.end()
         || b.start() >= a.start() && b.end() <= a.end();
+}
+
+fn overlaps<'a>((a, b): &'a &(Range, Range)) -> bool {
+    return a.contains(b.start()) || a.contains(b.end())
+        || b.contains(a.start()) || b.contains(a.end());
 }
 
 #[cfg(test)]
@@ -65,8 +72,8 @@ mod tests {
         ";
 
     test!(part_1() == 2);
-    // test!(part_2() == 0);
+    test!(part_2() == 4);
     bench_parse!(Vec::len, 1000);
     bench!(part_1() == 431);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 823);
 }
