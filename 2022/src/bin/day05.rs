@@ -1,5 +1,7 @@
 #![feature(test)]
 
+use std::cell::RefCell;
+
 use aoc2022::*;
 use parse::parse_input;
 
@@ -64,28 +66,28 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> String {
-    let mut stacks = parsed.0.clone();
-    for instr in parsed.1.iter() {
-        for _ in 0..instr.count {
-            if let Some(c) = stacks[instr.from].pop() {
-                stacks[instr.to].push(c);
-            } else {
-                panic!("stack {} is empty", instr.from);
-            }
-        }
-    }
-    stacks.iter_mut().flat_map(Vec::pop).collect()
+    operate_crane(parsed, true)
 }
 
 fn part_2(parsed: &Parsed) -> String {
-    let mut stacks = parsed.0.clone();
+    operate_crane(parsed, false)
+}
+
+fn operate_crane(parsed: &Parsed, reverse: bool) -> String {
+    let stacks: Vec<_> = parsed.0.iter().cloned().map(RefCell::new).collect();
     for instr in parsed.1.iter() {
-        let from_len_after = stacks[instr.from].len() - instr.count;
-        let grabbed: Vec<_> = stacks[instr.from].iter().skip(from_len_after).cloned().collect();
-        stacks[instr.to].extend(grabbed);
-        stacks[instr.from].truncate(from_len_after);
+        let mut from_stack = stacks[instr.from].borrow_mut();
+        let mut to_stack = stacks[instr.to].borrow_mut();
+        let from_len_after = from_stack.len() - instr.count;
+        if reverse {
+            to_stack.extend(from_stack.drain(from_len_after..).rev());
+        } else {
+            to_stack.extend(from_stack.drain(from_len_after..));
+        };
     }
-    stacks.iter_mut().flat_map(Vec::pop).collect()
+    stacks.into_iter()
+        .flat_map(|s| s.borrow_mut().pop())
+        .collect()
 }
 
 #[cfg(test)]
