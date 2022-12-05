@@ -77,8 +77,15 @@ fn part_1(parsed: &Parsed) -> String {
     stacks.iter_mut().flat_map(Vec::pop).collect()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(parsed: &Parsed) -> String {
+    let mut stacks = parsed.0.clone();
+    for instr in parsed.1.iter() {
+        let from_len_after = stacks[instr.from].len() - instr.count;
+        let grabbed: Vec<_> = stacks[instr.from].iter().skip(from_len_after).cloned().collect();
+        stacks[instr.to].extend(grabbed);
+        stacks[instr.from].truncate(from_len_after);
+    }
+    stacks.iter_mut().flat_map(Vec::pop).collect()
 }
 
 #[cfg(test)]
@@ -100,10 +107,10 @@ mod tests {
         ";
 
     test!(part_1() == "CMZ".to_string());
-    // test!(part_2() == 0);
+    test!(part_2() == "MCD".to_string());
     bench_parse!(|p: &Parsed| (p.0.len(), p.1.len()), (9, 501));
     bench!(part_1() == "VRWBSFZWM".to_string());
-    // bench!(part_2() == 0);
+    bench!(part_2() == "RBTWJWMCF".to_string());
 
     #[test]
     fn test_parse_example() {
