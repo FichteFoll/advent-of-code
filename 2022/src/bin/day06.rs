@@ -51,20 +51,14 @@ mod tests {
     bench!(part_1() == 1582);
     bench!(part_2() == 3588);
 
-    #[test]
-    fn test_part_1_more() {
-        assert_eq!(part_1(&parse_input("bvwbjplbgvbhsrlpgdmjqwftvncz")), 5);
-        assert_eq!(part_1(&parse_input("nppdvjthqldpwncqszvftbrmjlhg")), 6);
-        assert_eq!(part_1(&parse_input("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg")), 10);
-        assert_eq!(part_1(&parse_input("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw")), 11);
-    }
+    test!(ex1, "bvwbjplbgvbhsrlpgdmjqwftvncz", part_1() == 5);
+    test!(ex2, "nppdvjthqldpwncqszvftbrmjlhg", part_1() == 6);
+    test!(ex3, "nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg", part_1() == 10);
+    test!(ex4, "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw", part_1() == 11);
 
-    #[test]
-    fn test_part_2_more() {
-        assert_eq!(part_2(&parse_input("mjqjpqmgbljsphdztnvjfqwrcgsmlb")), 19);
-        assert_eq!(part_2(&parse_input("bvwbjplbgvbhsrlpgdmjqwftvncz")), 23);
-        assert_eq!(part_2(&parse_input("nppdvjthqldpwncqszvftbrmjlhg")), 23);
-        assert_eq!(part_2(&parse_input("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg")), 29);
-        assert_eq!(part_2(&parse_input("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw")), 26);
-    }
+    test!(ex1, "mjqjpqmgbljsphdztnvjfqwrcgsmlb", part_2() == 19);
+    test!(ex2, "bvwbjplbgvbhsrlpgdmjqwftvncz", part_2() == 23);
+    test!(ex3, "nppdvjthqldpwncqszvftbrmjlhg", part_2() == 23);
+    test!(ex4, "nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg", part_2() == 29);
+    test!(ex5, "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw", part_2() == 26);
 }
