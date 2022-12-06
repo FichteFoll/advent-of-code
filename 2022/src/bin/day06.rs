@@ -69,6 +69,22 @@ fn find_unique_sequence_on<const SEQUENCE_LEN: usize>(parsed: &String) -> usize 
     panic!("did not terminate");
 }
 
+#[allow(unused)]
+fn find_unique_sequence_bitmask<const N: usize>(parsed: &String) -> usize {
+    // This isn't my idea or implementation, but I liked it enough to include it here anyway.
+    // It's also O(n) but uses the fact that XOR with a duplicate bit
+    // flips it to zero which makes it not pass the count_ones check.
+    let bytes = parsed.as_bytes();
+    let mut mask: u32 = bytes[..N].iter().fold(0, |a, &byte| a ^ (1 << (byte - b'a')));
+    for (index, window) in bytes.windows(N + 1).enumerate() {
+        if mask.count_ones() == N as u32 {
+            return index + N;
+        }
+        mask ^= (1 << (window[N] - b'a')) ^ (1 << (window[0] - b'a'));
+    }
+    panic!("did not terminate");
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
