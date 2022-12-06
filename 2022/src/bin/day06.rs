@@ -25,14 +25,18 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    parsed.as_bytes()
-        .array_windows::<4>()
-        .find_position(|a| a.iter().unique().count() == 4)
-        .unwrap().0 + 4
+    find_unique_sequence::<4>(parsed)
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(parsed: &Parsed) -> usize {
+    find_unique_sequence::<14>(parsed)
+}
+
+fn find_unique_sequence<const SEQUENCE_LEN: usize>(parsed: &String) -> usize {
+    parsed.as_bytes()
+        .array_windows::<SEQUENCE_LEN>()
+        .find_position(|a| a.iter().unique().count() == SEQUENCE_LEN)
+        .unwrap().0 + SEQUENCE_LEN
 }
 
 #[cfg(test)]
@@ -43,10 +47,9 @@ mod tests {
     const TEST_INPUT: &str = "mjqjpqmgbljsphdztnvjfqwrcgsmlb";
 
     test!(part_1() == 7);
-    // test!(part_2() == 0);
     bench_parse!(String::len, 4095);
-    // bench!(part_1() == 1582);
-    // bench!(part_2() == 0);
+    bench!(part_1() == 1582);
+    bench!(part_2() == 3588);
 
     #[test]
     fn test_part_1_more() {
@@ -54,5 +57,14 @@ mod tests {
         assert_eq!(part_1(&parse_input("nppdvjthqldpwncqszvftbrmjlhg")), 6);
         assert_eq!(part_1(&parse_input("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg")), 10);
         assert_eq!(part_1(&parse_input("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw")), 11);
+    }
+
+    #[test]
+    fn test_part_2_more() {
+        assert_eq!(part_2(&parse_input("mjqjpqmgbljsphdztnvjfqwrcgsmlb")), 19);
+        assert_eq!(part_2(&parse_input("bvwbjplbgvbhsrlpgdmjqwftvncz")), 23);
+        assert_eq!(part_2(&parse_input("nppdvjthqldpwncqszvftbrmjlhg")), 23);
+        assert_eq!(part_2(&parse_input("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg")), 29);
+        assert_eq!(part_2(&parse_input("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw")), 26);
     }
 }
