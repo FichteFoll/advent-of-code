@@ -28,7 +28,7 @@ fn part_1(parsed: &Parsed) -> usize {
 }
 
 fn part_2(parsed: &Parsed) -> usize {
-    find_unique_sequence::<14>(parsed)
+    find_unique_sequence_on::<14>(parsed)
 }
 
 fn find_unique_sequence<const SEQUENCE_LEN: usize>(parsed: &String) -> usize {
@@ -39,6 +39,34 @@ fn find_unique_sequence<const SEQUENCE_LEN: usize>(parsed: &String) -> usize {
             bitset.count_ones() as usize == SEQUENCE_LEN
         })
         .unwrap() + SEQUENCE_LEN
+}
+
+fn find_unique_sequence_on<const SEQUENCE_LEN: usize>(parsed: &String) -> usize {
+    // Achieve O(n) by tracking chars of the current window in an array
+    // and no inner loops.
+    // Faster for part 2 and about the same speed for part 1 but with many more lines.
+    let mut state = [0u8; 26];
+    let mut num_duplicates = 0;
+    let bytes = parsed.as_bytes();
+    for (i, b) in bytes.iter().enumerate() {
+        let in_index = (b - b'a') as usize;
+        if state[in_index] > 0 {
+            num_duplicates += 1;
+        }
+        state[in_index] += 1;
+        if i >= SEQUENCE_LEN {
+            let out_b = bytes[i - SEQUENCE_LEN];
+            let out_index = (out_b - b'a') as usize;
+            state[out_index] -= 1;
+            if state[out_index] > 0 {
+                num_duplicates -= 1;
+            }
+        }
+        if i + 1 >= SEQUENCE_LEN && num_duplicates == 0 {
+            return i + 1;
+        }
+    }
+    panic!("did not terminate");
 }
 
 #[cfg(test)]
