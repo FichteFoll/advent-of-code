@@ -2,7 +2,6 @@
 #![feature(test)]
 
 use aoc2022::*;
-use itertools::Itertools;
 use parse::parse_input;
 
 const DAY: usize = 6;
@@ -35,8 +34,11 @@ fn part_2(parsed: &Parsed) -> usize {
 fn find_unique_sequence<const SEQUENCE_LEN: usize>(parsed: &String) -> usize {
     parsed.as_bytes()
         .array_windows::<SEQUENCE_LEN>()
-        .find_position(|a| a.iter().unique().count() == SEQUENCE_LEN)
-        .unwrap().0 + SEQUENCE_LEN
+        .position(|a| {
+            let bitset = a.iter().fold(0u32, |acc, b| acc | 1 << (b - b'a'));
+            bitset.count_ones() as usize == SEQUENCE_LEN
+        })
+        .unwrap() + SEQUENCE_LEN
 }
 
 #[cfg(test)]
