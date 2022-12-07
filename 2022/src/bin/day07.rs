@@ -2,6 +2,7 @@
 #![feature(if_let_guard)]
 
 use std::cell::RefCell;
+use std::collections::BinaryHeap;
 use std::rc::Rc;
 
 use aoc2022::*;
@@ -64,8 +65,17 @@ fn part_1(parsed: &Parsed) -> usize {
     sum_deletable_dirs(&*parsed.borrow())
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+const MAX_CAPACITY: usize = 70_000_000 - 30_000_000;
+
+fn part_2(parsed: &Parsed) -> usize {
+    let mut sizes = Default::default();
+    collect_sizes_dirs(&*parsed.borrow(), &mut sizes);
+    let sizes_vec = sizes.into_sorted_vec();
+    let total = sizes_vec.last().unwrap();
+    let min_to_free = total - MAX_CAPACITY;
+    sizes_vec.into_iter()
+        .find(|&size| size > min_to_free)
+        .unwrap()
 }
 
 impl Item {
@@ -108,10 +118,25 @@ impl Item {
 fn sum_deletable_dirs(item: &Item) -> usize {
     if let Dir { children, .. } = item {
         let sum_self = Some(item.size()).filter(|&s| s < 100_000).unwrap_or(0);
-        let sum_children: usize = children.iter().map(|c| sum_deletable_dirs(&*c.borrow())).sum();
+        let sum_children: usize = children.iter()
+            .map(|c| sum_deletable_dirs(&*c.borrow()))
+            .sum();
         sum_self + sum_children
     } else {
         0
+    }
+}
+
+fn collect_sizes_dirs(item: &Item, sizes: &mut BinaryHeap<usize>) -> usize {
+    match item {
+        File { size, .. } => *size,
+        Dir { children, .. } => {
+            let this_size = children.iter()
+                .map(|c| collect_sizes_dirs(&*c.borrow(), sizes))
+                .sum();
+            sizes.push(this_size);
+            this_size
+        }
     }
 }
 
@@ -147,8 +172,8 @@ mod tests {
         ";
 
     test!(part_1() == 95437);
-    // test!(part_2() == 0);
+    test!(part_2() == 24933642);
     bench_parse!(|p: &Parsed| p.borrow().size(), 48008081);
     bench!(part_1() == 1141028);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 8278005);
 }
