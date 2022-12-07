@@ -63,7 +63,6 @@ fn part_2(parsed: &Parsed) -> usize {
     collect_sizes_dirs(parsed, &mut sizes);
     let total = sizes.peek().unwrap();
     let min_to_free = total - MAX_CAPACITY;
-    dbg!(min_to_free);
     sizes.into_iter_sorted()
         .take_while(|&size| size > min_to_free)
         .last()
