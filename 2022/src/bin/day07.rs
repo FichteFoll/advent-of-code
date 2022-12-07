@@ -1,20 +1,18 @@
 #![feature(test)]
 #![feature(if_let_guard)]
 
-use std::cell::RefCell;
 use std::collections::BinaryHeap;
-use std::rc::Rc;
 
 use aoc2022::*;
 
 const DAY: usize = 7;
 
-type Parsed = Rc<RefCell<Item>>;
+type Parsed = Item;
 
 #[derive(Clone, Debug)]
 enum Item {
     File { name: String, size: usize },
-    Dir { name: String, children: Vec<Rc<RefCell<Item>>> },
+    Dir { name: String, children: Vec<Item> },
 }
 use Item::{File, Dir};
 
@@ -26,11 +24,10 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Parsed {
-    let root: Rc<RefCell<_>> = RefCell::new(Item::new_dir("/".to_string())).into();
-    let mut path = vec![root.clone()];
+    let mut root = Item::new_dir("/".to_string());
+    let mut path: Vec<&str> = vec![];
     macro_rules! current {
-        () => { path.last().unwrap().borrow() };
-        (mut) => { path.last().unwrap().borrow_mut() };
+        () => { path.iter().try_fold(&mut root, |i, name| i.find_child_mut(name)).unwrap() };
     }
 
     for line in input.lines() {
@@ -46,14 +43,13 @@ fn parse_input(input: &str) -> Parsed {
                 path.pop();
             },
             ["$", "cd", name] => {
-                let new_current = current!().find_child(name).unwrap();
-                path.push(new_current);
-            }
+                path.push(name);
+            },
             ["dir", name] => {
-                current!(mut).append_child(Item::new_dir(name.to_string()));
+                current!().append_child(Item::new_dir(name.to_string()));
             },
             [size_str, name] if let Ok(size) = size_str.parse() => {
-                current!(mut).append_child(File { name: name.to_string(), size });
+                current!().append_child(File { name: name.to_string(), size });
             },
             _ => panic!("couldn't match {line}"),
         }
@@ -62,14 +58,14 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    sum_deletable_dirs(&*parsed.borrow())
+    sum_deletable_dirs(parsed)
 }
 
 const MAX_CAPACITY: usize = 70_000_000 - 30_000_000;
 
 fn part_2(parsed: &Parsed) -> usize {
     let mut sizes = Default::default();
-    collect_sizes_dirs(&*parsed.borrow(), &mut sizes);
+    collect_sizes_dirs(parsed, &mut sizes);
     let sizes_vec = sizes.into_sorted_vec();
     let total = sizes_vec.last().unwrap();
     let min_to_free = total - MAX_CAPACITY;
@@ -92,15 +88,15 @@ impl Item {
 
     fn append_child(&mut self, child: Self) {
         if let Dir { children, ..} = self {
-            children.push(RefCell::new(child).into())
+            children.push(child)
         } else {
             panic!("not a directory")
         }
     }
 
-    fn find_child(&self, name: &str) -> Option<Rc<RefCell<Self>>> {
+    fn find_child_mut(&mut self, name: &str) -> Option<&mut Self> {
         if let Dir { children, ..} = self {
-            children.iter().find(|c| c.borrow().name() == name).cloned()
+            children.iter_mut().find(|c| c.name() == name)
         } else {
             panic!("not a directory")
         }
@@ -110,7 +106,7 @@ impl Item {
         match self {
             File { size, .. } => *size,
             Dir { children, .. } =>
-                children.iter().map(|c| c.borrow().size()).sum(),
+                children.iter().map(|c| c.size()).sum(),
         }
     }
 }
@@ -119,7 +115,7 @@ fn sum_deletable_dirs(item: &Item) -> usize {
     if let Dir { children, .. } = item {
         let sum_self = Some(item.size()).filter(|&s| s < 100_000).unwrap_or(0);
         let sum_children: usize = children.iter()
-            .map(|c| sum_deletable_dirs(&*c.borrow()))
+            .map(|c| sum_deletable_dirs(&c))
             .sum();
         sum_self + sum_children
     } else {
@@ -132,7 +128,7 @@ fn collect_sizes_dirs(item: &Item, sizes: &mut BinaryHeap<usize>) -> usize {
         File { size, .. } => *size,
         Dir { children, .. } => {
             let this_size = children.iter()
-                .map(|c| collect_sizes_dirs(&*c.borrow(), sizes))
+                .map(|c| collect_sizes_dirs(&c, sizes))
                 .sum();
             sizes.push(this_size);
             this_size
@@ -173,7 +169,7 @@ mod tests {
 
     test!(part_1() == 95437);
     test!(part_2() == 24933642);
-    bench_parse!(|p: &Parsed| p.borrow().size(), 48008081);
+    bench_parse!(|p: &Parsed| p.size(), 48008081);
     bench!(part_1() == 1141028);
     bench!(part_2() == 8278005);
 }
