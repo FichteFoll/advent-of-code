@@ -34,21 +34,11 @@ fn parse_input(input: &str) -> Parsed {
     for line in input.lines() {
         let words: Vec<_> = line.split_ascii_whitespace().collect();
         match &words[..] {
-            ["$", "cd", "/"] => {
-                // we already did this in our initialization
-            },
-            ["$", "ls"] => {
-                // ignore
-            },
-            ["$", "cd", ".."] => {
-                path.pop();
-            },
-            ["$", "cd", name] => {
-                path.push(name);
-            },
-            ["dir", name] => {
-                current!().append_child(Item::new_dir(name.to_string()));
-            },
+            ["$", "cd", "/"] => {}, // we already did this in our initialization
+            ["$", "ls"] => {}, // ignore
+            ["$", "cd", ".."] => { path.pop(); },
+            ["$", "cd", name] => path.push(name),
+            ["dir", name] => current!().append_child(Item::new_dir(name.to_string())),
             [size_str, name] if let Ok(size) = size_str.parse() => {
                 current!().append_child(File { name: name.to_string(), size });
             },
