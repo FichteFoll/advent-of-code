@@ -1,5 +1,6 @@
-#![feature(test)]
+#![feature(binary_heap_into_iter_sorted)]
 #![feature(if_let_guard)]
+#![feature(test)]
 
 use std::collections::BinaryHeap;
 
@@ -58,7 +59,11 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    sum_deletable_dirs(parsed)
+    let mut sizes = Default::default();
+    collect_sizes_dirs(parsed, &mut sizes);
+    sizes.into_iter_sorted()
+        .skip_while(|&size| size > 100_000)
+        .sum()
 }
 
 const MAX_CAPACITY: usize = 70_000_000 - 30_000_000;
@@ -66,11 +71,12 @@ const MAX_CAPACITY: usize = 70_000_000 - 30_000_000;
 fn part_2(parsed: &Parsed) -> usize {
     let mut sizes = Default::default();
     collect_sizes_dirs(parsed, &mut sizes);
-    let sizes_vec = sizes.into_sorted_vec();
-    let total = sizes_vec.last().unwrap();
+    let total = sizes.peek().unwrap();
     let min_to_free = total - MAX_CAPACITY;
-    sizes_vec.into_iter()
-        .find(|&size| size > min_to_free)
+    dbg!(min_to_free);
+    sizes.into_iter_sorted()
+        .take_while(|&size| size > min_to_free)
+        .last()
         .unwrap()
 }
 
@@ -100,26 +106,6 @@ impl Item {
         } else {
             panic!("not a directory")
         }
-    }
-
-    fn size(&self) -> usize {
-        match self {
-            File { size, .. } => *size,
-            Dir { children, .. } =>
-                children.iter().map(|c| c.size()).sum(),
-        }
-    }
-}
-
-fn sum_deletable_dirs(item: &Item) -> usize {
-    if let Dir { children, .. } = item {
-        let sum_self = Some(item.size()).filter(|&s| s < 100_000).unwrap_or(0);
-        let sum_children: usize = children.iter()
-            .map(|c| sum_deletable_dirs(&c))
-            .sum();
-        sum_self + sum_children
-    } else {
-        0
     }
 }
 
@@ -169,7 +155,7 @@ mod tests {
 
     test!(part_1() == 95437);
     test!(part_2() == 24933642);
-    bench_parse!(|p: &Parsed| p.size(), 48008081);
+    bench_parse!(|p: &Parsed| match p { Dir { children, .. } => children.len(), _ => panic!(), }, 8);
     bench!(part_1() == 1141028);
     bench!(part_2() == 8278005);
 }
