@@ -3,12 +3,12 @@
 
 pub mod test;
 
-#[cfg(feature = "hash_fnv")]
+#[cfg(feature = "fnv")]
 pub mod collections {
     pub use fnv::{FnvHashSet as HashSet, FnvHashMap as HashMap};
 }
 
-#[cfg(not(feature = "hash_fnv"))]
+#[cfg(not(feature = "fnv"))]
 pub mod collections {
     use std::collections::{self, hash_map::RandomState};
     pub type HashMap<K, V> = collections::HashMap<K, V, RandomState>;
