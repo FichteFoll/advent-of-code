@@ -11,12 +11,7 @@ const DAY: usize = 8;
 type Point = (usize, usize);
 type Parsed = Vec<Vec<u8>>;
 
-fn main() {
-    let input = read_input!();
-    let parsed = parse_input(&input);
-    println!("Part 1: {}", part_1(&parsed));
-    println!("Part 2: {}", part_2(&parsed));
-}
+main!();
 
 pub fn parse_input(input: &str) -> Parsed {
     input.trim().as_bytes()

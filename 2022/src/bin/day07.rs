@@ -17,12 +17,7 @@ enum Item {
 }
 use Item::{File, Dir};
 
-fn main() {
-    let input = read_input!();
-    let parsed = parse_input(&input);
-    println!("Part 1: {}", part_1(&parsed));
-    println!("Part 2: {}", part_2(&parsed));
-}
+main!();
 
 fn parse_input(input: &str) -> Parsed {
     let mut root = Item::new_dir("/".to_string());

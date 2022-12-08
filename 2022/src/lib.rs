@@ -23,10 +23,15 @@ pub fn read_file(day: usize) -> String {
     .unwrap()
 }
 
-// requires DAY
+// requires `DAY` & `parse_input`
 #[macro_export]
-macro_rules! read_input {
+macro_rules! main {
     () => {
-        read_file(DAY)
+        fn main() {
+            let input = read_file(DAY);
+            let parsed = parse_input(&input);
+            println!("Part 1: {}", part_1(&parsed));
+            println!("Part 2: {}", part_2(&parsed));
+        }
     };
 }

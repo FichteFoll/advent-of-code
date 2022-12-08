@@ -37,7 +37,7 @@ macro_rules! bench {
         paste::paste! {
             #[bench]
             fn [<bench_ $part>](b: &mut test::Bencher) {
-                let input = read_input!();
+                let input = read_file(DAY);
                 let parsed = parse_input(&input);
                 b.iter(|| assert_eq!($part(test::black_box(&parsed) $(, $param)* ), $expected));
             }
@@ -51,7 +51,7 @@ macro_rules! bench_parse {
     ($fn:expr, $expected:expr) => {
         #[bench]
         fn bench_parse(b: &mut test::Bencher) {
-            let raw = read_input!();
+            let raw = read_file(DAY);
             b.iter(|| {
                 let parsed = parse_input(test::black_box(&raw));
                 assert_eq!($fn(&parsed), $expected)
@@ -61,7 +61,7 @@ macro_rules! bench_parse {
     () => {
         #[bench]
         fn bench_parse(b: &mut test::Bencher) {
-            let raw = read_input!();
+            let raw = read_file(DAY);
             b.iter(|| {
                 let _ = parse_input(test::black_box(&raw));
             });

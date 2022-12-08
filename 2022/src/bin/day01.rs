@@ -9,12 +9,7 @@ const DAY: usize = 1;
 
 type Parsed = Vec<Vec<u64>>;
 
-fn main() {
-    let input = read_input!();
-    let parsed = parse_input(&input);
-    println!("Part 1: {}", part_1(&parsed));
-    println!("Part 2: {}", part_2(&parsed));
-}
+main!();
 
 pub fn parse_input(input: &str) -> Parsed {
     input
