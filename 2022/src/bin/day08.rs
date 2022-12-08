@@ -1,9 +1,11 @@
 #![feature(test)]
 
 use aoc2022::*;
+use aoc2022::collections::*;
 
 const DAY: usize = 8;
 
+type Point = (usize, usize);
 type Parsed = Vec<Vec<u8>>;
 
 fn main() {
@@ -22,36 +24,39 @@ pub fn parse_input(input: &str) -> Parsed {
 
 fn part_1(grid: &Parsed) -> usize {
     // count trees visible from the left
-    let horizontal: usize = count_visible_horizontal(grid);
+    let mut points = Default::default();
+    count_visible_horizontal(grid, &mut points, false);
     let transposed_grid = transpose(&grid);
-    dbg!(&grid, &transposed_grid);
-    // TODO highest are counted twice
-    let vertical: usize = count_visible_horizontal(&transposed_grid);
-    dbg!(horizontal, vertical);
-    horizontal + vertical
-}
-
-fn count_visible_horizontal(grid: &Vec<Vec<u8>>) -> usize {
-    grid.iter()
-        .map(|line| {
-            let closure = |mut state: (usize, usize, u8), (i, &t): (usize, &u8)| {
-                if t >= state.2 {
-                    state.0 += 1;
-                    state.1 = i;
-                    state.2 = t + 1;
-                }
-                state
-            };
-            let (from_left, highest_index, _) = line.iter().enumerate().fold((0, 0, 0), closure);
-            let (from_right, ..) = line.iter().enumerate().skip(highest_index + 1).rev().fold((0, 0, 0), closure);
-            dbg!(line, from_left, from_right);
-            from_left + from_right
-        })
-        .sum()
+    count_visible_horizontal(&transposed_grid, &mut points, true);
+    points.len()
 }
 
 fn part_2(_parsed: &Parsed) -> usize {
     todo!()
+}
+
+fn count_visible_horizontal(grid: &Vec<Vec<u8>>, positions: &mut HashSet<Point>, transpose: bool) {
+    grid.iter()
+        .enumerate()
+        .for_each(|(y, line)| {
+            let closure = |mut state: (usize, u8, Vec<Point>), (x, &t): (usize, &u8)| {
+                if t >= state.1 {
+                    state.0 = x;
+                    state.1 = t + 1;
+                    state.2.push(if transpose { (y, x) } else { (x, y) });
+                }
+                state
+            };
+            let from_left = line.iter().enumerate()
+                .fold((0, 0, Default::default()), closure);
+            let from_right = line.iter().enumerate()
+                .skip(from_left.0 + 1)
+                .rev()
+                .fold((line.len(), 0, Default::default()), closure);
+            assert!(from_left.0 < from_right.0);
+            positions.extend(from_left.2);
+            positions.extend(from_right.2);
+        });
 }
 
 fn transpose<T: Clone>(grid: &Vec<Vec<T>>) -> Vec<Vec<T>> {
@@ -83,6 +88,6 @@ mod tests {
     test!(part_1() == 21);
     // test!(part_2() == 0);
     bench_parse!(Vec::len, 99);
-    // bench!(part_1() == 0);
+    bench!(part_1() == 1843);
     // bench!(part_2() == 0);
 }
