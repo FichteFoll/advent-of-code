@@ -1,7 +1,9 @@
+#![feature(anonymous_lifetime_in_impl_trait)]
 #![feature(test)]
 
 use aoc2022::*;
 use aoc2022::collections::*;
+use itertools::iproduct;
 
 const DAY: usize = 8;
 
@@ -31,8 +33,20 @@ fn part_1(grid: &Parsed) -> usize {
     points.len()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(grid: &Parsed) -> usize {
+    let transposed_grid = transpose(&grid);
+    iproduct!(0..grid.len(), 0..transposed_grid.len())
+        .map(|(y, x)| {
+            let start = grid[y][x];
+            [
+                count_visible(start, transposed_grid[x].iter().take(y).rev()), // to top
+                count_visible(start, grid[y].iter().take(x).rev()), // to left
+                count_visible(start, transposed_grid[x].iter().skip(y + 1)), // to bottom
+                count_visible(start, grid[y].iter().skip(x + 1)), // to right
+            ].into_iter().product()
+        })
+        .max()
+        .unwrap()
 }
 
 fn count_visible_horizontal(grid: &Vec<Vec<u8>>, positions: &mut HashSet<Point>, transpose: bool) {
@@ -57,6 +71,17 @@ fn count_visible_horizontal(grid: &Vec<Vec<u8>>, positions: &mut HashSet<Point>,
             positions.extend(from_left.2);
             positions.extend(from_right.2);
         });
+}
+
+fn count_visible(start: u8, remaining: impl Iterator<Item=&u8>) -> usize {
+    let mut count = 0;
+    for &n in remaining {
+        count += 1;
+        if n >= start {
+            break;
+        }
+    }
+    count
 }
 
 fn transpose<T: Clone>(grid: &Vec<Vec<T>>) -> Vec<Vec<T>> {
@@ -86,8 +111,8 @@ mod tests {
         ";
 
     test!(part_1() == 21);
-    // test!(part_2() == 0);
+    test!(part_2() == 8);
     bench_parse!(Vec::len, 99);
     bench!(part_1() == 1843);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 180000);
 }
