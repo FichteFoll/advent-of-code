@@ -4,6 +4,7 @@
 use aoc2022::*;
 use aoc2022::collections::*;
 use itertools::iproduct;
+use itertools::Itertools;
 
 const DAY: usize = 8;
 
@@ -39,10 +40,10 @@ fn part_2(grid: &Parsed) -> usize {
         .map(|(y, x)| {
             let start = grid[y][x];
             [
-                count_visible(start, transposed_grid[x].iter().take(y).rev()), // to top
-                count_visible(start, grid[y].iter().take(x).rev()), // to left
-                count_visible(start, transposed_grid[x].iter().skip(y + 1)), // to bottom
-                count_visible(start, grid[y].iter().skip(x + 1)), // to right
+                count_visible(start, transposed_grid[x][..y].iter().rev()), // to top
+                count_visible(start, grid[y][..x].iter().rev()), // to left
+                count_visible(start, transposed_grid[x][y + 1..].iter()), // to bottom
+                count_visible(start, grid[y][x + 1..].iter()), // to right
             ].into_iter().product()
         })
         .max()
@@ -67,21 +68,15 @@ fn count_visible_horizontal(grid: &Vec<Vec<u8>>, positions: &mut HashSet<Point>,
                 .skip(from_left.0 + 1)
                 .rev()
                 .fold((line.len(), 0, Default::default()), closure);
-            assert!(from_left.0 < from_right.0);
             positions.extend(from_left.2);
             positions.extend(from_right.2);
         });
 }
 
 fn count_visible(start: u8, remaining: impl Iterator<Item=&u8>) -> usize {
-    let mut count = 0;
-    for &n in remaining {
-        count += 1;
-        if n >= start {
-            break;
-        }
-    }
-    count
+    let mut heights = remaining.copied().peekable();
+    heights.peeking_take_while(|&t| t < start).count()
+        + heights.peek().map_or(0, |_| 1) // add the last tree if any
 }
 
 fn transpose<T: Clone>(grid: &Vec<Vec<T>>) -> Vec<Vec<T>> {
