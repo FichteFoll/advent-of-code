@@ -1,4 +1,3 @@
-#![feature(get_many_mut)]
 #![feature(test)]
 
 use aoc2022::*;
@@ -50,10 +49,9 @@ fn move_rope<const N: usize>(parsed: &Parsed) -> usize {
         'steps: for _ in 0..*count {
             knots[0] += dir;
             for i in 1..N {
-                let [prev, curr] = knots.get_many_mut([i - 1, i]).unwrap();
-                let diff = prev - curr;
+                let diff = &knots[i - 1] - &knots[i];
                 if diff.0.iter().any(|n| n.abs() > 1) {
-                    *curr += diff.signum();
+                    knots[i] += diff.signum();
                     if i + 1 == N {
                         visited.insert(knots[i]);
                     }
