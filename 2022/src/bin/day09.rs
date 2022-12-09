@@ -46,19 +46,17 @@ fn move_rope<const N: usize>(parsed: &Parsed) -> usize {
     let mut knots: [Point<2>; N] = [Default::default(); N];
     visited.insert(knots[N - 1]);
     for (dir, count) in parsed {
-        for _ in 0..*count {
+        'step: for _ in 0..*count {
             knots[0] += dir;
             for i in 1..N {
                 let diff = &knots[i - 1] - &knots[i];
                 if diff.0.iter().any(|n| n.abs() > 1) {
                     knots[i] += diff.signum();
-                    if i + 1 == N {
-                        visited.insert(knots[i]);
-                    }
                 } else {
-                    break;
+                    continue 'step;
                 }
             }
+            visited.insert(knots[N - 1]);
         }
     }
     visited.len()
