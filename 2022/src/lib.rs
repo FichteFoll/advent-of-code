@@ -1,6 +1,7 @@
 // Provides helpful methods, data structures and macros
 // for at least more than one task.
 
+pub mod coord;
 pub mod test;
 
 #[cfg(feature = "fnv")]
