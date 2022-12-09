@@ -98,7 +98,7 @@ fn collect_sizes_dirs(item: &Item, sizes: &mut BinaryHeap<usize>) -> usize {
         File { size, .. } => *size,
         Dir { children, .. } => {
             let this_size = children.iter()
-                .map(|c| collect_sizes_dirs(&c, sizes))
+                .map(|c| collect_sizes_dirs(c, sizes))
                 .sum();
             sizes.push(this_size);
             this_size

@@ -14,7 +14,7 @@ fn parse_input(input: &str) -> Parsed {
     // requires trailing newline
     input.as_bytes().array_chunks::<4>()
         .map(|line| {
-            ((line[0] - b'A') as usize, (line[2] as u8 - b'X') as usize)
+            ((line[0] - b'A') as usize, (line[2] - b'X') as usize)
         })
         .collect()
 }

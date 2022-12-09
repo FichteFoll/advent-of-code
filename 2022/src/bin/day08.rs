@@ -16,7 +16,7 @@ main!();
 pub fn parse_input(input: &str) -> Parsed {
     input.trim().as_bytes()
         .split(|b| b == &b'\n')
-        .map(|line| line.iter().map(|b| b - b'0' as u8).collect())
+        .map(|line| line.iter().map(|b| b - b'0').collect())
         .collect()
 }
 
@@ -24,13 +24,13 @@ fn part_1(grid: &Parsed) -> usize {
     // count trees visible from the left
     let mut points = Default::default();
     count_visible_horizontal(grid, &mut points, false);
-    let transposed_grid = transpose(&grid);
+    let transposed_grid = transpose(grid);
     count_visible_horizontal(&transposed_grid, &mut points, true);
     points.len()
 }
 
 fn part_2(grid: &Parsed) -> usize {
-    let transposed_grid = transpose(&grid);
+    let transposed_grid = transpose(grid);
     iproduct!(0..grid.len(), 0..transposed_grid.len())
         .map(|(y, x)| {
             let start = grid[y][x];
@@ -45,7 +45,7 @@ fn part_2(grid: &Parsed) -> usize {
         .unwrap()
 }
 
-fn count_visible_horizontal(grid: &Vec<Vec<u8>>, positions: &mut HashSet<Point>, transpose: bool) {
+fn count_visible_horizontal(grid: &[Vec<u8>], positions: &mut HashSet<Point>, transpose: bool) {
     grid.iter()
         .enumerate()
         .for_each(|(y, line)| {
