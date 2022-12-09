@@ -54,9 +54,11 @@ fn move_rope<const N: usize>(parsed: &Parsed) -> usize {
                 let diff = prev - curr;
                 if diff.0.iter().any(|n| n.abs() > 1) {
                     *curr += diff.signum();
+                    if i + 1 == N {
+                        visited.insert(knots[i]);
+                    }
                 }
             }
-            visited.insert(knots[N - 1]);
         }
     }
     visited.len()
