@@ -4,7 +4,7 @@ use std::fmt::Display;
 use std::fmt::Formatter;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct Point<const N: usize>([i32; N]);
+pub struct Point<const N: usize>(pub [i32; N]);
 
 impl<const N: usize> Default for Point<N> {
     fn default() -> Self {
@@ -197,6 +197,14 @@ mod ops {
             }
         }
 
+        impl<const N: usize> AddAssign<Point<N>> for &mut Point<N> {
+            fn add_assign(&mut self, rhs: Point<N>) {
+                for (a, b) in self.0.iter_mut().zip(rhs.0) {
+                    *a += b;
+                }
+            }
+        }
+
         impl<const N: usize> Add<i32> for Point<N> {
             type Output = Self;
             fn add(self, rhs: i32) -> Self::Output {
@@ -225,6 +233,17 @@ mod ops {
         }
 
         impl<const N: usize> Sub for &Point<N> {
+            type Output = Point<N>;
+            fn sub(self, rhs: Self) -> Self::Output {
+                let mut coord = self.0;
+                for (a, b) in coord.iter_mut().zip(rhs.0) {
+                    *a -= b;
+                }
+                Point(coord)
+            }
+        }
+
+        impl<const N: usize> Sub for &mut Point<N> {
             type Output = Point<N>;
             fn sub(self, rhs: Self) -> Self::Output {
                 let mut coord = self.0;

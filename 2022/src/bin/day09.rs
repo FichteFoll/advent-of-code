@@ -1,3 +1,4 @@
+#![feature(get_many_mut)]
 #![feature(test)]
 
 use aoc2022::*;
@@ -34,25 +35,31 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
+    move_rope::<2>(parsed)
+}
+
+fn part_2(parsed: &Parsed) -> usize {
+    move_rope::<10>(parsed)
+}
+
+fn move_rope<const N: usize>(parsed: &Parsed) -> usize {
     let mut visited = HashSet::default();
-    let mut head: Point<2> = [0, 0].into();
-    let mut tail = head;
-    visited.insert(tail);
+    let mut knots: [Point<2>; N] = [Default::default(); N];
+    visited.insert(knots[N - 1]);
     for (dir, count) in parsed {
         for _ in 0..*count {
-            head += dir;
-            let diff = head - tail;
-            if diff.x().abs() > 1 || diff.y().abs() > 1 {
-                tail += diff.signum();
-                visited.insert(tail);
+            knots[0] += dir;
+            for i in 1..N {
+                let [prev, curr] = knots.get_many_mut([i - 1, i]).unwrap();
+                let diff = prev - curr;
+                if diff.0.iter().any(|n| n.abs() > 1) {
+                    *curr += diff.signum();
+                }
             }
+            visited.insert(knots[N - 1]);
         }
     }
     visited.len()
-}
-
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
 }
 
 #[cfg(test)]
@@ -71,9 +78,21 @@ mod tests {
         R 2\n\
         ";
 
+    const TEST_INPUT_2: &str = "\
+        R 5\n\
+        U 8\n\
+        L 8\n\
+        D 3\n\
+        R 17\n\
+        D 10\n\
+        L 25\n\
+        U 20\n\
+        ";
+
     test!(part_1() == 13);
-    // test!(part_2() == 0);
+    test!(part_2() == 1);
+    test!(extended, TEST_INPUT_2, part_2() == 36);
     bench_parse!(Vec::len, 2000);
     bench!(part_1() == 5695);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 2434);
 }
