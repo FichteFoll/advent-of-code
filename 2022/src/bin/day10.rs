@@ -2,6 +2,7 @@
 #![feature(test)]
 
 use aoc2022::*;
+use itertools::Itertools; // for `chunks`
 
 const DAY: usize = 10;
 
@@ -31,10 +32,23 @@ fn parse_input(input: &str) -> Parsed {
 fn part_1(parsed: &Parsed) -> i32 {
     let mut state_iter = State::new(parsed).into_iter();
     let nums = std::iter::once(20).chain(std::iter::repeat(40));
-    nums.map_while(|n| state_iter.nth(n - 1)).sum()
+    nums.map_while(|n| state_iter.nth(n - 1)).map(|(a, b)| a * b).sum()
 }
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+
+fn part_2(parsed: &Parsed) -> String {
+    let state_iter = State::new(parsed).into_iter();
+    let all: String = state_iter
+        .chunks(40)
+        .into_iter()
+        .flat_map(|chunk| {
+            std::iter::once('\n')
+                .chain(chunk.into_iter()
+                    .enumerate()
+                    .map(|(i, (_, x))| if (i as i32 - x).abs() <= 1 { '#' } else { '.' })
+                )
+        })
+        .collect();
+    all
 }
 
 struct State<'a> {
@@ -48,8 +62,8 @@ impl<'a> State<'a> {
         State { x: 1, processing: None, instructions }
     }
 
-    fn into_iter(self) -> Box<dyn Iterator<Item=i32> + 'a> {
-        Box::new((1..).scan(self, |state, i| state.run_one_cycle().map(|x| x * i)))
+    fn into_iter(self) -> Box<dyn Iterator<Item=(i32, i32)> + 'a> {
+        Box::new((1..).scan(self, |state, i| state.run_one_cycle().map(|x| (i, x))))
     }
 
     // returns value of `x` *during* the execution of the cycle
@@ -89,12 +103,28 @@ mod tests {
     use test_case::test_case;
 
     const TEST_INPUT: &str = include_str!("../../input/day10_test.txt");
+    const PART_2_TEST_RESULT: &str = "\n\
+        ##..##..##..##..##..##..##..##..##..##..\n\
+        ###...###...###...###...###...###...###.\n\
+        ####....####....####....####....####....\n\
+        #####.....#####.....#####.....#####.....\n\
+        ######......######......######......####\n\
+        #######.......#######.......#######.....\
+        ";
+    const PART_2_RESULT: &str = "\n\
+        ####..##....##..##..###....##.###..####.\n\
+        #....#..#....#.#..#.#..#....#.#..#.#....\n\
+        ###..#.......#.#..#.#..#....#.#..#.###..\n\
+        #....#.......#.####.###.....#.###..#....\n\
+        #....#..#.#..#.#..#.#....#..#.#.#..#....\n\
+        #.....##...##..#..#.#.....##..#..#.####.\
+        ";
 
     test!(part_1() == 13140);
-    // test!(part_2() == 0);
+    test!(part_2() == PART_2_TEST_RESULT);
     bench_parse!(Vec::len, 140);
     bench!(part_1() == 12880);
-    // bench!(part_2() == 0);
+    bench!(part_2() == PART_2_RESULT);
 
     #[test_case(20 => Some(420))]
     #[test_case(60 => Some(1140))]
@@ -108,6 +138,6 @@ mod tests {
         let state = State::new(&instructions);
         // collecting this so that `instructions` can be dropped in the right order
         let res = state.into_iter().nth(n - 1);
-        res
+        res.map(|(a, b)| a * b)
     }
 }
