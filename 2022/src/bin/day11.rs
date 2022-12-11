@@ -36,32 +36,48 @@ fn parse_input(input: &str) -> Parsed {
             let test_false = lines.next().unwrap()[30..].parse().unwrap();
             let test = (test_num, test_true, test_false);
 
-            Monkey { items, operation, test, thrown: 0 }
+            Monkey { items, operation, test, throw_count: 0 }
         })
         .collect()
 }
 
+const PART_1_RELIEF: &dyn Fn(usize) -> usize = &|n| n / 3;
+
 fn part_1(parsed: &Parsed) -> usize {
     let mut monkeys = parsed.clone();
-    (0..20).for_each(|_| play_round(&mut monkeys));
+    (0..20).for_each(|_| play_round(&mut monkeys, PART_1_RELIEF));
+    score(monkeys)
+}
+
+fn part_2(parsed: &Parsed) -> usize {
+    let mut monkeys = parsed.clone();
+    // Multiplication and addition does not affect
+    // the modulo rest value when wrapping around.
+    // We compute a multiple of all our modulo operands
+    // to ensure that the results don't change for any monkey's operand
+    // and apply it after each operation.
+    // (All numbers in my input and the test are prime numbers,
+    // so we don't lose anything by simply using the product.)
+    let modulo: usize = monkeys.iter().map(|m| m.test.0).product();
+    (0..10000).for_each(|_| play_round(&mut monkeys, &|n: usize| n % modulo));
+    score(monkeys)
+}
+
+fn play_round(monkeys: &mut Parsed, relief: &dyn Fn(usize) -> usize) {
+    for i in 0..monkeys.len() {
+        for (target, item) in monkeys[i].throw_all(relief) {
+            monkeys[target].items.push(item);
+        }
+    }
+}
+
+fn score(monkeys: Vec<Monkey>) -> usize {
     monkeys.into_iter()
-        .map(|m| m.thrown)
+        .map(|m| m.throw_count)
         .sorted_unstable()
         .rev()
         .take(2)
         .product()
-}
-
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
-}
-
-fn play_round(monkeys: &mut Parsed) {
-    for i in 0..monkeys.len() {
-        for (target, item) in monkeys[i].throw_all() {
-            monkeys[target].items.push(item);
-        }
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -69,16 +85,16 @@ struct Monkey {
     items: Vec<usize>,
     operation: Operation,
     test: (usize, usize, usize), // divisible by …; If true: …; If false: …
-    thrown: usize,
+    throw_count: usize,
 }
 
 impl Monkey {
     // throw items to monkeys; (monkey_n, item_value)
-    fn throw_all(&mut self) -> Vec<(usize, usize)> {
+    fn throw_all(&mut self, relief: &dyn Fn(usize) -> usize) -> Vec<(usize, usize)> {
         self.items.drain(..)
             .map(|old| {
-                let new = self.operation.apply(old) / 3;
-                self.thrown += 1;
+                let new = relief(self.operation.apply(old));
+                self.throw_count += 1;
                 let target = if new % self.test.0 == 0 { self.test.1 } else { self.test.2 };
                 (target, new)
             })
@@ -111,15 +127,15 @@ mod tests {
     const TEST_INPUT: &str = include_str!("../../input/day11_test.txt");
 
     test!(part_1() == 10605);
-    // test!(part_2() == 0);
+    test!(part_2() == 2713310158);
     bench_parse!(Vec::len, 8);
     bench!(part_1() == 121450);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 28244037010);
 
     #[test]
-    fn test_play_round_1() {
+    fn test_play_round_part1_1() {
         let mut monkeys = parse_input(TEST_INPUT);
-        play_round(&mut monkeys);
+        play_round(&mut monkeys, PART_1_RELIEF);
         assert_eq!(monkeys[0].items, vec![20, 23, 27, 26]);
         assert_eq!(monkeys[1].items, vec![2080, 25, 167, 207, 401, 1046]);
         assert_eq!(monkeys[2].items, vec![]);
@@ -127,12 +143,21 @@ mod tests {
     }
 
     #[test]
-    fn test_play_round_2() {
+    fn test_play_round_part1_20() {
         let mut monkeys = parse_input(TEST_INPUT);
-        (0..20).for_each(|_| play_round(&mut monkeys));
+        (0..20).for_each(|_| play_round(&mut monkeys, PART_1_RELIEF));
         assert_eq!(monkeys[0].items, vec![10, 12, 14, 26, 34]);
         assert_eq!(monkeys[1].items, vec![245, 93, 53, 199, 115]);
         assert_eq!(monkeys[2].items, vec![]);
         assert_eq!(monkeys[3].items, vec![]);
+    }
+
+    #[test]
+    fn test_play_round_part2_20() {
+        let mut monkeys = parse_input(TEST_INPUT);
+        let modulo: usize = monkeys.iter().map(|m| m.test.0).product();
+        (0..20).for_each(|_| play_round(&mut monkeys, &|n| n % modulo));
+        let throws: Vec<_> = monkeys.into_iter().map(|m| m.throw_count).collect();
+        assert_eq!(throws, vec![99, 97, 8, 103]);
     }
 }
