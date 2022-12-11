@@ -49,7 +49,7 @@ mod parse {
     }
 }
 
-const PART_1_RELIEF: &dyn Fn(usize) -> usize = &|n| n / 3;
+const PART_1_RELIEF: fn(usize) -> usize = |n| n / 3;
 
 fn part_1(parsed: &Parsed) -> usize {
     let mut monkeys = parsed.clone();
@@ -67,13 +67,13 @@ fn part_2(parsed: &Parsed) -> usize {
     // (All numbers in my input and the test are prime numbers,
     // so we don't lose anything by simply using the product.)
     let modulo: usize = monkeys.iter().map(|m| m.test.0).product();
-    (0..10000).for_each(|_| play_round(&mut monkeys, &|n: usize| n % modulo));
+    (0..10000).for_each(|_| play_round(&mut monkeys, |n| n % modulo));
     score(monkeys)
 }
 
-fn play_round(monkeys: &mut Parsed, relief: &dyn Fn(usize) -> usize) {
+fn play_round(monkeys: &mut Parsed, relief: impl Fn(usize) -> usize) {
     for i in 0..monkeys.len() {
-        for (target, item) in monkeys[i].throw_all(relief) {
+        for (target, item) in monkeys[i].throw_all(&relief) {
             monkeys[target].items.push(item);
         }
     }
@@ -98,7 +98,7 @@ pub struct Monkey {
 
 impl Monkey {
     // throw items to monkeys; (monkey_n, item_value)
-    fn throw_all(&mut self, relief: &dyn Fn(usize) -> usize) -> Vec<(usize, usize)> {
+    fn throw_all(&mut self, relief: impl Fn(usize) -> usize) -> Vec<(usize, usize)> {
         self.items.drain(..)
             .map(|old| {
                 let new = relief(self.operation.apply(old));
@@ -164,7 +164,7 @@ mod tests {
     fn test_play_round_part2_20() {
         let mut monkeys = parse_input(TEST_INPUT);
         let modulo: usize = monkeys.iter().map(|m| m.test.0).product();
-        (0..20).for_each(|_| play_round(&mut monkeys, &|n| n % modulo));
+        (0..20).for_each(|_| play_round(&mut monkeys, |n| n % modulo));
         let throws: Vec<_> = monkeys.into_iter().map(|m| m.throw_count).collect();
         assert_eq!(throws, vec![99, 97, 8, 103]);
     }
