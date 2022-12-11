@@ -7,6 +7,7 @@ use parse::parse_input;
 
 const DAY: usize = 11;
 
+type Item = u64;
 type Parsed = Vec<Monkey>;
 
 main!();
@@ -49,15 +50,15 @@ mod parse {
     }
 }
 
-const PART_1_RELIEF: fn(usize) -> usize = |n| n / 3;
+const PART_1_RELIEF: fn(Item) -> Item = |n| n / 3;
 
-fn part_1(parsed: &Parsed) -> usize {
+fn part_1(parsed: &Parsed) -> Item {
     let mut monkeys = parsed.clone();
     (0..20).for_each(|_| play_round(&mut monkeys, PART_1_RELIEF));
     score(monkeys)
 }
 
-fn part_2(parsed: &Parsed) -> usize {
+fn part_2(parsed: &Parsed) -> Item {
     let mut monkeys = parsed.clone();
     // Multiplication and addition does not affect
     // the modulo rest value when wrapping around.
@@ -66,12 +67,12 @@ fn part_2(parsed: &Parsed) -> usize {
     // and apply it after each operation.
     // (All numbers in my input and the test are prime numbers,
     // so we don't lose anything by simply using the product.)
-    let modulo: usize = monkeys.iter().map(|m| m.test.0).product();
+    let modulo: Item = monkeys.iter().map(|m| m.test.0).product();
     (0..10000).for_each(|_| play_round(&mut monkeys, |n| n % modulo));
     score(monkeys)
 }
 
-fn play_round(monkeys: &mut Parsed, relief: impl Fn(usize) -> usize) {
+fn play_round(monkeys: &mut Parsed, relief: impl Fn(Item) -> Item) {
     for i in 0..monkeys.len() {
         for (target, item) in monkeys[i].throw_all(&relief) {
             monkeys[target].items.push(item);
@@ -79,7 +80,7 @@ fn play_round(monkeys: &mut Parsed, relief: impl Fn(usize) -> usize) {
     }
 }
 
-fn score(monkeys: Vec<Monkey>) -> usize {
+fn score(monkeys: Vec<Monkey>) -> Item {
     monkeys.into_iter()
         .map(|m| m.throw_count)
         .sorted_unstable()
@@ -90,15 +91,15 @@ fn score(monkeys: Vec<Monkey>) -> usize {
 
 #[derive(Clone, Debug)]
 pub struct Monkey {
-    items: Vec<usize>,
+    items: Vec<Item>,
     operation: Operation,
-    test: (usize, usize, usize), // divisible by …; If true: …; If false: …
-    throw_count: usize,
+    test: (Item, usize, usize), // divisible by …; If true: …; If false: …
+    throw_count: Item,
 }
 
 impl Monkey {
     // throw items to monkeys; (monkey_n, item_value)
-    fn throw_all(&mut self, relief: impl Fn(usize) -> usize) -> Vec<(usize, usize)> {
+    fn throw_all(&mut self, relief: impl Fn(Item) -> Item) -> Vec<(usize, Item)> {
         self.items.drain(..)
             .map(|old| {
                 let new = relief(self.operation.apply(old));
@@ -113,12 +114,12 @@ impl Monkey {
 #[derive(Clone, Copy, Debug)]
 pub enum Operation {
     // None => multiply with self
-    Mul(Option<usize>),
-    Add(Option<usize>),
+    Mul(Option<Item>),
+    Add(Option<Item>),
 }
 
 impl Operation {
-    fn apply(&self, old: usize) -> usize {
+    fn apply(&self, old: Item) -> Item {
         match self {
             Self::Mul(op) => old * op.unwrap_or(old),
             Self::Add(op) => old + op.unwrap_or(old),
@@ -163,7 +164,7 @@ mod tests {
     #[test]
     fn test_play_round_part2_20() {
         let mut monkeys = parse_input(TEST_INPUT);
-        let modulo: usize = monkeys.iter().map(|m| m.test.0).product();
+        let modulo: Item = monkeys.iter().map(|m| m.test.0).product();
         (0..20).for_each(|_| play_round(&mut monkeys, |n| n % modulo));
         let throws: Vec<_> = monkeys.into_iter().map(|m| m.throw_count).collect();
         assert_eq!(throws, vec![99, 97, 8, 103]);
