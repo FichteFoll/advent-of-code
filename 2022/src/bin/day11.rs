@@ -1,7 +1,9 @@
 #![feature(test)]
 
-use aoc2022::*;
 use itertools::Itertools;
+
+use aoc2022::*;
+use parse::parse_input;
 
 const DAY: usize = 11;
 
@@ -9,36 +11,42 @@ type Parsed = Vec<Monkey>;
 
 main!();
 
-fn parse_input(input: &str) -> Parsed {
-    input
-        .trim()
-        .split("\n\n")
-        .map(|block| {
-            let mut lines = block.lines();
-            // `Monkey 1:`
-            lines.next();
-            // `  Starting items: 1, 2, 3`
-            let (_, items_str) = lines.next().unwrap().split_once(": ").unwrap();
-            let items = items_str.split(", ").map(|s| s.parse().unwrap()).collect();
-            // `  Operation: new = old * 13`
-            let op_line = lines.next().unwrap();
-            let num = op_line[25..].parse().ok();
-            let operation = match op_line.bytes().nth(23).unwrap() {
-                b'*' => Operation::Mul(num),
-                b'+' => Operation::Add(num),
-                _ => panic!("Unexpected operator in {op_line}"),
-            };
-            // `  Test: divisible by 11`
-            let test_num = lines.next().unwrap()[21..].parse().unwrap();
-            // `    If true: throw to monkey 3`
-            let test_true = lines.next().unwrap()[29..].parse().unwrap();
-            // `    If false: throw to monkey 2`
-            let test_false = lines.next().unwrap()[30..].parse().unwrap();
-            let test = (test_num, test_true, test_false);
+mod parse {
+    use super::*;
 
-            Monkey { items, operation, test, throw_count: 0 }
-        })
-        .collect()
+    pub fn parse_input(input: &str) -> Parsed {
+        input
+            .trim()
+            .split("\n\n")
+            .map(|block| parse_block(block).unwrap())
+            .collect()
+    }
+
+    fn parse_block(block: &str) -> Option<Monkey> {
+        let mut lines = block.lines();
+        // `Monkey 1:`
+        lines.next();
+        // `  Starting items: 1, 2, 3`
+        let (_, items_str) = lines.next()?.split_once(": ")?;
+        let items = items_str.split(", ").map(|s| s.parse().unwrap()).collect();
+        // `  Operation: new = old * 13`
+        let op_line = lines.next()?;
+        let num = op_line[25..].parse().ok();
+        let operation = match op_line.bytes().nth(23)? {
+            b'*' => Operation::Mul(num),
+            b'+' => Operation::Add(num),
+            _ => panic!("Unexpected operator in {op_line}"),
+        };
+        // `  Test: divisible by 11`
+        let test_num = lines.next()?[21..].parse().ok()?;
+        // `    If true: throw to monkey 3`
+        let test_true = lines.next()?[29..].parse().ok()?;
+        // `    If false: throw to monkey 2`
+        let test_false = lines.next()?[30..].parse().ok()?;
+        let test = (test_num, test_true, test_false);
+
+        Some(Monkey { items, operation, test, throw_count: 0 })
+    }
 }
 
 const PART_1_RELIEF: &dyn Fn(usize) -> usize = &|n| n / 3;
@@ -81,7 +89,7 @@ fn score(monkeys: Vec<Monkey>) -> usize {
 }
 
 #[derive(Clone, Debug)]
-struct Monkey {
+pub struct Monkey {
     items: Vec<usize>,
     operation: Operation,
     test: (usize, usize, usize), // divisible by …; If true: …; If false: …
@@ -103,7 +111,7 @@ impl Monkey {
 }
 
 #[derive(Clone, Copy, Debug)]
-enum Operation {
+pub enum Operation {
     // None => multiply with self
     Mul(Option<usize>),
     Add(Option<usize>),
