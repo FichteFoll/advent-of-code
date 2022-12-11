@@ -1,8 +1,9 @@
 #![feature(custom_test_frameworks)]
 #![feature(test)]
 
+use std::iter::{once, successors};
+
 use aoc2022::*;
-use itertools::Itertools; // for `chunks`
 
 const DAY: usize = 10;
 
@@ -30,70 +31,40 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(parsed: &Parsed) -> i32 {
-    let mut state_iter = State::new(parsed).into_iter();
-    let nums = std::iter::once(20).chain(std::iter::repeat(40));
-    nums.map_while(|n| state_iter.nth(n - 1)).map(|(a, b)| a * b).sum()
+    let xes = calc_xes(parsed);
+    successors(Some(20), |n| Some(n + 40))
+        .map_while(|n| xes.get(n - 1).map(|x| x * n as i32))
+        .sum()
 }
 
 fn part_2(parsed: &Parsed) -> String {
-    let state_iter = State::new(parsed).into_iter();
-    let all: String = state_iter
+    calc_xes(parsed)
         .chunks(40)
         .into_iter()
         .flat_map(|chunk| {
-            std::iter::once('\n')
-                .chain(chunk.into_iter()
+            once('\n').chain(
+                chunk.into_iter()
                     .enumerate()
-                    .map(|(i, (_, x))| if (i as i32 - x).abs() <= 1 { '#' } else { '.' })
-                )
+                    .map(|(i, x)| if (i as i32 - x).abs() <= 1 { '#' } else { '.' })
+            )
         })
-        .collect();
-    all
+        .collect()
 }
 
-struct State<'a> {
-    x: i32,
-    processing: Option<(&'a Instr, usize)>,
-    instructions: &'a [Instr],
-}
-
-impl<'a> State<'a> {
-    fn new(instructions: &'a [Instr]) -> Self {
-        State { x: 1, processing: None, instructions }
-    }
-
-    fn into_iter(self) -> Box<dyn Iterator<Item=(i32, i32)> + 'a> {
-        Box::new((1..).scan(self, |state, i| state.run_one_cycle().map(|x| (i, x))))
-    }
-
-    // returns value of `x` *during* the execution of the cycle
-    fn run_one_cycle(&mut self) -> Option<i32> {
-        // TODO make this more readable
-        let x = self.x;
-        match self.processing {
-            Some((Instr::AddX(add), remaining)) if remaining == 1 => {
-                self.processing = None;
-                self.x += add;
-            }
-            Some((instr, remaining)) => {
-                self.processing = Some((instr, remaining - 1));
-            }
-            None => {
-                if let Some((instr, rest)) = self.instructions.split_first() {
-                    self.instructions = rest;
-                    match instr {
-                        instr @ Instr::AddX(_) => {
-                            self.processing = Some((instr, 1));
-                        }
-                        _ => (),
-                    };
-                } else {
-                    return None;
+fn calc_xes(instructions: &Parsed) -> Vec<i32> {
+    instructions.iter()
+        .scan(1, |x, instr| {
+            match instr {
+                Instr::Noop => Some(vec![*x]),
+                Instr::AddX(y) => {
+                    let ret = vec![*x; 2];
+                    *x += y;
+                    Some(ret)
                 }
             }
-        };
-        Some(x)
-    }
+        })
+        .flatten()
+        .collect()
 }
 
 #[cfg(test)]
@@ -135,9 +106,7 @@ mod tests {
     #[test_case(260 => None)]
     fn test_signal_strength_after_cycles(n: usize) -> Option<i32> {
         let instructions = parse_input(TEST_INPUT);
-        let state = State::new(&instructions);
-        // collecting this so that `instructions` can be dropped in the right order
-        let res = state.into_iter().nth(n - 1);
-        res.map(|(a, b)| a * b)
+        let xes =  calc_xes(&instructions);
+        xes.get(n - 1).map(|&x| x * n as i32)
     }
 }
