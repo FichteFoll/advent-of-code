@@ -1,5 +1,6 @@
 #![feature(test)]
 
+use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 
 use aoc2022::*;
@@ -40,12 +41,11 @@ mod parse {
 }
 
 fn part_1((grid, start, end): &Parsed) -> u32 {
-    // TODO reverse order of heap (this is a max heap and we want a min heap)
     let mut queue = BinaryHeap::new();
     let mut visited = HashMap::default();
-    queue.push((0, *start));
+    queue.push((Reverse(0), *start));
 
-    while let Some((count, point)) = queue.pop() {
+    while let Some((Reverse(count), point)) = queue.pop() {
         let best_count = visited.entry(point).or_insert(u32::MAX);
         if *best_count <= count {
             continue;
@@ -59,7 +59,7 @@ fn part_1((grid, start, end): &Parsed) -> u32 {
                     let next_height = grid.get(pt.y() as usize).and_then(|line| line.get(pt.x() as usize));
                     next_height.map(|&x| x <= height + 1).unwrap_or(false)
                 })
-                .map(|pt| (count + 1, pt))
+                .map(|pt| (Reverse(count + 1), pt))
         );
     }
     // print_visited(&visited, grid.len(), grid[0].len());
@@ -69,10 +69,10 @@ fn part_1((grid, start, end): &Parsed) -> u32 {
 fn part_2((grid, _, end): &Parsed) -> u32 {
     let mut queue = BinaryHeap::new();
     let mut visited = HashMap::default();
-    queue.push((0, *end));
+    queue.push((Reverse(0), *end));
     let mut best_result = None;
 
-    while let Some((count, point)) = queue.pop() {
+    while let Some((Reverse(count), point)) = queue.pop() {
         let best_count = visited.entry(point).or_insert(u32::MAX);
         if *best_count <= count {
             continue;
@@ -80,7 +80,7 @@ fn part_2((grid, _, end): &Parsed) -> u32 {
         *best_count = count;
         let height = grid[point.y() as usize][point.x() as usize];
         if height == b'a' {
-            if best_result.filter(|&x| count > x).is_none() {
+            if best_result.filter(|&x| count >= x).is_none() {
                 best_result = Some(count);
             }
             continue;
@@ -92,7 +92,7 @@ fn part_2((grid, _, end): &Parsed) -> u32 {
                     let next_height = grid.get(pt.y() as usize).and_then(|line| line.get(pt.x() as usize));
                     next_height.map(|&x| height <= x + 1).unwrap_or(false)
                 })
-                .map(|pt| (count + 1, pt))
+                .map(|pt| (Reverse(count + 1), pt))
         );
     }
     // print_visited(&visited, grid.len(), grid[0].len());
@@ -126,7 +126,6 @@ mod tests {
     test!(part_1() == 31);
     test!(part_2() == 29);
     bench_parse!(|p: &Parsed| (p.0.len(), p.1, p.2), (41, (0, 20).into(), (72, 20).into()));
-    // commented because each pass takes 6s
-    // bench!(part_1() == 420);
-    // bench!(part_2() == 414);
+    bench!(part_1() == 420);
+    bench!(part_2() == 414);
 }
