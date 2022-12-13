@@ -33,7 +33,7 @@ mod parse {
         // `  Operation: new = old * 13`
         let op_line = lines.next()?;
         let num = op_line[25..].parse().ok();
-        let operation = match op_line.bytes().nth(23)? {
+        let operation = match op_line.as_bytes().get(23)? {
             b'*' => Operation::Mul(num),
             b'+' => Operation::Add(num),
             _ => panic!("Unexpected operator in {op_line}"),

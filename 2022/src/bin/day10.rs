@@ -43,7 +43,7 @@ fn part_2(parsed: &Parsed) -> String {
         .into_iter()
         .flat_map(|chunk| {
             once('\n').chain(
-                chunk.into_iter()
+                chunk.iter()
                     .enumerate()
                     .map(|(i, x)| if (i as i32 - x).abs() <= 1 { '#' } else { '.' })
             )

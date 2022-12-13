@@ -54,12 +54,12 @@ mod parse {
         loop {
             match bytes[i] {
                 b']' => {
-                    finalize_digits(&mut digits).map(|i| items.push(i));
+                    if let Some(i) = finalize_digits(&mut digits) { items.push(i) }
                     i += 1;
                     break;
                 }
                 b',' => {
-                    finalize_digits(&mut digits).map(|i| items.push(i));
+                    if let Some(i) = finalize_digits(&mut digits) { items.push(i) }
                     i += 1;
                 },
                 b'[' => {
