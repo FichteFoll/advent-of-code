@@ -1,3 +1,4 @@
+#![feature(binary_heap_into_iter_sorted)]
 #![feature(is_sorted)]
 #![feature(test)]
 
@@ -91,10 +92,10 @@ fn part_2(parsed: &Parsed) -> usize {
         Item::List(vec![Item::List(vec![Item::Num(6)])]),
     ];
     let items: BinaryHeap<_> = parsed.iter().flatten().chain(&divider_packets).cloned().collect();
-    let items_vec = items.into_sorted_vec();
-    divider_packets.iter()
-        .flat_map(|item| items_vec.iter().position(|other| item == other))
-        .map(|i| i + 1)
+    let count = items.len();
+    items.into_iter_sorted()
+        .enumerate()
+        .flat_map(|(i, item)| divider_packets.contains(&item).then_some(count - i))
         .product()
 }
 
