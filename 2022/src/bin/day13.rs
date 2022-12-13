@@ -45,23 +45,21 @@ mod parse {
         let bytes = slice.as_bytes();
         let mut i = 1; // skip first '['
         let mut digits = vec![];
-        macro_rules! finalize_digits {
-            () => {
-                if !digits.is_empty() {
-                    let num = digits.drain(..).fold(0, |a, b| a * 10 + (b - b'0'));
-                    items.push(Item::Num(num));
-                }
-            };
+        fn finalize_digits(digits: &mut Vec<u8>) -> Option<Item> {
+            digits.drain(..)
+                .fold(None, |a, b| Some(a.unwrap_or(0) * 10 + (b - b'0')))
+                .map(Item::Num)
         }
+
         loop {
             match bytes[i] {
                 b']' => {
-                    finalize_digits!();
+                    finalize_digits(&mut digits).map(|i| items.push(i));
                     i += 1;
                     break;
                 }
                 b',' => {
-                    finalize_digits!();
+                    finalize_digits(&mut digits).map(|i| items.push(i));
                     i += 1;
                 },
                 b'[' => {
