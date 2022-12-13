@@ -1,6 +1,7 @@
 #![feature(test)]
 
 use std::cmp::Ordering;
+use std::collections::BinaryHeap;
 
 use aoc2022::*;
 use parse::parse_input;
@@ -9,7 +10,7 @@ const DAY: usize = 13;
 
 type Parsed = Vec<(Item, Item)>;
 
-#[derive(Clone, PartialEq, Debug)]
+#[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Item {
     Num(u8),
     List(Vec<Item>),
@@ -83,8 +84,20 @@ fn part_1(parsed: &Parsed) -> usize {
         .sum()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+
+
+fn part_2(parsed: &Parsed) -> usize {
+    let divider_packets = [
+        Item::List(vec![Item::List(vec![Item::Num(2)])]),
+        Item::List(vec![Item::List(vec![Item::Num(6)])]),
+    ];
+    let mut items: BinaryHeap<_> = parsed.iter().flat_map(|tp| [tp.0.clone(), tp.1.clone()]).collect();
+    items.extend(divider_packets.iter().cloned());
+    let items_vec = items.into_sorted_vec();
+    divider_packets.iter()
+        .flat_map(|item| items_vec.iter().position(|other| item == other))
+        .map(|x| x + 1)
+        .product()
 }
 
 impl std::cmp::PartialOrd for Item {
@@ -99,6 +112,12 @@ impl std::cmp::PartialOrd for Item {
                     .or_else(|| equal_is_none(l1.len().cmp(&l2.len())))
             }
         }
+    }
+}
+
+impl std::cmp::Ord for Item {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.partial_cmp(other).unwrap_or(Ordering::Equal)
     }
 }
 
@@ -142,10 +161,10 @@ mod tests {
         ";
 
     test!(part_1() == 13);
-    // test!(part_2() == 0);
+    test!(part_2() == 140);
     bench_parse!(Vec::len, 450 / 3);
     bench!(part_1() == 5557);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 22425);
 
     #[test]
     fn test_partial_cmp_num_num() {
