@@ -1,3 +1,4 @@
+#![feature(is_sorted)]
 #![feature(test)]
 
 use std::cmp::Ordering;
@@ -8,7 +9,7 @@ use parse::parse_input;
 
 const DAY: usize = 13;
 
-type Parsed = Vec<(Item, Item)>;
+type Parsed = Vec<[Item; 2]>;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub enum Item {
@@ -27,7 +28,7 @@ mod parse {
             .split("\n\n")
             .map(|block| {
                 let pair = block.split_once('\n').unwrap();
-                (parse_item(pair.0), parse_item(pair.1))
+                [parse_item(pair.0), parse_item(pair.1)]
             })
             .collect()
     }
@@ -79,24 +80,21 @@ mod parse {
 
 fn part_1(parsed: &Parsed) -> usize {
     parsed.iter()
-        .zip(1..)
-        .flat_map(|((a, b), i)| (a < b).then_some(i))
+        .enumerate()
+        .flat_map(|(i, pair)| pair.is_sorted().then_some(i + 1))
         .sum()
 }
-
-
 
 fn part_2(parsed: &Parsed) -> usize {
     let divider_packets = [
         Item::List(vec![Item::List(vec![Item::Num(2)])]),
         Item::List(vec![Item::List(vec![Item::Num(6)])]),
     ];
-    let mut items: BinaryHeap<_> = parsed.iter().flat_map(|tp| [tp.0.clone(), tp.1.clone()]).collect();
-    items.extend(divider_packets.iter().cloned());
+    let items: BinaryHeap<_> = parsed.iter().flatten().chain(&divider_packets).cloned().collect();
     let items_vec = items.into_sorted_vec();
     divider_packets.iter()
         .flat_map(|item| items_vec.iter().position(|other| item == other))
-        .map(|x| x + 1)
+        .map(|i| i + 1)
         .product()
 }
 
@@ -123,10 +121,7 @@ impl std::cmp::Ord for Item {
 
 #[inline(always)]
 fn equal_is_none(ord: Ordering) -> Option<Ordering> {
-    match ord {
-        Ordering::Equal => None,
-        _ => Some(ord),
-    }
+    Some(ord).filter(|o| o != &Ordering::Equal)
 }
 
 #[cfg(test)]
