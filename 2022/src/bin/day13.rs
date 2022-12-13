@@ -178,8 +178,4 @@ mod tests {
         assert_eq!(Item::Num(0).partial_cmp(&Item::List(vec![])), Some(Ordering::Greater));
         assert_eq!(Item::Num(0).partial_cmp(&Item::List(vec![Item::Num(0), Item::Num(0)])), Some(Ordering::Less));
     }
-
-    #[test]
-    fn test_partial_cmp_list_list() {
-    }
 }
