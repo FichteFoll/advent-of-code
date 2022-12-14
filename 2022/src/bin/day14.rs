@@ -61,7 +61,7 @@ fn drop_sand(occupied: &HashSet<Point<2>>, max_y: i32, has_floor: bool) -> usize
     'outer: loop {
         let mut current = START;
         loop {
-            if current.y() > max_y {
+            if !has_floor && current.y() == max_y {
                 break 'outer;
             }
             let maybe_next = STEPS.iter()
