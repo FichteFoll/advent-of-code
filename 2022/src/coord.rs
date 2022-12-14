@@ -16,10 +16,6 @@ impl<const N: usize> Point<N> {
     pub const ZERO: Self = Self([0; N]);
     pub const NUM_NEIGHBORS: usize = 3usize.pow(N as u32) - 1;
 
-    pub fn new(coord: [i32; N]) -> Self {
-        Point(coord)
-    }
-
     pub fn from_padded(slice: &[i32]) -> Self {
         let mut coord = [0; N];
         let bound = N.min(slice.len());
@@ -384,7 +380,7 @@ mod test {
 
     #[test]
     fn test_direct_neighbors_2() {
-        let pt = Point::new([0, 0]);
+        let pt = Point([0, 0]);
         let pts = pt.direct_neighbors();
         println!("{pts:?}");
         assert_eq!(pts.len(), 4);
@@ -394,7 +390,7 @@ mod test {
 
     #[test]
     fn test_neighbors_2() {
-        let pt = Point::new([0, 0]);
+        let pt = Point([0, 0]);
         let pts = pt.neighbors();
         println!("{pts:?}");
         assert_eq!(pts.len(), 8);
@@ -404,7 +400,7 @@ mod test {
 
     #[test]
     fn test_neighbors_3() {
-        let pt = Point::new([0, 0, 0]);
+        let pt = Point([0, 0, 0]);
         let pts = pt.neighbors();
         println!("{pts:?}");
         assert_eq!(pts.len(), 26);
@@ -414,12 +410,12 @@ mod test {
 
     #[test]
     fn test_rotate_3_left() {
-        let mut pt = Point::new([1, 2, 3]);
+        let mut pt = Point([1, 2, 3]);
         pt.rotate_left_3(0, 90); // rotate around x axis
-        assert_eq!(pt, Point::new([1, 3, -2]));
+        assert_eq!(pt, Point([1, 3, -2]));
         pt.rotate_left_3(1, 90); // rotate around y axis
-        assert_eq!(pt, Point::new([2, 3, 1]));
+        assert_eq!(pt, Point([2, 3, 1]));
         pt.rotate_left_3(2, 90); // rotate around z axis
-        assert_eq!(pt, Point::new([3, -2, 1]));
+        assert_eq!(pt, Point([3, -2, 1]));
     }
 }
