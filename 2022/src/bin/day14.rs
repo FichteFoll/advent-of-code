@@ -1,4 +1,5 @@
 #![feature(array_windows)]
+#![feature(let_chains)]
 #![feature(test)]
 
 use itertools::iproduct;
@@ -11,7 +12,7 @@ use aoc2022::coord::Point;
 
 const DAY: usize = 14;
 
-type Parsed = Vec<Vec<Point<2>>>;
+type Parsed = (Vec<Vec<Point<2>>>, i32);
 
 #[derive(Clone, Copy)]
 enum Tile {
@@ -23,16 +24,20 @@ enum Tile {
 main!();
 
 fn parse_input(input: &str) -> Parsed {
-    input
+    let mut max_y = 0;
+    let paths = input
         .lines()
         .map(|line| {
             line.split(" -> ")
                 .map(|pt_s| {
                     let split = pt_s.split_once(',').unwrap();
-                    Point([split.0.parse().unwrap(), split.1.parse().unwrap()])
+                    let (x, y) = (split.0.parse().unwrap(), split.1.parse().unwrap());
+                    max_y = max_y.max(y);
+                    Point([x, y])
                 })
                 .collect()
-        }).collect()
+        }).collect();
+    (paths, max_y)
 }
 
 const START: Point<2> = Point([500, 0]);
@@ -42,12 +47,15 @@ const STEPS: [Point<2>; 3] = [
     Point::<2>::SE,
 ];
 
-fn part_1(paths: &Parsed) -> usize {
-    let highest_y = paths.iter()
-        .flat_map(|path| path.iter().map(|pt| pt.y()))
-        .max()
-        .unwrap();
+fn part_1((paths, max_y): &Parsed) -> usize {
+    drop_sand(paths, *max_y, false)
+}
 
+fn part_2((paths, max_y): &Parsed) -> usize {
+    drop_sand(paths, *max_y + 2, true)
+}
+
+fn drop_sand(paths: &Vec<Vec<Point<2>>>, max_y: i32, has_floor: bool) -> usize {
     let mut the_map: HashMap<Point<2>, Tile> =
         paths.iter()
             .flat_map(|path| path.array_windows())
@@ -56,12 +64,12 @@ fn part_1(paths: &Parsed) -> usize {
             })
             .map(|pt| (pt.into(), Tile::Wall))
             .collect();
-
     let num_wall_tiles = the_map.len();
+
     'outer: loop {
         let mut current = START;
         loop {
-            if current.y() > highest_y {
+            if current.y() > max_y {
                 break 'outer;
             }
             let maybe_next = STEPS.iter()
@@ -69,19 +77,18 @@ fn part_1(paths: &Parsed) -> usize {
                     let next = &current + step;
                     (!the_map.contains_key(&next)).then_some(next)
                 });
-            if let Some(next) = maybe_next {
+            if let Some(next) = maybe_next && (!has_floor || next.y() != max_y) {
                 current = next;
             } else {
                 the_map.insert(current, Tile::Sand);
+                if current == START {
+                    break 'outer;
+                }
                 break;
             }
         }
     }
     the_map.len() - num_wall_tiles
-}
-
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
 }
 
 #[inline(always)]
@@ -100,8 +107,8 @@ mod tests {
         ";
 
     test!(part_1() == 24);
-    // test!(part_2() == 0);
-    bench_parse!(Vec::len, 151);
+    test!(part_2() == 93);
+    bench_parse!(|p: &Parsed| p.0.len(), 151);
     bench!(part_1() == 614);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 26170);
 }
