@@ -1,8 +1,10 @@
-#![feature(array_windows)]
+#![feature(cell_update)]
 #![feature(let_chains)]
 #![feature(test)]
 
+use itertools::Itertools;
 use itertools::iproduct;
+use std::cell::Cell;
 use std::ops::RangeInclusive;
 
 use aoc2022::*;
@@ -12,32 +14,29 @@ use aoc2022::coord::Point;
 
 const DAY: usize = 14;
 
-type Parsed = (Vec<Vec<Point<2>>>, i32);
-
-#[derive(Clone, Copy)]
-enum Tile {
-    // Air,
-    Wall,
-    Sand,
-}
+type Parsed = (HashSet<Point<2>>, i32);
 
 main!();
 
 fn parse_input(input: &str) -> Parsed {
-    let mut max_y = 0;
-    let paths = input
+    let max_y = Cell::new(0);
+    let occupied = input
         .lines()
-        .map(|line| {
+        .flat_map(|line| {
             line.split(" -> ")
                 .map(|pt_s| {
                     let split = pt_s.split_once(',').unwrap();
-                    let (x, y) = (split.0.parse().unwrap(), split.1.parse().unwrap());
-                    max_y = max_y.max(y);
-                    Point([x, y])
+                    let pt: (i32, i32) = (split.0.parse().unwrap(), split.1.parse().unwrap());
+                    max_y.update(|y| y.max(pt.1));
+                    pt
                 })
-                .collect()
+                .tuple_windows()
+                .flat_map(|(s, e) | {
+                    iproduct!(range_incl_any_dir(s.0, e.0), range_incl_any_dir(s.1, e.1))
+                })
+                .map(|(x,  y)| Point([x, y]))
         }).collect();
-    (paths, max_y)
+    (occupied, max_y.into_inner())
 }
 
 const START: Point<2> = Point([500, 0]);
@@ -55,16 +54,9 @@ fn part_2((paths, max_y): &Parsed) -> usize {
     drop_sand(paths, *max_y + 2, true)
 }
 
-fn drop_sand(paths: &Vec<Vec<Point<2>>>, max_y: i32, has_floor: bool) -> usize {
-    let mut the_map: HashMap<Point<2>, Tile> =
-        paths.iter()
-            .flat_map(|path| path.array_windows())
-            .flat_map(|[s, e]| {
-                iproduct!(range_incl_any_dir(s.x(), e.x()), range_incl_any_dir(s.y(), e.y()))
-            })
-            .map(|pt| (pt.into(), Tile::Wall))
-            .collect();
-    let num_wall_tiles = the_map.len();
+fn drop_sand(occupied: &HashSet<Point<2>>, max_y: i32, has_floor: bool) -> usize {
+    let mut occupied = occupied.clone();
+    let num_wall_tiles = occupied.len();
 
     'outer: loop {
         let mut current = START;
@@ -75,12 +67,12 @@ fn drop_sand(paths: &Vec<Vec<Point<2>>>, max_y: i32, has_floor: bool) -> usize {
             let maybe_next = STEPS.iter()
                 .find_map(|step| {
                     let next = &current + step;
-                    (!the_map.contains_key(&next)).then_some(next)
+                    (!occupied.contains(&next)).then_some(next)
                 });
             if let Some(next) = maybe_next && (!has_floor || next.y() != max_y) {
                 current = next;
             } else {
-                the_map.insert(current, Tile::Sand);
+                occupied.insert(current);
                 if current == START {
                     break 'outer;
                 }
@@ -88,7 +80,7 @@ fn drop_sand(paths: &Vec<Vec<Point<2>>>, max_y: i32, has_floor: bool) -> usize {
             }
         }
     }
-    the_map.len() - num_wall_tiles
+    occupied.len() - num_wall_tiles
 }
 
 #[inline(always)]
@@ -108,7 +100,7 @@ mod tests {
 
     test!(part_1() == 24);
     test!(part_2() == 93);
-    bench_parse!(|p: &Parsed| p.0.len(), 151);
+    bench_parse!(|p: &Parsed| p.0.len(), 614);
     bench!(part_1() == 614);
     bench!(part_2() == 26170);
 }
