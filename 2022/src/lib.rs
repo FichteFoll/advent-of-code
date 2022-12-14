@@ -1,6 +1,9 @@
 // Provides helpful methods, data structures and macros
 // for at least more than one task.
 
+#![allow(incomplete_features)]
+#![feature(generic_const_exprs)]
+
 pub mod coord;
 pub mod test;
 

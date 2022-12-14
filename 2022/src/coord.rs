@@ -58,16 +58,13 @@ impl<const N: usize> Point<N> {
     }
 
     #[must_use]
-    pub fn direct_neighbors(&self) -> Vec<Self> {
-        (0..N)
-            .flat_map(|i| {
-                [-1, 1].into_iter().map(move |offset| {
-                    let mut coord = self.0;
-                    coord[i] += offset;
-                    Point(coord)
-                })
-            })
-            .collect()
+    pub fn direct_neighbors(&self) -> [Self; N * 2] {
+        let mut result = [*self; N * 2];
+        for i in 0..N {
+            result[i * 2].0[i] -= 1;
+            result[i * 2 + 1].0[i] += 1;
+        }
+        result
     }
 
     #[must_use]
