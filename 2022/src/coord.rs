@@ -383,22 +383,32 @@ mod test {
     use crate::collections::HashSet;
 
     #[test]
+    fn test_direct_neighbors_2() {
+        let pt = Point::new([0, 0]);
+        let pts = pt.direct_neighbors();
+        println!("{pts:?}");
+        assert_eq!(pts.len(), 4);
+        let pts_hashed: HashSet<_> = pts.iter().collect();
+        assert_eq!(pts.len(), pts_hashed.len());
+    }
+
+    #[test]
     fn test_neighbors_2() {
         let pt = Point::new([0, 0]);
-        let pts: Vec<_> = pt.neighbors();
+        let pts = pt.neighbors();
         println!("{pts:?}");
         assert_eq!(pts.len(), 8);
-        let pts_hashed: HashSet<_> = pts.iter().cloned().collect();
+        let pts_hashed: HashSet<_> = pts.iter().collect();
         assert_eq!(pts.len(), pts_hashed.len());
     }
 
     #[test]
     fn test_neighbors_3() {
         let pt = Point::new([0, 0, 0]);
-        let pts: Vec<_> = pt.neighbors();
+        let pts = pt.neighbors();
         println!("{pts:?}");
         assert_eq!(pts.len(), 26);
-        let pts_hashed: HashSet<_> = pts.iter().cloned().collect();
+        let pts_hashed: HashSet<_> = pts.iter().collect();
         assert_eq!(pts.len(), pts_hashed.len());
     }
 
