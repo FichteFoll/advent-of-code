@@ -46,6 +46,10 @@ fn part_1((grid, start, end): &Parsed) -> u32 {
     queue.push((Reverse(0), *start));
 
     while let Some((Reverse(count), point)) = queue.pop() {
+        if &point == end {
+            // since the queue is ordered, this must be (one of) the shortest path(s)
+            return count;
+        }
         let best_count = visited.entry(point).or_insert(u32::MAX);
         if *best_count <= count {
             continue;
@@ -62,16 +66,13 @@ fn part_1((grid, start, end): &Parsed) -> u32 {
                 .map(|pt| (Reverse(count + 1), pt))
         );
     }
-    // print_visited(&visited, grid.len(), grid[0].len());
-    *visited.get(end).unwrap()
+    unreachable!()
 }
 
 fn part_2((grid, _, end): &Parsed) -> u32 {
     let mut queue = BinaryHeap::new();
     let mut visited = HashMap::default();
     queue.push((Reverse(0), *end));
-    let mut best_result = None;
-
     while let Some((Reverse(count), point)) = queue.pop() {
         let best_count = visited.entry(point).or_insert(u32::MAX);
         if *best_count <= count {
@@ -80,10 +81,7 @@ fn part_2((grid, _, end): &Parsed) -> u32 {
         *best_count = count;
         let height = grid[point.y() as usize][point.x() as usize];
         if height == b'a' {
-            if best_result.filter(|&x| count >= x).is_none() {
-                best_result = Some(count);
-            }
-            continue;
+            return count;
         }
         queue.extend(
             point.direct_neighbors()
@@ -95,8 +93,7 @@ fn part_2((grid, _, end): &Parsed) -> u32 {
                 .map(|pt| (Reverse(count + 1), pt))
         );
     }
-    // print_visited(&visited, grid.len(), grid[0].len());
-    best_result.expect("No solution found")
+    unreachable!()
 }
 
 #[allow(unused)]
