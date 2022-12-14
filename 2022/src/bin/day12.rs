@@ -4,7 +4,6 @@ use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 
 use aoc2022::*;
-use aoc2022::collections::*;
 use aoc2022::coord::Point;
 use parse::parse_input;
 
@@ -42,7 +41,7 @@ mod parse {
 
 fn part_1((grid, start, end): &Parsed) -> u32 {
     let mut queue = BinaryHeap::new();
-    let mut visited = HashMap::default();
+    let mut visited = vec![vec![u32::MAX; grid[0].len()]; grid.len()];
     queue.push((Reverse(0), *start));
 
     while let Some((Reverse(count), point)) = queue.pop() {
@@ -50,7 +49,7 @@ fn part_1((grid, start, end): &Parsed) -> u32 {
             // since the queue is ordered, this must be (one of) the shortest path(s)
             return count;
         }
-        let best_count = visited.entry(point).or_insert(u32::MAX);
+        let best_count = &mut visited[point.y() as usize][point.x() as usize];
         if *best_count <= count {
             continue;
         }
@@ -71,10 +70,10 @@ fn part_1((grid, start, end): &Parsed) -> u32 {
 
 fn part_2((grid, _, end): &Parsed) -> u32 {
     let mut queue = BinaryHeap::new();
-    let mut visited = HashMap::default();
+    let mut visited = vec![vec![u32::MAX; grid[0].len()]; grid.len()];
     queue.push((Reverse(0), *end));
     while let Some((Reverse(count), point)) = queue.pop() {
-        let best_count = visited.entry(point).or_insert(u32::MAX);
+        let best_count = &mut visited[point.y() as usize][point.x() as usize];
         if *best_count <= count {
             continue;
         }
@@ -97,10 +96,9 @@ fn part_2((grid, _, end): &Parsed) -> u32 {
 }
 
 #[allow(unused)]
-fn print_visited(visited: &HashMap<Point<2>, u32>, heigth: usize, width: usize) {
-    for y in 0..heigth {
-        for x in 0..width {
-            let count = visited.get(&(x, y).into()).unwrap_or(&0);
+fn print_visited(visited: &[Vec<u32>], heigth: usize, width: usize) {
+    for line in visited {
+        for count in line {
             print!("|{count:03}");
         }
         println!("|");
