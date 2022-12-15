@@ -1,14 +1,15 @@
 #![feature(test)]
 
+use std::ops::RangeInclusive;
+
 use itertools::{Itertools, MinMaxResult};
 
 use aoc2022::*;
 use aoc2022::coord::Point;
-use parse::parse_input;
 
 const DAY: usize = 15;
 
-type Parsed = Vec<(Point<2>, Point<2>)>;
+type Parsed = Vec<(Point<2>, Point<2>, i32)>;
 
 const PART_1_Y: i32 = 2000000;
 
@@ -19,40 +20,35 @@ fn main() {
     println!("Part 2: {}", part_2(&parsed));
 }
 
-mod parse {
-    use super::*;
-
-    pub fn parse_input(input: &str) -> Parsed {
-        input
-            .lines()
-            .map(|line| {
-                let mut tokens = line.split(&[' ', ',', '=', ':']);
-                let s_x = tokens.nth(3).unwrap().parse().unwrap();
-                let s_y = tokens.nth(2).unwrap().parse().unwrap();
-                let b_x = tokens.nth(6).unwrap().parse().unwrap();
-                let b_y = tokens.nth(2).unwrap().parse().unwrap();
-                (Point([s_x, s_y]), Point([b_x, b_y]))
-            })
-            .collect()
-    }
+fn parse_input(input: &str) -> Parsed {
+    input
+        .lines()
+        .map(|line| {
+            let mut tokens = line.split(&[' ', ',', '=', ':']);
+            let s_x = tokens.nth(3).unwrap().parse().unwrap();
+            let s_y = tokens.nth(2).unwrap().parse().unwrap();
+            let b_x = tokens.nth(6).unwrap().parse().unwrap();
+            let b_y = tokens.nth(2).unwrap().parse().unwrap();
+            let (s, b) = (Point([s_x, s_y]), Point([b_x, b_y]));
+            (s, b, (s - b).manhattan())
+        })
+        .collect()
 }
 
 fn part_1(parsed: &Parsed, y: i32) -> usize {
     let MinMaxResult::MinMax(min_x, max_x) = parsed.iter()
-        .flat_map(|(s, b)| {
-            let radius = (s - b).manhattan();
-            [s.x() - radius, s.x() + radius].into_iter()
+        .flat_map(|(s, _, r)| {
+            [s.x() - r, s.x() + r].into_iter()
         })
         .minmax()
     else {
         panic!("expected two results");
     };
 
-    let mut candidates: Vec<_> = vec![false; (max_x - min_x) as usize];
+    let mut candidates: Vec<_> = vec![false; (max_x - min_x + 1) as usize];
     // collect intersection for each sensor-beacon area
-    for (s, b) in parsed.iter() {
-        let radius = (s - b).manhattan();
-        let x_range = radius - (s.y() - y).abs();
+    for (s, _, r) in parsed.iter() {
+        let x_range = *r - (s.y() - y).abs();
         if x_range < 0 {
             continue;
         }
@@ -61,7 +57,7 @@ fn part_1(parsed: &Parsed, y: i32) -> usize {
         }
     }
     // unset known beacons
-    for (_, b) in parsed.iter() {
+    for (_, b, _) in parsed.iter() {
         if b.y() == y {
             candidates[(b.x() - min_x) as usize] = false;
         }
@@ -69,7 +65,7 @@ fn part_1(parsed: &Parsed, y: i32) -> usize {
     candidates.into_iter().filter(|x| *x).count()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
+fn part_2(_parsed: &Parsed, range: RangeInclusive<i32>) -> usize {
     todo!()
 }
 
