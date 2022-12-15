@@ -1,18 +1,21 @@
 #![feature(test)]
 
+use itertools::{Itertools, MinMaxResult};
+
 use aoc2022::*;
 use aoc2022::coord::Point;
-use itertools::{Itertools, MinMaxResult};
 use parse::parse_input;
 
 const DAY: usize = 15;
 
 type Parsed = Vec<(Point<2>, Point<2>)>;
 
+const PART_1_Y: i32 = 2000000;
+
 fn main() {
     let input = read_file(DAY);
     let parsed = parse_input(&input);
-    println!("Part 1: {}", part_1(&parsed, 2000000));
+    println!("Part 1: {}", part_1(&parsed, PART_1_Y));
     println!("Part 2: {}", part_2(&parsed));
 }
 
@@ -45,15 +48,25 @@ fn part_1(parsed: &Parsed, y: i32) -> usize {
         panic!("expected two results");
     };
 
-    (min_x..=max_x)
-        .filter(|&x| {
-            parsed.iter()
-                .any(|(s, b)| {
-                    let pt = &Point([x, y]);
-                    pt != b && (s - pt).manhattan() <= (s - b).manhattan()
-                })
-        })
-        .count()
+    let mut candidates: Vec<_> = vec![false; (max_x - min_x) as usize];
+    // collect intersection for each sensor-beacon area
+    for (s, b) in parsed.iter() {
+        let radius = (s - b).manhattan();
+        let x_range = radius - (s.y() - y).abs();
+        if x_range < 0 {
+            continue;
+        }
+        for x_offset in -x_range..=x_range {
+            candidates[(s.x() + x_offset - min_x) as usize] = true;
+        }
+    }
+    // unset known beacons
+    for (_, b) in parsed.iter() {
+        if b.y() == y {
+            candidates[(b.x() - min_x) as usize] = false;
+        }
+    }
+    candidates.into_iter().filter(|x| *x).count()
 }
 
 fn part_2(_parsed: &Parsed) -> usize {
@@ -85,6 +98,6 @@ mod tests {
     test!(part_1(10) == 26);
     // test!(part_2() == 0);
     bench_parse!(Vec::len, 31);
-    // bench!(part_1() == 0);
+    bench!(part_1(PART_1_Y) == 4876693);
     // bench!(part_2() == 0);
 }
