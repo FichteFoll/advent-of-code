@@ -49,7 +49,7 @@ fn move_rope<const N: usize>(parsed: &Parsed) -> usize {
         'step: for _ in 0..*count {
             knots[0] += dir;
             for i in 1..N {
-                let diff = &knots[i - 1] - &knots[i];
+                let diff = knots[i - 1] - knots[i];
                 if diff.0.iter().any(|n| n.abs() > 1) {
                     knots[i] += diff.signum();
                 } else {

@@ -22,7 +22,7 @@ pub mod collections {
 pub fn read_file(day: usize) -> String {
     std::fs::read_to_string(
         std::env::var("INPUT")
-            .unwrap_or(format!("input/day{:0>2}.txt", day)),
+            .unwrap_or(format!("input/day{day:0>2}.txt")),
     )
     .unwrap()
 }

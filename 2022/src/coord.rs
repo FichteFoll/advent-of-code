@@ -129,7 +129,7 @@ impl<const N: usize> Display for Point<N> {
         let mut iter = self.0.iter();
         write!(f, "Point<{}>([{}", N, iter.next().unwrap())?;
         for n in iter {
-            write!(f, ", {}", n)?;
+            write!(f, ", {n}")?;
         }
         write!(f, "])")
     }
@@ -307,7 +307,7 @@ mod point2 {
                     self.0.swap(0, 1);
                     self.0[0] *= -1;
                 }
-                _ => panic!("invalid rotation {}", by),
+                _ => panic!("invalid rotation {by}"),
             }
         }
     }
@@ -357,7 +357,7 @@ mod point3 {
                     self.0.swap(axes[0], axes[1]);
                     self.0[axes[0]] *= -1;
                 }
-                _ => panic!("invalid rotation {}", by),
+                _ => panic!("invalid rotation {by}"),
             }
         }
     }

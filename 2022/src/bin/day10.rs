@@ -24,7 +24,7 @@ fn parse_input(input: &str) -> Parsed {
             match &words[..] {
                 ["noop"] => Instr::Noop,
                 ["addx", operand] => Instr::AddX(operand.parse().unwrap()),
-                _ => panic!("bad instruction {:?}", line)
+                _ => panic!("bad instruction {line:?}")
             }
         })
         .collect()
