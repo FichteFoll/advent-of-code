@@ -13,6 +13,8 @@ const DAY: usize = 14;
 type Grid = Vec<Vec<bool>>;
 type Parsed = (Grid, usize);
 
+const START: (usize, usize) = (500, 0);
+
 main!();
 
 fn parse_input(input: &str) -> Parsed {
@@ -30,9 +32,9 @@ fn parse_input(input: &str) -> Parsed {
                 .collect()
         }).collect();
 
-    debug_assert!(max_y < 500, "won't fit our grid");
+    debug_assert!(max_y < START.0, "won't fit our grid");
     // +2 and +3 respectively to fit part_2
-    let mut grid = vec![vec![false; 500 + max_y + 2]; max_y + 3];
+    let mut grid = vec![vec![false; START.0 + max_y + 2]; max_y + 3];
 
     let wall_points = paths.iter()
         .flat_map(|path| {
@@ -47,9 +49,6 @@ fn parse_input(input: &str) -> Parsed {
     (grid, max_y)
 }
 
-const START: (usize, usize) = (500, 0);
-const X_STEPS: [isize; 3] = [0, -1, 1];
-
 fn part_1((paths, max_y): &Parsed) -> usize {
     drop_sand(paths, *max_y, false)
 }
@@ -57,6 +56,8 @@ fn part_1((paths, max_y): &Parsed) -> usize {
 fn part_2((paths, max_y): &Parsed) -> usize {
     drop_sand(paths, *max_y + 2, true)
 }
+
+const X_STEPS: [isize; 3] = [0, -1, 1];
 
 fn drop_sand(grid: &Grid, max_y: usize, has_floor: bool) -> usize {
     let mut grid = grid.clone();
