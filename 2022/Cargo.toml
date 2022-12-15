@@ -9,11 +9,10 @@ edition = "2021"
 [dependencies]
 fnv = { version = "^1.0.7", optional = true }
 itertools = "^0.10.5"
-lazy_static = "^1.4.0"
-paste = "^1.0.9"
 thiserror = "^1.0.37"
 
 [dev-dependencies]
+paste = "^1.0.9"
 test-case = "^2.2.2"
 
 [features]
