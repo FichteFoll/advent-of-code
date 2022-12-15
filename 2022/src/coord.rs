@@ -122,6 +122,13 @@ impl<const N: usize> Point<N> {
     pub fn manhattan(&self) -> i32 {
         self.0.iter().cloned().map(i32::abs).sum()
     }
+
+    #[must_use]
+    pub fn manhattan_to(&self, other: &Self) -> i32 {
+        self.0.iter().zip(other.0.iter())
+            .map(|(a, b)| (a - b).abs())
+            .sum()
+    }
 }
 
 impl<const N: usize> Display for Point<N> {
