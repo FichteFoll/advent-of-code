@@ -1,50 +1,54 @@
-#![feature(cell_update)]
+#![feature(array_windows)]
 #![feature(let_chains)]
 #![feature(test)]
 
-use itertools::Itertools;
 use itertools::iproduct;
-use std::cell::Cell;
 use std::ops::RangeInclusive;
 
 use aoc2022::*;
-use aoc2022::collections::*;
-use aoc2022::coord::Point;
 
 
 const DAY: usize = 14;
 
-type Parsed = (HashSet<Point<2>>, i32);
+type Grid = Vec<Vec<bool>>;
+type Parsed = (Grid, usize);
 
 main!();
 
 fn parse_input(input: &str) -> Parsed {
-    let max_y = Cell::new(0);
-    let occupied = input
+    let mut max_y = 0;
+    let paths: Vec<Vec<(usize, usize)>> = input
         .lines()
-        .flat_map(|line| {
+        .map(|line| {
             line.split(" -> ")
                 .map(|pt_s| {
                     let split = pt_s.split_once(',').unwrap();
-                    let pt: (i32, i32) = (split.0.parse().unwrap(), split.1.parse().unwrap());
-                    max_y.update(|y| y.max(pt.1));
+                    let pt = (split.0.parse().unwrap(), split.1.parse().unwrap());
+                    max_y = max_y.max(pt.1);
                     pt
                 })
-                .tuple_windows()
-                .flat_map(|(s, e) | {
+                .collect()
+        }).collect();
+
+    debug_assert!(max_y < 500, "won't fit our grid");
+    // +2 and +3 respectively to fit part_2
+    let mut grid = vec![vec![false; 500 + max_y + 2]; max_y + 3];
+
+    let wall_points = paths.iter()
+        .flat_map(|path| {
+            path.array_windows()
+                .flat_map(|[s, e] | {
                     iproduct!(range_incl_any_dir(s.0, e.0), range_incl_any_dir(s.1, e.1))
                 })
-                .map(|(x,  y)| Point([x, y]))
-        }).collect();
-    (occupied, max_y.into_inner())
+        });
+    for (x, y) in wall_points {
+        grid[y][x] = true;
+    }
+    (grid, max_y)
 }
 
-const START: Point<2> = Point([500, 0]);
-const STEPS: [Point<2>; 3] = [
-    Point::<2>::S,
-    Point::<2>::SW,
-    Point::<2>::SE,
-];
+const START: (usize, usize) = (500, 0);
+const X_STEPS: [isize; 3] = [0, -1, 1];
 
 fn part_1((paths, max_y): &Parsed) -> usize {
     drop_sand(paths, *max_y, false)
@@ -54,33 +58,34 @@ fn part_2((paths, max_y): &Parsed) -> usize {
     drop_sand(paths, *max_y + 2, true)
 }
 
-fn drop_sand(occupied: &HashSet<Point<2>>, max_y: i32, has_floor: bool) -> usize {
-    let mut occupied = occupied.clone();
-    let num_wall_tiles = occupied.len();
+fn drop_sand(grid: &Grid, max_y: usize, has_floor: bool) -> usize {
+    let mut grid = grid.clone();
+    let mut count = 0;
 
     'outer: loop {
-        let mut current = START;
+        let mut cur = START;
         loop {
-            if !has_floor && current.y() == max_y {
+            if !has_floor && cur.1 == max_y {
                 break 'outer;
             }
-            let maybe_next = STEPS.iter()
-                .find_map(|step| {
-                    let next = &current + step;
-                    (!occupied.contains(&next)).then_some(next)
+            let maybe_next = X_STEPS.iter()
+                .find_map(|xstep| {
+                    let next = ((cur.0 as isize + xstep) as usize, cur.1 + 1);
+                    (!grid[next.1][next.0]).then_some(next)
                 });
-            if let Some(next) = maybe_next && (!has_floor || next.y() != max_y) {
-                current = next;
+            if let Some(next) = maybe_next && (!has_floor || next.1 != max_y) {
+                cur = next;
             } else {
-                occupied.insert(current);
-                if current == START {
+                grid[cur.1][cur.0] = true;
+                count += 1;
+                if cur == START {
                     break 'outer;
                 }
                 break;
             }
         }
     }
-    occupied.len() - num_wall_tiles
+    count
 }
 
 #[inline(always)]
@@ -100,7 +105,12 @@ mod tests {
 
     test!(part_1() == 24);
     test!(part_2() == 93);
-    bench_parse!(|p: &Parsed| p.0.len(), 614);
+    bench_parse!(
+        |p: &Parsed| {
+            p.0.iter().flat_map(|l| l.iter()).filter(|x| **x).count()
+        },
+        614
+    );
     bench!(part_1() == 614);
     bench!(part_2() == 26170);
 }
