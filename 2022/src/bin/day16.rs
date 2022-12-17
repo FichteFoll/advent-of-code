@@ -2,6 +2,7 @@
 #![feature(test)]
 
 use std::collections::BinaryHeap;
+use itertools::izip;
 
 use aoc2022::collections::*;
 use aoc2022::*;
@@ -279,11 +280,122 @@ mod part_1 {
 mod part_2 {
     use super::*;
 
-    pub fn part_2(_parsed: &Parsed) -> usize {
-        todo!()
+    pub fn part_2(map: &Parsed) -> usize {
+        const STATES: usize = 2;
+        const REM_ZERO: [usize; STATES] = [0; STATES];
+        let initial = MultiState::initial(26);
+
+        // Cache the best solutions until this point; `None` represents the end.
+        let mut cache: HashMap<_, MultiState<STATES>> = Default::default();
+        let mut queue: BinaryHeap<_> = [initial].into();
+
+        // Basically Djikstra.
+        while let Some(mut current) = queue.pop() {
+            // Check if we already have a better solution till this point.
+            let key = (current.remaining != REM_ZERO)
+                .then_some((current.position, current.open.clone()));
+            if let Some(other) = cache.get(&key) {
+                if other.value() >= current.value() {
+                    continue;
+                }
+            }
+            if current.remaining == REM_ZERO {
+                cache.insert(None, current);
+                continue;
+            }
+            cache.insert(key, current.clone());
+
+            let branches = current.branches(map);
+            if branches.is_empty() {
+                current.finalize();
+                queue.push(current);
+            } else {
+                queue.extend(branches);
+            }
+        }
+        cache.get(&None)
+            .expect("no solution found")
+            .released
+            .into_iter()
+            .sum()
+    }
+
+    #[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Debug)]
+    pub struct MultiState<'a, const N: usize> {
+        remaining: [usize; N],
+        released: [usize; N],
+        position: [&'a str; N],
+        rate: [usize; N],
+        open: Vec<&'a str>,
+    }
+
+    impl<'a, const N: usize> MultiState<'a, N> {
+        fn initial(remaining: usize) -> Self {
+            Self {
+                remaining: [remaining; N],
+                released: [0; N],
+                position: [START; N],
+                rate: [0; N],
+                open: vec![],
+            }
+        }
+
+        fn finalize(&mut self) {
+            izip!(self.released.iter_mut(), self.rate.iter(), self.remaining.iter())
+                .for_each(|(released, rate, remaining)| {
+                    *released += rate * remaining;
+                });
+            self.remaining = [0; N];
+        }
+    }
+
+    impl<'a, const N: usize> MultiState<'a, N> {
+        fn value(&self) -> usize {
+            // Higher is better.
+            izip!(self.released.iter(), self.rate.iter(), self.remaining.iter())
+                .map(|(released, rate, remaining)| {
+                    released + rate * remaining
+                })
+                .sum()
+        }
+
+        fn branches(&self, map: &'a Parsed) -> Vec<Self> {
+            // Move either yourself or the elefant in one iteration.
+            let mut vec = vec![];
+            if self.open.len() == map.len() - 1 {
+                return vec;
+            }
+            for i in 0..N {
+                let valve = map.get(self.position[i]).unwrap();
+                let next_branches = valve
+                    .connections
+                    .iter()
+                    .filter(|(_, cost)| self.remaining[i] > **cost)
+                    .map(|(next_pos, cost)| {
+                        let mut next = self.clone();
+                        next.position[i] = next_pos;
+                        next.remaining[i] -= cost;
+                        next.released[i] += self.rate[i] * cost;
+                        next
+                    });
+                vec.extend(next_branches);
+                // Check if rate is > 0 because the initial valve has a rate of 0
+                // and whether it makes sense to even open the valve.
+                let is_open = self.open.iter().any(|&x| x == self.position[i]);
+                if !is_open && valve.rate > 0 && self.remaining[i] > 1 {
+                    let mut next = self.clone();
+                    next.remaining[i] -= 1;
+                    next.released[i] += self.rate[i];
+                    next.rate[i] += valve.rate;
+                    next.open.push(self.position[i]);
+                    next.open.sort();
+                    vec.push(next);
+                }
+            }
+            vec
+        }
     }
 }
-
 
 #[cfg(test)]
 const TEST_INPUT: &str = "\
@@ -305,11 +417,11 @@ mod tests {
     extern crate test;
 
     test!(part_1() == 1651);
-
-    // test!(part_2() == 0);
+    test!(part_2() == 1707);
     bench_parse!(HashMap::len, 57 - 42 + 1);
     // Kinda too slow to bench
     bench!(part_1() == 2330);
-    // bench!(part_2() == 0);
+    // Way too slow to even test
+    // bench!(part_2() == 2675);
 
 }
