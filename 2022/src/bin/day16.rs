@@ -1,7 +1,7 @@
-#![feature(option_zip)]
+#![feature(let_chains)]
 #![feature(test)]
 
-use std::cmp::Reverse;
+use std::collections::BinaryHeap;
 
 use aoc2022::collections::*;
 use aoc2022::*;
@@ -84,49 +84,59 @@ fn part_1(map: &Parsed) -> usize {
         remaining: 30,
         ..State::default()
     };
-    let mut cache: HashMap<_, usize> = Default::default();
-    let mut path: Vec<_> = vec![initial.clone()];
+    // Cache the best solutions until this point; `None` represents the end.
+    let mut cache: HashMap<_, State> = Default::default();
+    let mut queue: BinaryHeap<_> = [initial].into();
 
-    'path: while let Some(current) = path.last() {
-        let mut best = None;
-        for branch in current.branches(map) {
-            if let Some(&b_to_release) = cache.get(&branch) {
-                let new = Some((b_to_release, Reverse(branch.remaining)));
-                best = best.zip_with(new, Ord::max).or(new);
-            } else {
-                path.push(branch);
-                continue 'path;
+    // Basically Djikstra.
+    while let Some(mut current) = queue.pop() {
+        // Check if we already have a better solution till this point.
+        let key = (current.remaining != 0)
+            .then_some((current.position, current.open.clone()));
+        if let Some(other) = cache.get(&key) {
+            if other.value() >= current.value() {
+                continue;
             }
         }
-        // println!("{} {best:?}", current.remaining);
-        let to_release = best
-            .map(|(b_to_release, Reverse(b_remaining))| {
-                b_to_release + current.rate * (current.remaining - b_remaining)
-            })
-            .unwrap_or_else(|| current.remaining * current.rate);
-        // println!("inserting {current:?} {to_release:?}");
-        cache.insert(path.pop().unwrap(), to_release);
-        if cache.len() % 100000 == 0 {
-            println!("path len {}; cache size {}", path.len(), cache.len());
+        if current.remaining == 0 {
+            cache.insert(None, current);
+            continue;
+        }
+        cache.insert(key, current.clone());
+
+        let branches = current.branches(map);
+        if branches.is_empty() {
+            current.released += current.rate * current.remaining;
+            current.remaining = 0;
+            queue.push(current);
+        } else {
+            queue.extend(branches);
         }
     }
-    println!("final cache size {}", cache.len());
-    *cache.get(&initial).unwrap()
+    cache.get(&None).expect("no solution found").released
 }
 
 fn part_2(_parsed: &Parsed) -> usize {
     todo!()
 }
 
-#[derive(Clone, Hash, PartialEq, Eq, Default, Debug)]
+#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Default, Debug)]
 struct State<'a> {
-    position: &'a str,
     remaining: usize,
+    released: usize,
+    position: &'a str,
     rate: usize,
     open: Vec<&'a str>,
 }
 
 impl<'a> State<'a> {
+    fn value(&self) -> usize {
+        // Estimate the final released pressure if no further valves were opened,
+        // meaning we need to differentiate between states with different opened valves.
+        // Higher is better.
+        self.released + self.remaining * self.rate
+    }
+
     fn branches(&self, map: &'a Parsed) -> Vec<Self> {
         let valve = map.get(self.position).unwrap();
         if self.open.len() == map.len() - 1 {
@@ -139,6 +149,7 @@ impl<'a> State<'a> {
             .map(|(next_pos, cost)| State {
                 position: next_pos,
                 remaining: self.remaining - cost,
+                released: self.released + self.rate * cost,
                 ..self.clone()
             })
             .collect();
@@ -146,9 +157,11 @@ impl<'a> State<'a> {
         // and whether it makes sense to even open the valve.
         if !self.is_open() && valve.rate > 0 && self.remaining > 1 {
             let mut next = self.clone();
+            next.remaining -= 1;
+            next.released += self.rate;
             next.rate += valve.rate;
             next.open.push(self.position);
-            next.remaining -= 1;
+            next.open.sort();
             vec.push(next);
         }
         vec
@@ -184,12 +197,31 @@ mod tests {
         Valve DD has flow rate=13; tunnels lead to valves CC, AA\n\
         ";
 
+    const NO_SKIP_BB_INPUT: &str = "\
+        Valve AA has flow rate=0; tunnels lead to valves BB\n\
+        Valve BB has flow rate=3; tunnels lead to valves CC\n\
+        Valve CC has flow rate=0; tunnels lead to valves DD\n\
+        Valve DD has flow rate=7; tunnels lead to valves BB\n\
+        ";
+
+    const SKIP_BB_INPUT: &str = "\
+        Valve AA has flow rate=0; tunnels lead to valves BB\n\
+        Valve BB has flow rate=3; tunnels lead to valves CC\n\
+        Valve CC has flow rate=0; tunnels lead to valves DD\n\
+        Valve DD has flow rate=17; tunnels lead to valves BB\n\
+        ";
+
     test!(part_1() == 1651);
     test!(simple, SIMPLE_INPUT, part_1() == 13 * 28 + 7 * 26 + 3 * 23);
+    // If BB was skipped, would result in 7 * 26 + 3 * 24, which is 5 less.
+    test!(no_skip_bb, NO_SKIP_BB_INPUT, part_1() == 3 * 28 + 7 * 25);
+    // If BB wasn't skipped, would result in 3 * 28 + 17 * 25, which is 5 less.
+    test!(skip_bb, SKIP_BB_INPUT, part_1() == 17 * 26 + 3 * 24);
+
     // test!(part_2() == 0);
     bench_parse!(HashMap::len, 57 - 42 + 1);
-    // Way too slow to bench
-    // bench!(part_1() == 2330);
+    // Kinda too slow to bench
+    bench!(part_1() == 2330);
     // bench!(part_2() == 0);
 
     #[test]
@@ -205,18 +237,21 @@ mod tests {
             State {
                 position: "JJ",
                 remaining: 28,
+                released: 0,
                 rate: 0,
                 open: vec![],
             },
             State {
                 position: "DD",
                 remaining: 29,
+                released: 0,
                 rate: 0,
                 open: vec![],
             },
             State {
                 position: "BB",
                 remaining: 29,
+                released: 0,
                 rate: 0,
                 open: vec![],
             },
@@ -229,6 +264,7 @@ mod tests {
         let initial = State {
             position: "JJ",
             remaining: 30,
+            released: 0,
             ..State::default()
         };
         let map = parse_input(TEST_INPUT);
@@ -237,18 +273,21 @@ mod tests {
             State {
                 position: "BB",
                 remaining: 27,
+                released: 0,
                 rate: 0,
                 open: vec![],
             },
             State {
                 position: "DD",
                 remaining: 27,
+                released: 0,
                 rate: 0,
                 open: vec![],
             },
             State {
                 position: "JJ",
                 remaining: 29,
+                released: 0,
                 rate: 21,
                 open: vec!["JJ"],
             },
