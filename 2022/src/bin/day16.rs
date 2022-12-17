@@ -2,7 +2,6 @@
 #![feature(test)]
 
 use std::collections::BinaryHeap;
-use itertools::izip;
 
 use aoc2022::collections::*;
 use aoc2022::*;
@@ -87,28 +86,27 @@ pub fn part_2(map: &Parsed) -> usize {
 }
 
 fn highest_relief<const N: usize>(map: &Parsed, remaining: usize) -> usize {
-    let rem_zero = [0usize; N];
     let initial = State::initial(remaining);
 
     // Cache the best solutions until this point; `None` represents the end.
     let mut cache: HashMap<_, State<N>> = Default::default();
     let mut queue: BinaryHeap<_> = [initial].into();
 
-    // Basically Djikstra.
+    // Basically Dijkstra.
     while let Some(mut current) = queue.pop() {
         // Check if we already have a better solution till this point.
-        let key = (current.remaining != rem_zero)
-            .then_some((current.position, current.open.clone()));
+        let is_finished = current.is_finished();
+        let key =
+            (!is_finished).then_some((current.positions(), current.rate(), current.open.len()));
         if let Some(other) = cache.get(&key) {
             if other.value() >= current.value() {
                 continue;
             }
         }
-        if current.remaining == rem_zero {
-            cache.insert(None, current);
+        cache.insert(key, current.clone());
+        if is_finished {
             continue;
         }
-        cache.insert(key, current.clone());
 
         let branches = current.branches(map);
         if branches.is_empty() {
@@ -118,50 +116,80 @@ fn highest_relief<const N: usize>(map: &Parsed, remaining: usize) -> usize {
             queue.extend(branches);
         }
     }
-    cache.get(&None)
-        .expect("no solution found")
-        .released
-        .into_iter()
-        .sum()
+    cache.get(&None).expect("no solution found").released()
 }
 
-#[derive(Clone, Hash, PartialEq, Eq, PartialOrd, Ord, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Debug)]
+struct Operator<'a> {
+    remaining: usize,
+    released: usize,
+    position: &'a str,
+    rate: usize,
+}
+
+impl<'a> Operator<'a> {
+    fn initial(remaining: usize) -> Self {
+        Self {
+            remaining,
+            released: 0,
+            position: START,
+            rate: 0,
+        }
+    }
+
+    fn value(&self) -> usize {
+        // Higher is better.
+        self.released + self.rate * self.remaining
+    }
+
+    fn finalize(&mut self) {
+        self.released += self.rate * self.remaining;
+        self.remaining = 0;
+    }
+}
+
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug)]
 struct State<'a, const N: usize> {
-    remaining: [usize; N],
-    released: [usize; N],
-    position: [&'a str; N],
-    rate: [usize; N],
+    operators: [Operator<'a>; N],
     open: Vec<&'a str>,
 }
 
 impl<'a, const N: usize> State<'a, N> {
     fn initial(remaining: usize) -> Self {
         Self {
-            remaining: [remaining; N],
-            released: [0; N],
-            position: [START; N],
-            rate: [0; N],
+            operators: [Operator::initial(remaining); N],
             open: vec![],
         }
     }
 
+    // The following are lenses into the `operators` field.
     fn finalize(&mut self) {
-        izip!(self.released.iter_mut(), self.rate.iter(), self.remaining.iter())
-            .for_each(|(released, rate, remaining)| {
-                *released += rate * remaining;
-            });
-        self.remaining = [0; N];
+        self.operators.iter_mut().for_each(Operator::finalize);
     }
-}
 
-impl<'a, const N: usize> State<'a, N> {
+    fn positions(&self) -> [&'a str; N] {
+        // There must be a better way …
+        let mut res = [""; N];
+        for (i, op) in self.operators.iter().enumerate() {
+            res[i] = op.position;
+        }
+        res
+    }
+
     fn value(&self) -> usize {
-        // Higher is better.
-        izip!(self.released.iter(), self.rate.iter(), self.remaining.iter())
-            .map(|(released, rate, remaining)| {
-                released + rate * remaining
-            })
-            .sum()
+        self.operators.iter().map(Operator::value).sum()
+    }
+
+    fn released(&self) -> usize {
+        self.operators.iter().map(|o| o.released).sum()
+    }
+
+    fn rate(&self) -> usize {
+        self.operators.iter().map(|o| o.rate).sum()
+    }
+
+    fn is_finished(&self) -> bool {
+        self.operators.iter().all(|o| o.remaining == 0)
     }
 
     fn branches(&self, map: &'a Parsed) -> Vec<Self> {
@@ -171,29 +199,32 @@ impl<'a, const N: usize> State<'a, N> {
             return vec;
         }
         for i in 0..N {
-            let valve = map.get(self.position[i]).unwrap();
+            let mut op = self.operators[i];
+            let valve = map.get(op.position).unwrap();
             let next_branches = valve
                 .connections
                 .iter()
-                .filter(|(_, cost)| self.remaining[i] > **cost)
+                .filter(|(_, cost)| op.remaining > **cost)
                 .map(|(next_pos, cost)| {
                     let mut next = self.clone();
-                    next.position[i] = next_pos;
-                    next.remaining[i] -= cost;
-                    next.released[i] += self.rate[i] * cost;
+                    let mut next_op = op;
+                    next_op.position = next_pos;
+                    next_op.remaining -= cost;
+                    next_op.released += op.rate * cost;
+                    next.operators[i] = next_op;
                     next
                 });
             vec.extend(next_branches);
             // Check if rate is > 0 because the initial valve has a rate of 0
             // and whether it makes sense to even open the valve.
-            let is_open = self.open.iter().any(|&x| x == self.position[i]);
-            if !is_open && valve.rate > 0 && self.remaining[i] > 1 {
+            let is_open = || self.open.iter().any(|&x| x == op.position);
+            if valve.rate > 0 && op.remaining > 1 && !is_open() {
+                op.remaining -= 1;
+                op.released += op.rate;
+                op.rate += valve.rate;
                 let mut next = self.clone();
-                next.remaining[i] -= 1;
-                next.released[i] += self.rate[i];
-                next.rate[i] += valve.rate;
-                next.open.push(self.position[i]);
-                next.open.sort();
+                next.operators[i] = op;
+                next.open.push(op.position);
                 vec.push(next);
             }
         }
@@ -228,7 +259,6 @@ mod tests {
     // Way too slow to even test
     // bench!(part_2() == 2675);
 
-
     const SIMPLE_INPUT: &str = "\
         Valve AA has flow rate=0; tunnels lead to valves BB, DD\n\
         Valve BB has flow rate=3; tunnels lead to valves CC, DD\n\
@@ -250,7 +280,7 @@ mod tests {
         Valve DD has flow rate=17; tunnels lead to valves BB\n\
         ";
 
-    mod part_1{
+    mod part_1 {
         use super::*;
 
         test!(simple, SIMPLE_INPUT, part_1() == 13 * 28 + 7 * 26 + 3 * 23);
@@ -266,24 +296,30 @@ mod tests {
             let branches = initial.branches(&map);
             let expected = vec![
                 State {
-                    position: ["JJ"],
-                    remaining: [28],
-                    released: [0],
-                    rate: [0],
+                    operators: [Operator {
+                        position: "JJ",
+                        remaining: 28,
+                        released: 0,
+                        rate: 0,
+                    }],
                     open: vec![],
                 },
                 State {
-                    position: ["DD"],
-                    remaining: [29],
-                    released: [0],
-                    rate: [0],
+                    operators: [Operator {
+                        position: "DD",
+                        remaining: 29,
+                        released: 0,
+                        rate: 0,
+                    }],
                     open: vec![],
                 },
                 State {
-                    position: ["BB"],
-                    remaining: [29],
-                    released: [0],
-                    rate: [0],
+                    operators: [Operator {
+                        position: "BB",
+                        remaining: 29,
+                        released: 0,
+                        rate: 0,
+                    }],
                     open: vec![],
                 },
             ];
@@ -293,29 +329,35 @@ mod tests {
         #[test]
         fn test_branches_jj() {
             let mut initial = State::<1>::initial(30);
-            initial.position = ["JJ"];
+            initial.operators[0].position = "JJ";
             let map = parse_input(TEST_INPUT);
             let branches = initial.branches(&map);
             let expected = vec![
                 State {
-                    position: ["BB"],
-                    remaining: [27],
-                    released: [0],
-                    rate: [0],
+                    operators: [Operator {
+                        position: "BB",
+                        remaining: 27,
+                        released: 0,
+                        rate: 0,
+                    }],
                     open: vec![],
                 },
                 State {
-                    position: ["DD"],
-                    remaining: [27],
-                    released: [0],
-                    rate: [0],
+                    operators: [Operator {
+                        position: "DD",
+                        remaining: 27,
+                        released: 0,
+                        rate: 0,
+                    }],
                     open: vec![],
                 },
                 State {
-                    position: ["JJ"],
-                    remaining: [29],
-                    released: [0],
-                    rate: [21],
+                    operators: [Operator {
+                        position: "JJ",
+                        remaining: 29,
+                        released: 0,
+                        rate: 21,
+                    }],
                     open: vec!["JJ"],
                 },
             ];
