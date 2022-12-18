@@ -40,22 +40,34 @@ fn make_blocks_fall_smart(steam: &Parsed, times: u64) -> u64 {
     // so long that we find these two figures.
     // For the test input, these are 25 for the prefix and 35 for the cycle.
     // The cycle size must be a multiple of 5.
-    let (prefix_size, cycle_size) = match make_blocks_fall(&mut Default::default(), steam, times, true) {
-        Left(result) => return result,
-        Right(tpl) => tpl,
-    };
+    let (prefix_size, cycle_size) =
+        match make_blocks_fall(&mut Default::default(), steam, times, true) {
+            Left(result) => return result,
+            Right(tpl) => tpl,
+        };
     assert_eq!(cycle_size % 5, 0, "cycle size is not a multiple of 5");
 
     let to_estimate = times - prefix_size;
     let (mul, suffix_size) = (to_estimate / cycle_size, to_estimate % cycle_size);
     // dbg!(prefix_size, cycle_size, to_estimate, mul, suffix_size);
-    let prefix_height = make_blocks_fall(&mut Default::default(), steam, prefix_size, false).unwrap_left();
-    let after_cycle_height =
-        make_blocks_fall(&mut Default::default(), steam, prefix_size + cycle_size, false).unwrap_left();
+    let prefix_height =
+        make_blocks_fall(&mut Default::default(), steam, prefix_size, false).unwrap_left();
+    let after_cycle_height = make_blocks_fall(
+        &mut Default::default(),
+        steam,
+        prefix_size + cycle_size,
+        false,
+    )
+    .unwrap_left();
     let cycle_height = after_cycle_height - prefix_height;
 
-    let prefix_and_suffix_height =
-        make_blocks_fall(&mut Default::default(), steam, prefix_size + suffix_size, false).unwrap_left();
+    let prefix_and_suffix_height = make_blocks_fall(
+        &mut Default::default(),
+        steam,
+        prefix_size + suffix_size,
+        false,
+    )
+    .unwrap_left();
     let suffix_height = prefix_and_suffix_height - prefix_height;
 
     // dbg!(
@@ -69,7 +81,12 @@ fn make_blocks_fall_smart(steam: &Parsed, times: u64) -> u64 {
     prefix_height + mul * cycle_height + suffix_height
 }
 
-fn make_blocks_fall(grid: &mut Grid, steam: &Parsed, times: u64, find_cycles: bool) -> Either<u64, (u64, u64)> {
+fn make_blocks_fall(
+    grid: &mut Grid,
+    steam: &Parsed,
+    times: u64,
+    find_cycles: bool,
+) -> Either<u64, (u64, u64)> {
     let mut steam_iter = steam.bytes().cycle();
     let mut block_iter = Block::all().into_iter().cycle();
     let mut highest_point = 1; // floor starts at y == 1 (and is build into the negatives)
@@ -175,11 +192,15 @@ impl CycleFinder {
             if matches.iter().any(|x| !x) {
                 continue;
             } else {
-                filtered_candidates.entry(cycle_size).or_default().push((matches.len(), prefix_size));
+                filtered_candidates
+                    .entry(cycle_size)
+                    .or_default()
+                    .push((matches.len(), prefix_size));
             }
         }
         // dbg!(&filtered_candidates);
-        filtered_candidates.into_iter()
+        filtered_candidates
+            .into_iter()
             .sorted_by_key(|(_, v)| v.iter().map(|x| x.0).sum::<usize>())
             .last()
             .map(|(cycle_size, v)| (v[0].1, cycle_size))
@@ -366,8 +387,10 @@ mod tests {
         // but it does so only after 25 initial blocks.
         let (prefix_size, cycle_size) =
             make_blocks_fall(&mut grid, &parsed, PART2_COUNT, true).unwrap_right();
-        assert_eq!(cycle_size % 35, 0); // any multiple of 35 works
-        // Finds 20 when I'd expect 25 but that still works :S
-        assert!(prefix_size >= 20); // any prefix higher than 25 works
+        // Any multiple of 35 works (finds 350).
+        assert_eq!(cycle_size % 35, 0);
+        // Any prefix higher than or equal 25 works
+        // (finds 20 but that still works :S).
+        assert!(prefix_size >= 20);
     }
 }
