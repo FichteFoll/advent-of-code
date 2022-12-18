@@ -164,7 +164,7 @@ impl CycleFinder {
     }
 
     fn find_cycle(&self) -> Option<(u64, u64)> {
-        let mut candidates: Vec<_> = self
+        let candidates: Vec<_> = self
             .map
             .values()
             .flat_map(|v| {
@@ -174,8 +174,6 @@ impl CycleFinder {
             })
             .unique()
             .collect();
-        candidates.sort_unstable();
-        dbg!(candidates.len());
 
         let mut filtered_candidates: HashMap<_, Vec<_>> = HashMap::default();
         for (prefix_size, cycle_size) in candidates {
@@ -198,7 +196,6 @@ impl CycleFinder {
                     .push((matches.len(), prefix_size));
             }
         }
-        // dbg!(&filtered_candidates);
         filtered_candidates
             .into_iter()
             .sorted_by_key(|(_, v)| v.iter().map(|x| x.0).sum::<usize>())
