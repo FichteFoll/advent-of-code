@@ -27,7 +27,7 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(steam: &Parsed) -> u64 {
-    make_blocks_fall_smart(steam, PART1_COUNT)
+    make_blocks_fall(&mut Default::default(), steam, PART1_COUNT, false).unwrap_left()
 }
 
 fn part_2(steam: &Parsed) -> u64 {
@@ -40,7 +40,7 @@ fn make_blocks_fall_smart(steam: &Parsed, times: u64) -> u64 {
     // so long that we find these two figures.
     // For the test input, these are 25 for the prefix and 35 for the cycle.
     // The cycle size must be a multiple of 5.
-    let (prefix_size, cycle_size) = match make_blocks_fall(&mut Default::default(), steam, times) {
+    let (prefix_size, cycle_size) = match make_blocks_fall(&mut Default::default(), steam, times, true) {
         Left(result) => return result,
         Right(tpl) => tpl,
     };
@@ -48,14 +48,14 @@ fn make_blocks_fall_smart(steam: &Parsed, times: u64) -> u64 {
 
     let to_estimate = times - prefix_size;
     let (mul, suffix_size) = (to_estimate / cycle_size, to_estimate % cycle_size);
-    dbg!(prefix_size, cycle_size, to_estimate, mul, suffix_size);
-    let prefix_height = make_blocks_fall(&mut Default::default(), steam, prefix_size).unwrap_left();
+    // dbg!(prefix_size, cycle_size, to_estimate, mul, suffix_size);
+    let prefix_height = make_blocks_fall(&mut Default::default(), steam, prefix_size, false).unwrap_left();
     let after_cycle_height =
-        make_blocks_fall(&mut Default::default(), steam, prefix_size + cycle_size).unwrap_left();
+        make_blocks_fall(&mut Default::default(), steam, prefix_size + cycle_size, false).unwrap_left();
     let cycle_height = after_cycle_height - prefix_height;
 
     let prefix_and_suffix_height =
-        make_blocks_fall(&mut Default::default(), steam, prefix_size + suffix_size).unwrap_left();
+        make_blocks_fall(&mut Default::default(), steam, prefix_size + suffix_size, false).unwrap_left();
     let suffix_height = prefix_and_suffix_height - prefix_height;
 
     // dbg!(
@@ -69,7 +69,7 @@ fn make_blocks_fall_smart(steam: &Parsed, times: u64) -> u64 {
     prefix_height + mul * cycle_height + suffix_height
 }
 
-fn make_blocks_fall(grid: &mut Grid, steam: &Parsed, times: u64) -> Either<u64, (u64, u64)> {
+fn make_blocks_fall(grid: &mut Grid, steam: &Parsed, times: u64, find_cycles: bool) -> Either<u64, (u64, u64)> {
     let mut steam_iter = steam.bytes().cycle();
     let mut block_iter = Block::all().into_iter().cycle();
     let mut highest_point = 1; // floor starts at y == 1 (and is build into the negatives)
@@ -100,14 +100,14 @@ fn make_blocks_fall(grid: &mut Grid, steam: &Parsed, times: u64) -> Either<u64, 
             } else {
                 let block_max = block.iter().map(|pt| pt.y()).min().unwrap();
                 let height_diff = block_max - highest_point;
-                if height_diff > 0 {
+                if find_cycles && height_diff > 0 {
                     // Collect fallthroughs to have somewhat of a limited problem space to find cycles within.
                     // An alternative would be to record every result for each iteration
                     // and then bruteforce through all combinations.
                     if let Some(result) =
                         cycle_finder.register((block_kind, height_diff), (i, highest_point))
                     {
-                        return Right(result); // take the shortcut!
+                        return Right(result);
                     }
                 }
                 highest_point = highest_point.min(block_max);
@@ -130,8 +130,9 @@ impl CycleFinder {
     // This is somewhat of an arbitrary number
     // that I just increased until it worked.
     // Using 39 also works but triggers cycle detection during part 1,
-    // making it much slower.
-    const THRESHOLD: usize = 40;
+    // making it much slower,
+    // which is why it's explicitly disabled there.
+    const THRESHOLD: usize = 39;
 
     #[must_use]
     fn register(&mut self, key: (Block, i32), v: (u64, i32)) -> Option<(u64, u64)> {
@@ -352,7 +353,7 @@ mod tests {
         let parsed = parse_input(TEST_INPUT);
         let mut grid = Default::default();
         let expected = BLOCKS.iter().take(n).flatten().cloned().collect();
-        let highest = make_blocks_fall(&mut grid, &parsed, n as u64).unwrap_left();
+        let highest = make_blocks_fall(&mut grid, &parsed, n as u64, false).unwrap_left();
         assert_eq!(grid, expected);
         highest
     }
@@ -364,7 +365,7 @@ mod tests {
         // The cave cycles after 35 iterations for the test input
         // but it does so only after 25 initial blocks.
         let (prefix_size, cycle_size) =
-            make_blocks_fall(&mut grid, &parsed, PART2_COUNT).unwrap_right();
+            make_blocks_fall(&mut grid, &parsed, PART2_COUNT, true).unwrap_right();
         assert_eq!(cycle_size % 35, 0); // any multiple of 35 works
         // Finds 20 when I'd expect 25 but that still works :S
         assert!(prefix_size >= 20); // any prefix higher than 25 works
