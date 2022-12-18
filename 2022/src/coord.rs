@@ -158,6 +158,14 @@ impl<const N: usize> TryFrom<Vec<i32>> for Point<N> {
     }
 }
 
+impl<'a, const N: usize> TryFrom<&'a [i32]> for Point<N> {
+    type Error = <&'a [i32] as TryInto<[i32; N]>>::Error;
+    fn try_from(value: &'a [i32]) -> Result<Self, Self::Error> {
+        let coord: [_; N] = value.try_into()?;
+        Ok(Point(coord))
+    }
+}
+
 mod ops {
     mod add {
         use super::super::Point;
