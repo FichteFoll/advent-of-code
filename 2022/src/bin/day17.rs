@@ -378,6 +378,7 @@ mod tests {
         let mut grid = Default::default();
         // The cave cycles after 35 iterations for the test input
         // but it does so only after 25 initial blocks.
+        // See also ../../notes/day17_test_input_200_iterations.txt
         let (prefix_size, cycle_size) =
             make_blocks_fall(&mut grid, &parsed, PART2_COUNT, true).unwrap_right();
         // Any multiple of 35 works (finds 350).
