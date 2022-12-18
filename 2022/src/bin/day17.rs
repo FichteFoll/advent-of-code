@@ -263,14 +263,14 @@ fn move_points<const N: usize>(points: &mut [Point<N>], by: Point<N>) {
 
 #[must_use]
 fn move_points_if<const N: usize, F>(
-    points: &Vec<Point<N>>,
+    points: &[Point<N>],
     by: Point<N>,
     check: F,
 ) -> Option<Vec<Point<N>>>
 where
     F: Fn(&Point<N>) -> bool,
 {
-    let mut new_points = points.clone();
+    let mut new_points: Vec<_> = points.into();
     for pt in new_points.iter_mut() {
         *pt += by;
         if !check(pt) {
@@ -296,14 +296,14 @@ fn print_grid(grid: &Grid, falling: Option<&Vec<Point<2>>>, range: impl RangeBou
             Excluded(&x) => x + 1,
             Unbounded => i32::MIN,
         };
-        highest_in_block.min(highest_in_grid).max(range_bound)
+        highest_in_block.clamp(range_bound, highest_in_grid)
     };
     let end = match range.end_bound() {
         Included(&x) => x,
         Excluded(&x) => x - 1,
         Unbounded => 0,
     };
-    println!("");
+    println!();
     for y in start..=end {
         for x in 0..WIDTH {
             let pt = Point([x, y]);
@@ -315,15 +315,13 @@ fn print_grid(grid: &Grid, falling: Option<&Vec<Point<2>>>, range: impl RangeBou
                 print!(".");
             }
         }
-        println!("");
+        println!();
     }
     println!("-------");
 }
 
 #[cfg(test)]
 mod tests {
-    use std::cell::LazyCell;
-
     use super::*;
     extern crate test;
     use test_case::test_case;
@@ -349,15 +347,6 @@ mod tests {
     // |...+...| -1
     // |..----.|  0
     // +-------+
-    const BLOCKS: LazyCell<Vec<Vec<Point<2>>>> = LazyCell::new(|| {
-        vec![
-            block_at(Block::Minus, Point([2, 0])),
-            block_at(Block::Plus, Point([2, -1])),
-            block_at(Block::L, Point([0, -3])),
-            block_at(Block::I, Point([4, -3])),
-            block_at(Block::Square, Point([4, -7])),
-        ]
-    });
 
     fn block_at(block: Block, at: Point<2>) -> Vec<Point<2>> {
         let mut points = block.points();
@@ -371,9 +360,16 @@ mod tests {
     #[test_case(4 => 7)]
     #[test_case(5 => 9)]
     fn make_block_fall_first_n(n: usize) -> u64 {
+        let blocks = [
+            block_at(Block::Minus, Point([2, 0])),
+            block_at(Block::Plus, Point([2, -1])),
+            block_at(Block::L, Point([0, -3])),
+            block_at(Block::I, Point([4, -3])),
+            block_at(Block::Square, Point([4, -7])),
+        ];
         let parsed = parse_input(TEST_INPUT);
         let mut grid = Default::default();
-        let expected = BLOCKS.iter().take(n).flatten().cloned().collect();
+        let expected = blocks.into_iter().take(n).flatten().collect();
         let highest = make_blocks_fall(&mut grid, &parsed, n as u64, false).unwrap_left();
         assert_eq!(grid, expected);
         highest
