@@ -27,7 +27,6 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(points: &Parsed) -> usize {
-    // Just a simple O(n**2) solution.
     points
         .iter()
         .map(|pt| {
