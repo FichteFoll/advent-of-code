@@ -2,7 +2,7 @@
 #![feature(iterator_try_collect)]
 #![feature(test)]
 
-use std::iter::once;
+use std::{iter::once, str::pattern::ReverseSearcher};
 
 use aoc2022::*;
 use itertools::izip;
@@ -81,8 +81,8 @@ struct State {
 
 impl State {
     fn branches(&self, bp: &Blueprint) -> Vec<Self> {
-        // TODO see if RAM can handle this
-        // Answer: it does not
+        // TODO reduce problem space by prioritizing
+        // TODO find out how to prioritize non-geode robots (do we need weights?)
         let mut result = vec![];
         // Create a branch for each robot produced,
         // which multiplies for each robot type.
@@ -115,6 +115,49 @@ impl State {
         }
         result
     }
+
+
+    fn step(&self, bp: &Blueprint) -> Self {
+        // Determine based on the current robot counts
+        // which robots need to be built next to
+        // achieve the "ideal ratio" for our target robot kind:
+        // the GEODE robot.
+        // The next priorities are determined following that.
+        // A robot is built if enough resources are available. TODO verify
+        // ORE needs special-casing because it only depends on the resource it produces.
+        let mut current_robot = GEODE;
+        loop {
+            let plan = bp[current_robot];
+            let ratios: Vec<_> = izip!(self.robots.iter(), plan.iter()).map(|(res, wanted)| match wanted {
+                0 => 0f32,
+                _ => *res as f32 / *wanted as f32,
+            }).collect();
+            todo!("continue")
+            todo!("exit condition");
+        }
+    }
+
+    fn can_build(&self, bp: &Blueprint, rob_i: usize) -> bool {
+        izip!(self.resources.iter(), bp[rob_i]).all(|(resource, needed)| resource >= &needed)
+    }
+
+    fn build(&mut self, bp: &Blueprint, rob_i: usize) {
+        for (resource, needed) in izip!(self.resources.iter_mut(), bp[rob_i]) {
+            *resource -= needed;
+        }
+        self.robots[rob_i] += 1;
+    }
+
+    fn try_build(&mut self, bp: &Blueprint, rob_i: usize) -> bool {
+        let can_build = izip!(self.resources.iter(), bp[rob_i]).all(|(resource, needed)| resource >= &needed);
+        if can_build {
+            for (resource, needed) in izip!(self.resources.iter_mut(), bp[rob_i]) {
+                *resource -= needed;
+            }
+            self.robots[rob_i] += 1;
+        }
+        can_build
+    }
 }
 
 fn simulate(bp: &Blueprint) -> usize {
@@ -140,6 +183,31 @@ fn simulate(bp: &Blueprint) -> usize {
         .unwrap()
 }
 
+// fn robots_to_build(bp: &Blueprint, resources: &[usize; N_RESOURCE]) -> Vec<usize> {
+//     // TODO determine for the given resource availabilities which robots need to be built next to
+//     // achieve the "ideal ratio" and how many.
+//     // GEODE is always the priority, the next priorities are determined based on that.
+//     // ORE needs special-casing because it only depends on the resource it produces.
+//     let mut to_build = vec![];
+//     let mut current_robot = GEODE;
+//     loop {
+//         let plan = bp[current_robot];
+//         let ratios: Vec<_> = izip!(resources.iter(), plan.iter()).map(|(res, wanted)|)
+//         let ratios = plan.clone().map(|i| i as f32 /)
+//         todo!("exit condition");
+//     }
+//     // // Assume that a higher robot index only needs resources of previous robots.
+//     // let mut res = arr![[0; N_RESOURCE]; N_ROBOTS; ORE => bp[ORE]];
+//     // for i in 1..N_ROBOTS {
+//     //     for j in 0..i {
+//     //         for k in 0..N_RESOURCE {
+//     //             res[i][j] = res[j][k] * bp[j][k];
+//     //         }
+//     //     }
+//     // }
+//     // res
+// }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -160,16 +228,59 @@ mod tests {
           Each geode robot costs 3 ore and 12 obsidian.\n\
         ";
 
+    const TEST_BLUEPRINTS: [[[usize; N_RESOURCE]; N_ROBOTS]; 2] = [
+        [
+            // force newline
+            [4, 0, 0, 0],
+            [2, 0, 0, 0],
+            [3, 14, 0, 0],
+            [2, 0, 7, 0],
+        ],
+        [
+            // force newline
+            [2, 0, 0, 0],
+            [3, 0, 0, 0],
+            [3, 8, 0, 0],
+            [3, 0, 12, 0],
+        ],
+    ];
+
     test!(part_1() == 33);
     // test!(part_2() == 0);
     bench_parse!(Vec::len, 30);
     // bench!(part_1() == 0);
     // bench!(part_2() == 0);
 
+    #[test]
+    fn test_parse_input() {
+        assert_eq!(parse_input(TEST_INPUT), TEST_BLUEPRINTS);
+    }
+
+    #[test]
+    fn needed_matrix() {
+        let bp = TEST_BLUEPRINTS[0];
+        let matrix = needed_for_robot(&bp);
+        let expected = [
+            // force newline
+            [1, 0, 0, 0],
+            [2, 1, 0, 0],
+            [3, 14, 1, 0],
+            [2, 0, 7, 1],
+            // force newline
+            [1, 0, 0, 0],
+            [1 * 2, 1, 0, 0],
+            [1 * 2 + 3, 14, 1, 0],
+            [2, 0, 7, 1],
+            //
+            [2, 14 * 7, 7, 1],
+        ];
+        assert_eq!(matrix, expected);
+    }
+
     #[test_case(1 => 9)]
     #[test_case(2 => 12)]
     fn simulate_test_input(bp_index: usize) -> usize {
-        let bp = parse_input(TEST_INPUT)[bp_index - 1];
+        let bp = TEST_BLUEPRINTS[bp_index - 1];
         simulate(&bp)
     }
 
@@ -183,7 +294,7 @@ mod tests {
             robots: arr![0; N_ROBOTS; ORE => 1],
             resources: arr![0; N_RESOURCE; ORE => 1],
         }];
-        let bp = parse_input(TEST_INPUT)[0];
+        let bp = TEST_BLUEPRINTS[0];
         assert_eq!(state.branches(&bp), expected);
     }
 
@@ -211,7 +322,7 @@ mod tests {
                 resources: arr![0; N_RESOURCE; ORE => 5],
             },
         ];
-        let bp = parse_input(TEST_INPUT)[0];
+        let bp = TEST_BLUEPRINTS[0];
         assert_eq!(state.branches(&bp), expected);
     }
 }
