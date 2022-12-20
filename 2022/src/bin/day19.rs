@@ -6,9 +6,9 @@
 
 use std::iter::once;
 
+use aoc2022::collections::*;
 use aoc2022::*;
 use itertools::izip;
-use itertools::Itertools;
 use parse::parse_input;
 
 const DAY: usize = 19;
@@ -67,34 +67,16 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    parsed.iter()
-        .map(find_most_obsidian)
-        .max()
-        .unwrap()
-    // parsed
-    //     .iter()
-    //     .map(simulate)
-    //     .enumerate()
-    //     .map(|(i, result)| (i + 1) * result)
-    //     .sum()
+    parsed
+        .iter()
+        .map(simulate)
+        .enumerate()
+        .map(|(i, result)| (i + 1) * result)
+        .sum()
 }
 
 fn part_2(_parsed: &Parsed) -> usize {
     todo!()
-}
-
-fn find_most_obsidian(bp: &Blueprint) -> usize {
-    let mut state = START.clone();
-    for i in 1..=24 {
-        println!("\nvvv Minute {} vvv", i);
-        state = state.step(bp);
-        println!("{state:?}\n");
-    }
-    state.resources[GEODE]
-    // iterate(START.clone(), |state| state.step(bp))
-    //     .nth(24)
-    //     .unwrap()
-    //     .resources[GEODE]
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -111,115 +93,17 @@ const START: State = State {
 impl State {
     fn branches(&self, bp: &Blueprint) -> Vec<Self> {
         // TODO reduce problem space by prioritizing
-        // and filtering known bad combinations, such as
+        // and filtering known bad combinations, such as:
         // - having more robots than the most expensive build plan,
-        // -
-        // let mut result = vec![self.clone()];
-        // result.extend((0..N_ROBOTS).flat_map(|rob_i| self.try_build(bp, rob_i)));
-        // result
-        once(self.clone())
+        // - having a different robot constellation for minute n with more resources.
+        once(self.step_no_build())
             .chain((0..N_ROBOTS).flat_map(|rob_i| self.try_build(bp, rob_i)))
-            .collect()
-    }
-
-    fn step(&self, bp: &Blueprint) -> Self {
-        // This was a cool idea, but it falls short in multi-leveled predictions
-        // because it only considers one level of prioritization
-        // (which is enough for the first test case
-        // but unfortunately not for the second).
-        // Well, it was fun-ish while it lasted.
-        //
-        // ------------------------------------
-        //
-        // Determine based on the current robot counts
-        // which robots need to be built next to
-        // achieve the "ideal ratio" for our target robot kind:
-        // the GEODE robot.
-        // The next priorities are determined following that.
-        // A robot is built if enough resources are available, unless … TODO this is the tricky part
-        // ORE needs special-casing because it only depends on the resource it produces.
-        let mut robot_order = vec![GEODE];
-        // Track the number of iterations needed with the current robots
-        // until this robot tier can be built.
-        // This is used to not build a robot if building it would delay
-        // building the one of the next higher priority.
-        let mut can_build_in: [Option<usize>; N_ROBOTS] = Default::default();
-
-        println!("state: {self:?}");
-        for i in 0..N_ROBOTS {
-            println!("robot_order: {robot_order:?}");
-            let Some(&current_robot) = robot_order.get(i) else { break; };
-            println!("iteration: {i}; current_robot: {current_robot}");
-            if let Some(next) = self.try_build(bp, current_robot) {
-                if let Some(&better_robot) = i.checked_sub(1).and_then(|ii| robot_order.get(ii))
-                    && let Some(threshold) = dbg!(can_build_in)[better_robot]
-                    && let Some(next_buildable_in) = next.buildable_in(bp, better_robot)
-                    && dbg!(next_buildable_in + 1) > dbg!(threshold) {
-                        if robot_order.len() > i + 1 {
-                            continue;
-                        }
-                } else {
-                    println!("building {current_robot}\n");
-                    return next;
-                }
-            }
-            can_build_in[current_robot] = self.buildable_in(bp, current_robot);
-            println!("can build in: {:?}", can_build_in[current_robot]);
-
-            // Determine the next robots that should be built, prioritized.
-            // TODO do we need to add/consider ore requirements of previously required robot plans (robot_order)?
-            let plan = bp[current_robot];
-            let ratios: Vec<_> = izip!(self.robots.iter(), plan.iter())
-                .map(|(&has, &wanted)| match (has, wanted) {
-                    (_, 0) => 0f32, // => never
-                    (0, _) => wanted as f32,
-                    _ => (wanted - has) as f32,
+            .filter(|next| {
+                bp.iter().all(|plan| {
+                    izip!(next.robots.iter(), plan.iter()).any(|(robs, needed)| robs <= needed)
                 })
-                .collect();
-            let priorities: Vec<_> = ratios
-                .iter()
-                .enumerate()
-                .sorted_unstable_by(|t1, t2| t1.1.total_cmp(t2.1).then(t1.0.cmp(&t2.0)).reverse())
-                .collect();
-            println!("prios: {priorities:?}");
-
-            let next_robots: Vec<_> = priorities
-                .iter()
-                .map_while(|p| (*p.1 != 0f32).then_some(p.0))
-                .filter(|rob_i| !robot_order.contains(rob_i))
-                .collect();
-            for rob_i in next_robots.into_iter().rev() {
-                // insert at the same index in reverse order
-                robot_order.insert(i + 1, rob_i);
-            }
-        }
-        println!("building nothing\n");
-        return self.step_no_build();
-    }
-
-    fn buildable_in(&self, bp: &Blueprint, rob_i: usize) -> Option<usize> {
-        let mut max = 0;
-        for (&has, needs, &rate) in izip!(self.resources.iter(), bp[rob_i], self.robots.iter()) {
-            let rounds = match (needs, rate) {
-                (0, _) => 0,
-                (_, 0) => return None,
-                _ if has > needs => 0,
-                _ => (needs - has).div_ceil(rate),
-            };
-            max = max.max(rounds);
-        }
-        Some(max)
-    }
-
-    fn can_build(&self, bp: &Blueprint, rob_i: usize) -> bool {
-        izip!(self.resources.iter(), bp[rob_i]).all(|(resource, needed)| resource >= &needed)
-    }
-
-    fn build(&mut self, bp: &Blueprint, rob_i: usize) {
-        for (resource, needed) in izip!(self.resources.iter_mut(), bp[rob_i]) {
-            *resource -= needed;
-        }
-        self.robots[rob_i] += 1;
+            })
+            .collect()
     }
 
     fn step_no_build(&self) -> Self {
@@ -246,20 +130,37 @@ impl State {
 fn simulate(bp: &Blueprint) -> usize {
     const MINUTES: usize = 24;
 
-    (0..MINUTES)
-        .scan(vec![START.clone()], |states, _| {
-            *states = states
-                .into_iter()
-                .flat_map(|state| state.branches(bp))
-                .collect();
-            let max_geode = states
-                .iter()
-                .map(|state| state.resources[GEODE])
-                .max()
-                .unwrap();
-            Some(max_geode)
-        })
-        .last()
+    let mut states = HashMap::default();
+    states.insert(START.robots, vec![START.resources]);
+    for i in 0..MINUTES {
+        println!("Minute {}: {} states", i + 1, states.len());
+        states = {
+            let mut new_states = HashMap::default();
+            for (robots, resources_vec) in states {
+                for resources in resources_vec {
+                    let state = State { robots, resources };
+                    for next in state.branches(bp) {
+                        let other_entries: &mut Vec<[usize; N_RESOURCE]> =
+                            new_states.entry(next.robots).or_default();
+                        let all_better = !other_entries.is_empty()
+                            && other_entries.iter().all(|other| {
+                                izip!(next.resources.iter(), other.iter()).all(|(a, b)| a <= b)
+                                    || next.resources[GEODE] < other[GEODE]
+                            });
+                        if !all_better {
+                            other_entries.push(next.resources);
+                        }
+                    }
+                }
+            }
+            new_states
+        };
+    }
+    states
+        .into_values()
+        .flat_map(|resources_vec| resources_vec.into_iter())
+        .map(|resources| resources[GEODE])
+        .max()
         .unwrap()
 }
 
@@ -313,109 +214,42 @@ mod tests {
 
     #[test_case(1 => 9)]
     #[test_case(2 => 12)]
-    fn most_obsidian_test_input(bp_index: usize) -> usize {
+    fn sumulate_test_input(bp_index: usize) -> usize {
         let bp = TEST_BLUEPRINTS[bp_index - 1];
-        find_most_obsidian(&bp)
+        simulate(&bp)
     }
 
     #[test]
-    fn step() {
+    fn branches_1_ore_robot() {
+        let expected = vec![State {
+            robots: arr![0; N_ROBOTS; ORE => 1],
+            resources: arr![0; N_RESOURCE; ORE => 1],
+        }];
         let bp = TEST_BLUEPRINTS[0];
-        let expected_states = [
-            State {
-                robots: arr![0; N_ROBOTS; ORE => 1],
-                resources: arr![0; N_RESOURCE; ORE => 1],
-            },
-            State {
-                robots: arr![0; N_ROBOTS; ORE => 1],
-                resources: arr![0; N_RESOURCE; ORE => 2],
-            },
-            // minute 3, builds clay robot
-            State {
-                robots: arr![0; N_ROBOTS; ORE => 1, CLAY => 1],
-                resources: arr![0; N_RESOURCE; ORE => 1],
-            },
-            State {
-                robots: arr![0; N_ROBOTS; ORE => 1, CLAY => 1],
-                resources: arr![0; N_RESOURCE; ORE => 2, CLAY => 1],
-            },
-            // minute 5, builds clay robot
-            State {
-                robots: arr![0; N_ROBOTS; ORE => 1, CLAY => 2],
-                resources: arr![0; N_RESOURCE; ORE => 1, CLAY => 2],
-            },
-            State {
-                robots: arr![0; N_ROBOTS; ORE => 1, CLAY => 2],
-                resources: arr![0; N_RESOURCE; ORE => 2, CLAY => 4],
-            },
-            // minute 7, builds clay robot
-            State {
-                robots: arr![0; N_ROBOTS; ORE => 1, CLAY => 3],
-                resources: arr![0; N_RESOURCE; ORE => 1, CLAY => 6],
-            },
-            State {
-                robots: arr![0; N_ROBOTS; ORE => 1, CLAY => 3],
-                resources: arr![0; N_RESOURCE; ORE => 2, CLAY => 9],
-            },
-            State {
-                robots: arr![0; N_ROBOTS; ORE => 1, CLAY => 3],
-                resources: arr![0; N_RESOURCE; ORE => 3, CLAY => 12],
-            },
-            State {
-                robots: arr![0; N_ROBOTS; ORE => 1, CLAY => 3],
-                resources: arr![0; N_RESOURCE; ORE => 4, CLAY => 15],
-            },
-            // minute 11, builds obsidian robot
-            State {
-                robots: arr![0; N_ROBOTS; ORE => 1, CLAY => 3, OBSIDIAN => 1],
-                resources: arr![0; N_RESOURCE; ORE => 2, CLAY => 4],
-            },
-            // minute 12, builds clay robot
-            State {
-                robots: arr![0; N_ROBOTS; ORE => 1, CLAY => 4, OBSIDIAN => 1],
-                resources: arr![0; N_RESOURCE; ORE => 1, CLAY => 7, OBSIDIAN => 1],
-            },
-        ];
-        println!("Minute 1");
-        let mut next = START.step(&bp);
-        for (expected, i) in expected_states.into_iter().zip(2..) {
-            assert_eq!(next, expected);
-            println!("Minute {i}");
-            next = next.step(&bp);
-        }
+        assert_eq!(START.branches(&bp), expected);
     }
 
-    // #[test]
-    // fn branches_1_ore_robot() {
-    //     let expected = vec![State {
-    //         robots: arr![0; N_ROBOTS; ORE => 1],
-    //         resources: arr![0; N_RESOURCE; ORE => 1],
-    //     }];
-    //     let bp = TEST_BLUEPRINTS[0];
-    //     assert_eq!(START.branches(&bp), expected);
-    // }
-
-    // #[test]
-    // fn branches_1_ore_robot_4_ore() {
-    //     let state = State {
-    //         robots: arr![0; N_ROBOTS; ORE => 1],
-    //         resources: arr![0; N_RESOURCE; ORE => 4],
-    //     };
-    //     let expected = vec![
-    //         State {
-    //             robots: arr![0; N_ROBOTS; ORE => 1],
-    //             resources: arr![0; N_RESOURCE; ORE => 5],
-    //         },
-    //         State {
-    //             robots: arr![0; N_ROBOTS; ORE => 2],
-    //             resources: arr![0; N_RESOURCE; ORE => 1],
-    //         },
-    //         State {
-    //             robots: arr![0; N_ROBOTS; ORE => 1, CLAY => 1],
-    //             resources: arr![0; N_RESOURCE; ORE => 3],
-    //         },
-    //     ];
-    //     let bp = TEST_BLUEPRINTS[0];
-    //     assert_eq!(state.branches(&bp), expected);
-    // }
+    #[test]
+    fn branches_1_ore_robot_4_ore() {
+        let state = State {
+            robots: arr![0; N_ROBOTS; ORE => 1],
+            resources: arr![0; N_RESOURCE; ORE => 4],
+        };
+        let expected = vec![
+            State {
+                robots: arr![0; N_ROBOTS; ORE => 1],
+                resources: arr![0; N_RESOURCE; ORE => 5],
+            },
+            State {
+                robots: arr![0; N_ROBOTS; ORE => 2],
+                resources: arr![0; N_RESOURCE; ORE => 1],
+            },
+            State {
+                robots: arr![0; N_ROBOTS; ORE => 1, CLAY => 1],
+                resources: arr![0; N_RESOURCE; ORE => 3],
+            },
+        ];
+        let bp = TEST_BLUEPRINTS[0];
+        assert_eq!(state.branches(&bp), expected);
+    }
 }
