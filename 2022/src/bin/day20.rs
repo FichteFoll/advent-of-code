@@ -112,7 +112,6 @@ fn part_2(parsed: &Parsed) -> isize {
 }
 
 fn move_numbers(original: &Parsed, iterations: usize) -> isize {
-    use std::cmp::Ordering::*;
     let size = original.len();
     let isize_ = original.len() as isize;
     let mut numbers: Vec<_> = original.clone();
@@ -124,19 +123,7 @@ fn move_numbers(original: &Parsed, iterations: usize) -> isize {
         for &n in original {
             let pos = numbers.iter().position(|&x| x == n).unwrap();
             let new_pos = calc_new_pos(pos, n, isize_);
-            match new_pos.cmp(&pos) {
-                Equal => continue,
-                Greater => {
-                    let mut other = numbers[pos + 1..=new_pos].to_vec();
-                    numbers[pos..new_pos].copy_from_slice(&mut other);
-                    numbers[new_pos] = n;
-                }
-                Less => {
-                    let mut other = numbers[new_pos..pos].to_vec();
-                    numbers[new_pos + 1..=pos].copy_from_slice(&mut other);
-                    numbers[new_pos] = n;
-                }
-            };
+            move_num(&mut numbers, pos, new_pos);
             // println!("{numbers:?}");
         }
         println!("{numbers:?}");
@@ -146,6 +133,24 @@ fn move_numbers(original: &Parsed, iterations: usize) -> isize {
         .map(|offset| (start + offset) % size)
         .map(|i| numbers[i])
         .sum()
+}
+
+fn move_num(numbers: &mut Vec<isize>, pos: usize, new_pos: usize) {
+    use std::cmp::Ordering::*;
+    let n = numbers[pos];
+    match new_pos.cmp(&pos) {
+        Equal => (),
+        Greater => {
+            let mut other = numbers[pos + 1..=new_pos].to_vec();
+            numbers[pos..new_pos].copy_from_slice(&mut other);
+            numbers[new_pos] = n;
+        }
+        Less => {
+            let mut other = numbers[new_pos..pos].to_vec();
+            numbers[new_pos + 1..=pos].copy_from_slice(&mut other);
+            numbers[new_pos] = n;
+        }
+    };
 }
 
 #[allow(unused)]
@@ -237,9 +242,21 @@ mod tests {
     #[test_case(2, -10, 7 => 4; "2_minus_10_expects_4")]
     #[test_case(2, -14, 7 => 0; "2_minus_14_expects_0")]
     #[test_case(2, -15, 7 => 5; "2_minus_15_expects_5")]
-    #[test_case(2, 1623178306, 7 => 0)] // same as 2, 4, 7
+    #[test_case(2, 1623178306, 7 => 0; "2_plus_1623178306_expects_5")] // same as 2, 4, 7
     fn calc_new_pos(pos: usize, n: isize, size: isize) -> usize {
         super::calc_new_pos(pos, n, size)
+    }
+
+    #[test_case(7, 2, 0 => vec![2, 0, 1, 3, 4, 5, 6])]
+    #[test_case(7, 2, 1 => vec![0, 2, 1, 3, 4, 5, 6])]
+    #[test_case(7, 2, 2 => vec![0, 1, 2, 3, 4, 5, 6])]
+    #[test_case(7, 2, 3 => vec![0, 1, 3, 2, 4, 5, 6])]
+    #[test_case(7, 2, 4 => vec![0, 1, 3, 4, 2, 5, 6])]
+    #[test_case(7, 2, 5 => vec![0, 1, 3, 4, 5, 2, 6])]
+    fn move_num(size: isize, pos: usize, new_pos: usize) -> Vec<isize> {
+        let mut nums: Vec<_> = (0..size).collect();
+        super::move_num(&mut nums, pos, new_pos);
+        nums
     }
 
     bench!(move_numbers(1) == 13522);
