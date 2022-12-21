@@ -108,34 +108,32 @@ fn part_1(parsed: &Parsed) -> isize {
 
 fn part_2(parsed: &Parsed) -> isize {
     let decrypted: Vec<_> = parsed.iter().map(|&n| n * 811589153).collect();
-    move_numbers(&decrypted, 10)
+    move_numbers_slice_copy(&decrypted, 10)
 }
 
-fn move_numbers(original: &Parsed, iterations: usize) -> isize {
+fn move_numbers_slice_copy(parsed: &Parsed, iterations: usize) -> isize {
+    // Include the numbers' indices to make them unique.
+    let original: Vec<_> = parsed.iter().cloned().enumerate().collect();
     let size = original.len();
     let isize_ = original.len() as isize;
     let mut numbers: Vec<_> = original.clone();
-    // dbg!(size);
-    println!("{numbers:?}");
     for i in 0..iterations {
         dbg!(i);
-        // this is O(n**2)
-        for &n in original {
-            let pos = numbers.iter().position(|&x| x == n).unwrap();
-            let new_pos = calc_new_pos(pos, n, isize_);
-            move_num(&mut numbers, pos, new_pos);
-            // println!("{numbers:?}");
+        // This is O(n**2).
+        for n in original.iter() {
+            let pos = numbers.iter().position(|x| x == n).unwrap();
+            let new_pos = calc_new_pos(pos, n.1, isize_);
+            move_num_slice_copy(&mut numbers, pos, new_pos);
         }
-        println!("{numbers:?}");
     }
-    let start = numbers.iter().position(|&x| x == 0).unwrap();
+    let start = numbers.iter().position(|&x| x.1 == 0).unwrap();
     [1000, 2000, 3000].into_iter()
         .map(|offset| (start + offset) % size)
-        .map(|i| numbers[i])
+        .map(|i| numbers[i].1)
         .sum()
 }
 
-fn move_num(numbers: &mut Vec<isize>, pos: usize, new_pos: usize) {
+fn move_num_slice_copy(numbers: &mut Vec<(usize, isize)>, pos: usize, new_pos: usize) {
     use std::cmp::Ordering::*;
     let n = numbers[pos];
     match new_pos.cmp(&pos) {
@@ -153,43 +151,18 @@ fn move_num(numbers: &mut Vec<isize>, pos: usize, new_pos: usize) {
     };
 }
 
-#[allow(unused)]
+// Separate function for tests.
 fn calc_new_pos(upos: usize, n: isize, size: isize) -> usize {
-    // let ufp = ((isize_ - 1) + pos as isize + move_by) as usize;
-    // let new_pos = (ufp + ufp / size) % size;
-    let pos = upos as isize;
-
-    // n cannot move over itself
-    //
-    // the following fails part 1 with real input
+    // There are a few things happening here.
+    // - `n` cannot move over itself, so we reduce redundant loops via `% (size - 1)`
+    // - We start at `size` to prevent underflowing `usize`.
+    // - For our movement operation, position `0` and `size - 1` are identical,
+    //   so we add one additional step whenever we wrap around a list end.
+    // - The final `% (size - 1)` is only to make results consistent.
     let move_by = n % (size - 1);
-    let raw_new_pos = pos + move_by;
-    let new_pos1 = if raw_new_pos < 0 {
-        size + raw_new_pos - 1
-    } else if raw_new_pos >= size {
-        (raw_new_pos + 1) % size
-    } else {
-        raw_new_pos
-    };
-
-    // the following is the same as `new_pos` but in a single line
-    let new_pos2 = (size + raw_new_pos + raw_new_pos.div_floor(size)) % size % (size - 1);
-    // dbg!(size, raw_new_pos, raw_new_pos.div_floor(size), size, (size - 1), new_pos2, new_pos1);
-    // assert_eq!(new_pos1, new_pos2);
-
-    // even more single line that before but also fails everything
-    #[allow(unused)]
-    let new_pos3 = (n % (size - 1) + pos + size) % (size - 1);
-
-    // WIP
-    // #[allow(unused)]
-    // let new_pos4 =
-
-    // assert_eq!(new_pos, new_pos3);
-    let new_pos = new_pos2;
-    // println!("moving {n} from {pos} by {move_by} to {new_pos}");
-    // panic!();
-    assert!(0 <= new_pos && new_pos < (size - 1));
+    let raw_new_pos = upos as isize + move_by;
+    let new_pos = (size + raw_new_pos + raw_new_pos.div_floor(size)) % size % (size - 1);
+    debug_assert!(0 <= new_pos && new_pos < (size - 1));
     new_pos as usize
 }
 
@@ -219,7 +192,7 @@ mod tests {
     fn move_numbers_part_1() {
         // test the new algorithm with part 1 for verification
         let parsed = parse_input(TEST_INPUT);
-        assert_eq!(move_numbers(&parsed, 1), 3);
+        assert_eq!(move_numbers_slice_copy(&parsed, 1), 3);
     }
 
     #[test_case(2, 7, 7 => 3; "2_plus_7_expects_3")]
@@ -253,11 +226,11 @@ mod tests {
     #[test_case(7, 2, 3 => vec![0, 1, 3, 2, 4, 5, 6])]
     #[test_case(7, 2, 4 => vec![0, 1, 3, 4, 2, 5, 6])]
     #[test_case(7, 2, 5 => vec![0, 1, 3, 4, 5, 2, 6])]
-    fn move_num(size: isize, pos: usize, new_pos: usize) -> Vec<isize> {
-        let mut nums: Vec<_> = (0..size).collect();
-        super::move_num(&mut nums, pos, new_pos);
-        nums
+    fn move_num_slice_copy(size: isize, pos: usize, new_pos: usize) -> Vec<isize> {
+        let mut nums: Vec<_> = (0..size).enumerate().collect();
+        super::move_num_slice_copy(&mut nums, pos, new_pos);
+        nums.into_iter().map(|n| n.1).collect()
     }
 
-    bench!(move_numbers(1) == 13522);
+    bench!(move_numbers_slice_copy(1) == 13522);
 }
