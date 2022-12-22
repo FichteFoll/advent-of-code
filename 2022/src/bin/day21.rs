@@ -1,14 +1,12 @@
 #![feature(test)]
 
-use std::ops::{Add, Div, Mul, Sub};
-
 use aoc2022::collections::*;
 use aoc2022::*;
 use parse::parse_input;
 
 const DAY: usize = 21;
 
-type Parsed = HashMap<String, Monkey>;
+type Parsed = HashMap<String, Option<Monkey>>;
 
 main!();
 
@@ -36,14 +34,14 @@ mod parse {
             .map(|line| {
                 let words: Vec<_> = line.split([':', ' ']).collect();
                 match words[..] {
-                    [key, _, num] => (key.to_string(), Monkey::Num(num.parse().unwrap())),
+                    [key, _, num] => (key.to_string(), Some(Monkey::Num(num.parse().unwrap()))),
                     [key, _, operand1, op, operand2] => (
                         key.to_string(),
-                        Monkey::Term(
+                        Some(Monkey::Term(
                             op.parse().unwrap(),
                             operand1.to_string(),
                             operand2.to_string(),
-                        ),
+                        )),
                     ),
                     _ => panic!("unrecognized format: {line}"),
                 }
@@ -68,31 +66,68 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> i64 {
-    get_num(parsed, "root")
+    get_num(&mut parsed.clone(), "root").unwrap()
 }
 
-fn part_2(_parsed: &Parsed) -> i64 {
-    todo!()
-}
-
-fn get_num(parsed: &Parsed, key: &str) -> i64 {
+fn part_2(parsed: &Parsed) -> i64 {
     let mut map = parsed.clone();
+    map.insert("humn".to_string(), None);
+    let Some(Monkey::Term(_, key1, key2)) = map.get("root").cloned().unwrap() else {
+        panic!("bad root");
+    };
+    let n1 = get_num(&mut map, &key1);
+    let n2 = get_num(&mut map, &key2);
+    match (n1, n2) {
+        (Some(n), None) => find_solution(&mut map, &key2, n),
+        (None, Some(n)) => find_solution(&mut map, &key1, n),
+        _ => panic!("no humn found"),
+    }
+}
 
+fn get_num(map: &mut Parsed, key: &str) -> Option<i64> {
     let mut queue: Vec<_> = [key.to_string()].into();
     while let Some(current) = queue.last() {
-        let resolved = { map.get(current).unwrap().resolve(&map) };
+        let resolved = match map.get(current).unwrap() {
+            Some(m) => m.resolve(&map),
+            None => return None, // "humn" found (`key` was "humn")
+        };
         match resolved {
             Ok(new) => {
                 if queue.len() == 1 {
-                    return new.num().unwrap();
+                    return new.num();
                 }
-                map.insert(current.clone(), new);
+                map.insert(current.clone(), Some(new));
                 queue.pop();
             }
+            Err(to_resolve) if to_resolve.is_empty() => return None, // "humn" found
             Err(to_resolve) => queue.extend(to_resolve),
         };
     }
     unreachable!()
+}
+
+fn find_solution(mut map: &mut Parsed, key: &str, target: i64) -> i64 {
+    // Recursively resolve operations until n is satisifed
+    // (using tail recursion).
+    let Monkey::Term(op, key1, key2) = (match map.get(key).unwrap() {
+            None => return target,
+            Some(m) => m.clone(),
+        }) else {
+        unreachable!();
+    };
+    let n1 = get_num(&mut map, &key1);
+    let n2 = get_num(&mut map, &key2);
+    match (n1, n2) {
+        (Some(operand), None) => {
+            let next_n = op.resolve_right(operand, target);
+            find_solution(&mut map, &key2, next_n)
+        }
+        (None, Some(operand)) => {
+            let next_n = op.resolve_left(operand, target);
+            find_solution(&mut map, &key1, next_n)
+        }
+        _ => panic!("no humn found"),
+    }
 }
 
 impl Monkey {
@@ -100,8 +135,8 @@ impl Monkey {
         match &self {
             &Monkey::Term(op, key1, key2) => {
                 let mut err_vec = vec![];
-                let operand1 = map.get(key1).unwrap().num();
-                let operand2 = map.get(key2).unwrap().num();
+                let operand1 = map.get(key1).unwrap().as_ref().ok_or_else(|| vec![])?.num();
+                let operand2 = map.get(key2).unwrap().as_ref().ok_or_else(|| vec![])?.num();
                 if let Some((n1, n2)) = operand1.zip(operand2) {
                     return Ok(Monkey::Num(op.eval(n1, n2)));
                 }
@@ -126,15 +161,31 @@ impl Monkey {
 }
 
 impl Op {
-    fn eval<T>(&self, op1: T, op2: T) -> T
-    where
-        T: Add<Output = T> + Sub<Output = T> + Div<Output = T> + Mul<Output = T>,
-    {
+    fn eval(&self, op1: i64, op2: i64) -> i64 {
         match self {
             Op::Add => op1 + op2,
             Op::Sub => op1 - op2,
             Op::Div => op1 / op2,
             Op::Mul => op1 * op2,
+        }
+    }
+
+    // Resolve to the right/left-hand side of the operation using n for the other side
+    fn resolve_right(&self, operand: i64, result: i64) -> i64 {
+        match self {
+            Op::Add => result - operand,
+            Op::Sub => operand - result,
+            Op::Mul => result / operand,
+            Op::Div => operand / result,
+        }
+    }
+
+    fn resolve_left(&self, operand: i64, result: i64) -> i64 {
+        match self {
+            Op::Add => result - operand,
+            Op::Sub => result + operand,
+            Op::Mul => result / operand,
+            Op::Div => result * operand,
         }
     }
 }
@@ -163,8 +214,8 @@ mod tests {
         ";
 
     test!(part_1() == 152);
-    // test!(part_2() == 0);
+    test!(part_2() == 301);
     // bench_parse!(Vec::len, 0);
     bench!(part_1() == 62386792426088);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 3876027196185);
 }
