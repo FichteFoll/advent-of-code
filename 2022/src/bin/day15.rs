@@ -4,8 +4,8 @@ use std::ops::RangeInclusive;
 
 use itertools::{Itertools, MinMaxResult};
 
-use aoc2022::*;
 use aoc2022::coord::Point;
+use aoc2022::*;
 
 const DAY: usize = 15;
 
@@ -83,7 +83,7 @@ fn part_2(parsed: &Parsed, range: RangeInclusive<i32>) -> u64 {
                 continue 'outer;
             }
         }
-        return (cur.x() as u64) * (*PART_2_RANGE.end() as u64) + (cur.y() as u64)
+        return (cur.x() as u64) * (*PART_2_RANGE.end() as u64) + (cur.y() as u64);
     }
 }
 

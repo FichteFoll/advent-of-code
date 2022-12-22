@@ -1,8 +1,8 @@
 #![feature(anonymous_lifetime_in_impl_trait)]
 #![feature(test)]
 
-use aoc2022::*;
 use aoc2022::collections::*;
+use aoc2022::*;
 use itertools::iproduct;
 use itertools::Itertools;
 
@@ -14,7 +14,9 @@ type Parsed = Vec<Vec<u8>>;
 main!();
 
 pub fn parse_input(input: &str) -> Parsed {
-    input.trim().as_bytes()
+    input
+        .trim()
+        .as_bytes()
         .split(|b| b == &b'\n')
         .map(|line| line.iter().map(|b| b - b'0').collect())
         .collect()
@@ -39,36 +41,40 @@ fn part_2(grid: &Parsed) -> usize {
                 count_visible(start, grid[y][..x].iter().rev()), // to left
                 count_visible(start, transposed_grid[x][y + 1..].iter()), // to bottom
                 count_visible(start, grid[y][x + 1..].iter()), // to right
-            ].into_iter().product()
+            ]
+            .into_iter()
+            .product()
         })
         .max()
         .unwrap()
 }
 
 fn count_visible_horizontal(grid: &[Vec<u8>], positions: &mut HashSet<Point>, transpose: bool) {
-    grid.iter()
-        .enumerate()
-        .for_each(|(y, line)| {
-            let closure = |mut state: (usize, u8, Vec<Point>), (x, &t): (usize, &u8)| {
-                if t >= state.1 {
-                    state.0 = x;
-                    state.1 = t + 1;
-                    state.2.push(if transpose { (y, x) } else { (x, y) });
-                }
-                state
-            };
-            let from_left = line.iter().enumerate()
-                .fold((0, 0, Default::default()), closure);
-            let from_right = line.iter().enumerate()
-                .skip(from_left.0 + 1)
-                .rev()
-                .fold((line.len(), 0, Default::default()), closure);
-            positions.extend(from_left.2);
-            positions.extend(from_right.2);
-        });
+    grid.iter().enumerate().for_each(|(y, line)| {
+        let closure = |mut state: (usize, u8, Vec<Point>), (x, &t): (usize, &u8)| {
+            if t >= state.1 {
+                state.0 = x;
+                state.1 = t + 1;
+                state.2.push(if transpose { (y, x) } else { (x, y) });
+            }
+            state
+        };
+        let from_left = line
+            .iter()
+            .enumerate()
+            .fold((0, 0, Default::default()), closure);
+        let from_right = line
+            .iter()
+            .enumerate()
+            .skip(from_left.0 + 1)
+            .rev()
+            .fold((line.len(), 0, Default::default()), closure);
+        positions.extend(from_left.2);
+        positions.extend(from_right.2);
+    });
 }
 
-fn count_visible(start: u8, remaining: impl Iterator<Item=&u8>) -> usize {
+fn count_visible(start: u8, remaining: impl Iterator<Item = &u8>) -> usize {
     let mut heights = remaining.copied().peekable();
     heights.peeking_take_while(|&t| t < start).count()
         + heights.peek().map_or(0, |_| 1) // add the last tree if any

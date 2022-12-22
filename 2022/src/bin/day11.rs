@@ -100,7 +100,8 @@ pub struct Monkey {
 impl Monkey {
     // throw items to monkeys; (monkey_n, item_value)
     fn throw_all(&mut self, relief: impl Fn(Item) -> Item) -> Vec<(usize, Item)> {
-        self.items.drain(..)
+        self.items
+            .drain(..)
             .map(|old| {
                 let new = relief(self.operation.apply(old));
                 self.throw_count += 1;

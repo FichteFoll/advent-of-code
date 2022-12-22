@@ -9,13 +9,12 @@ type Parsed = Vec<(usize, usize)>;
 
 main!();
 
-
 fn parse_input(input: &str) -> Parsed {
     // requires trailing newline
-    input.as_bytes().array_chunks::<4>()
-        .map(|line| {
-            ((line[0] - b'A') as usize, (line[2] - b'X') as usize)
-        })
+    input
+        .as_bytes()
+        .array_chunks::<4>()
+        .map(|line| ((line[0] - b'A') as usize, (line[2] - b'X') as usize))
         .collect()
 }
 

@@ -7,7 +7,6 @@ use std::ops::RangeInclusive;
 
 use aoc2022::*;
 
-
 const DAY: usize = 14;
 
 type Grid = Vec<Vec<bool>>;
@@ -30,19 +29,18 @@ fn parse_input(input: &str) -> Parsed {
                     pt
                 })
                 .collect()
-        }).collect();
+        })
+        .collect();
 
     debug_assert!(max_y < START.0, "won't fit our grid");
     // +2 and +3 respectively to fit part_2
     let mut grid = vec![vec![false; START.0 + max_y + 2]; max_y + 3];
 
-    let wall_points = paths.iter()
-        .flat_map(|path| {
-            path.array_windows()
-                .flat_map(|[s, e] | {
-                    iproduct!(range_incl_any_dir(s.0, e.0), range_incl_any_dir(s.1, e.1))
-                })
-        });
+    let wall_points = paths.iter().flat_map(|path| {
+        path.array_windows().flat_map(|[s, e]| {
+            iproduct!(range_incl_any_dir(s.0, e.0), range_incl_any_dir(s.1, e.1))
+        })
+    });
     for (x, y) in wall_points {
         grid[y][x] = true;
     }
@@ -69,11 +67,10 @@ fn drop_sand(grid: &Grid, max_y: usize, has_floor: bool) -> usize {
             if !has_floor && cur.1 == max_y {
                 break 'outer;
             }
-            let maybe_next = X_STEPS.iter()
-                .find_map(|xstep| {
-                    let next = ((cur.0 as isize + xstep) as usize, cur.1 + 1);
-                    (!grid[next.1][next.0]).then_some(next)
-                });
+            let maybe_next = X_STEPS.iter().find_map(|xstep| {
+                let next = ((cur.0 as isize + xstep) as usize, cur.1 + 1);
+                (!grid[next.1][next.0]).then_some(next)
+            });
             if let Some(next) = maybe_next && (!has_floor || next.1 != max_y) {
                 cur = next;
             } else {
@@ -107,9 +104,7 @@ mod tests {
     test!(part_1() == 24);
     test!(part_2() == 93);
     bench_parse!(
-        |p: &Parsed| {
-            p.0.iter().flat_map(|l| l.iter()).filter(|x| **x).count()
-        },
+        |p: &Parsed| { p.0.iter().flat_map(|l| l.iter()).filter(|x| **x).count() },
         614
     );
     bench!(part_1() == 614);

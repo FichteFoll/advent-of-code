@@ -127,7 +127,8 @@ fn move_numbers_slice_copy(parsed: &Parsed, iterations: usize) -> isize {
         }
     }
     let start = numbers.iter().position(|&x| x.1 == 0).unwrap();
-    [1000, 2000, 3000].into_iter()
+    [1000, 2000, 3000]
+        .into_iter()
         .map(|offset| (start + offset) % size)
         .map(|i| numbers[i].1)
         .sum()

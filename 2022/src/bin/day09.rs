@@ -1,8 +1,8 @@
 #![feature(test)]
 
-use aoc2022::*;
 use aoc2022::collections::*;
 use aoc2022::coord::Point;
+use aoc2022::*;
 use parse::parse_input;
 
 const DAY: usize = 9;

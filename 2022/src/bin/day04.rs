@@ -16,7 +16,8 @@ mod parse {
     use super::*;
 
     pub fn parse_input(input: &str) -> Parsed {
-        input.trim().lines()
+        input
+            .lines()
             .map(|line| {
                 let parts = line.split_once(',').unwrap();
                 (parse_range(parts.0), parse_range(parts.1))

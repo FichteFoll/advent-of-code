@@ -27,13 +27,15 @@ fn part_2(parsed: &Parsed) -> usize {
 }
 
 fn find_unique_sequence<const SEQUENCE_LEN: usize>(parsed: &String) -> usize {
-    parsed.as_bytes()
+    parsed
+        .as_bytes()
         .array_windows::<SEQUENCE_LEN>()
         .position(|a| {
             let bitset = a.iter().fold(0u32, |acc, b| acc | 1 << (b - b'a'));
             bitset.count_ones() as usize == SEQUENCE_LEN
         })
-        .unwrap() + SEQUENCE_LEN
+        .unwrap()
+        + SEQUENCE_LEN
 }
 
 fn find_unique_sequence_on<const SEQUENCE_LEN: usize>(parsed: &String) -> usize {

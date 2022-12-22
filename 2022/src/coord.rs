@@ -1,4 +1,5 @@
 use itertools::iproduct;
+use itertools::izip;
 use itertools::Itertools;
 use std::fmt::Display;
 use std::fmt::Formatter;
@@ -125,7 +126,7 @@ impl<const N: usize> Point<N> {
 
     #[must_use]
     pub fn manhattan_to(&self, other: &Self) -> i32 {
-        self.0.iter().zip(other.0.iter())
+        izip!(self.0.iter(), other.0.iter())
             .map(|(a, b)| (a - b).abs())
             .sum()
     }

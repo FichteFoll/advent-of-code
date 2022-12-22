@@ -2,6 +2,7 @@
 #![feature(is_sorted)]
 #![feature(test)]
 
+use itertools::izip;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
 
@@ -46,7 +47,8 @@ mod parse {
         let mut i = 1; // skip first '['
         let mut digits = vec![];
         fn finalize_digits(digits: &mut Vec<u8>) -> Option<Item> {
-            digits.drain(..)
+            digits
+                .drain(..)
                 .fold(None, |a, b| Some(a.unwrap_or(0) * 10 + (b - b'0')))
                 .map(Item::Num)
         }
@@ -54,14 +56,18 @@ mod parse {
         loop {
             match bytes[i] {
                 b']' => {
-                    if let Some(i) = finalize_digits(&mut digits) { items.push(i) }
+                    if let Some(i) = finalize_digits(&mut digits) {
+                        items.push(i)
+                    }
                     i += 1;
                     break;
                 }
                 b',' => {
-                    if let Some(i) = finalize_digits(&mut digits) { items.push(i) }
+                    if let Some(i) = finalize_digits(&mut digits) {
+                        items.push(i)
+                    }
                     i += 1;
-                },
+                }
                 b'[' => {
                     let (item, length) = parse_list(&slice[i..]);
                     items.push(item);
@@ -89,9 +95,15 @@ fn part_2(parsed: &Parsed) -> usize {
         Item::List(vec![Item::List(vec![Item::Num(2)])]),
         Item::List(vec![Item::List(vec![Item::Num(6)])]),
     ];
-    let items: BinaryHeap<_> = parsed.iter().flatten().chain(&divider_packets).cloned().collect();
+    let items: BinaryHeap<_> = parsed
+        .iter()
+        .flatten()
+        .chain(&divider_packets)
+        .cloned()
+        .collect();
     let count = items.len();
-    items.into_iter_sorted()
+    items
+        .into_iter_sorted()
         .enumerate()
         .flat_map(|(i, item)| divider_packets.contains(&item).then_some(count - i))
         .product()
@@ -103,11 +115,9 @@ impl std::cmp::PartialOrd for Item {
             (Item::Num(n1), Item::Num(n2)) => equal_is_none(n1.cmp(n2)),
             (i1 @ Item::Num(_), i2 @ Item::List(_)) => Item::List(vec![i1.clone()]).partial_cmp(i2),
             (i1 @ Item::List(_), i2 @ Item::Num(_)) => i1.partial_cmp(&Item::List(vec![i2.clone()])),
-            (Item::List(l1), Item::List(l2)) => {
-                l1.iter().zip(l2)
-                    .find_map(|(i1, i2)| i1.partial_cmp(i2))
-                    .or_else(|| equal_is_none(l1.len().cmp(&l2.len())))
-            }
+            (Item::List(l1), Item::List(l2)) => izip!(l1, l2)
+                .find_map(|(i1, i2)| i1.partial_cmp(i2))
+                .or_else(|| equal_is_none(l1.len().cmp(&l2.len()))),
         }
     }
 }
@@ -163,17 +173,38 @@ mod tests {
     #[test]
     fn test_partial_cmp_num_num() {
         assert_eq!(Item::Num(0).partial_cmp(&Item::Num(0)), None);
-        assert_eq!(Item::Num(1).partial_cmp(&Item::Num(0)), Some(Ordering::Greater));
-        assert_eq!(Item::Num(1).partial_cmp(&Item::Num(2)), Some(Ordering::Less));
+        assert_eq!(
+            Item::Num(1).partial_cmp(&Item::Num(0)),
+            Some(Ordering::Greater)
+        );
+        assert_eq!(
+            Item::Num(1).partial_cmp(&Item::Num(2)),
+            Some(Ordering::Less)
+        );
     }
 
     #[test]
     fn test_partial_cmp_num_list() {
-        assert_eq!(Item::Num(0).partial_cmp(&Item::List(vec![Item::Num(0)])), None);
-        assert_eq!(Item::Num(1).partial_cmp(&Item::List(vec![Item::Num(0)])), Some(Ordering::Greater));
-        assert_eq!(Item::Num(1).partial_cmp(&Item::List(vec![Item::Num(2)])), Some(Ordering::Less));
+        assert_eq!(
+            Item::Num(0).partial_cmp(&Item::List(vec![Item::Num(0)])),
+            None
+        );
+        assert_eq!(
+            Item::Num(1).partial_cmp(&Item::List(vec![Item::Num(0)])),
+            Some(Ordering::Greater)
+        );
+        assert_eq!(
+            Item::Num(1).partial_cmp(&Item::List(vec![Item::Num(2)])),
+            Some(Ordering::Less)
+        );
 
-        assert_eq!(Item::Num(0).partial_cmp(&Item::List(vec![])), Some(Ordering::Greater));
-        assert_eq!(Item::Num(0).partial_cmp(&Item::List(vec![Item::Num(0), Item::Num(0)])), Some(Ordering::Less));
+        assert_eq!(
+            Item::Num(0).partial_cmp(&Item::List(vec![])),
+            Some(Ordering::Greater)
+        );
+        assert_eq!(
+            Item::Num(0).partial_cmp(&Item::List(vec![Item::Num(0), Item::Num(0)])),
+            Some(Ordering::Less)
+        );
     }
 }

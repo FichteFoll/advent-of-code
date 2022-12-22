@@ -31,7 +31,7 @@ mod parse {
             .map(|_| match iter.next() {
                 Some(&c) if c >= b'a' => c - b'a',
                 Some(&c) => c - b'A' + 26,
-                _ => panic!("unexpected end of line")
+                _ => panic!("unexpected end of line"),
             })
             .fold(0, |a, n| a | 1 << n)
     }

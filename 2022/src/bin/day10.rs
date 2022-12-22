@@ -24,7 +24,7 @@ fn parse_input(input: &str) -> Parsed {
             match &words[..] {
                 ["noop"] => Instr::Noop,
                 ["addx", operand] => Instr::AddX(operand.parse().unwrap()),
-                _ => panic!("bad instruction {line:?}")
+                _ => panic!("bad instruction {line:?}"),
             }
         })
         .collect()
@@ -106,7 +106,7 @@ mod tests {
     #[test_case(260 => None)]
     fn test_signal_strength_after_cycles(n: usize) -> Option<i32> {
         let instructions = parse_input(TEST_INPUT);
-        let xes =  calc_xes(&instructions);
+        let xes = calc_xes(&instructions);
         xes.get(n - 1).map(|&x| x * n as i32)
     }
 }

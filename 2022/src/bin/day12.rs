@@ -3,8 +3,8 @@
 use std::cmp::Reverse;
 use std::collections::BinaryHeap;
 
-use aoc2022::*;
 use aoc2022::coord::Point;
+use aoc2022::*;
 use parse::parse_input;
 
 const DAY: usize = 12;
@@ -20,10 +20,7 @@ mod parse {
     pub fn parse_input(input: &str) -> Parsed {
         let mut start = Default::default();
         let mut end = start;
-        let mut grid: Grid = input
-            .lines()
-            .map(|line| line.bytes().collect())
-            .collect();
+        let mut grid: Grid = input.lines().map(|line| line.bytes().collect()).collect();
         for (y, line) in grid.iter_mut().enumerate() {
             for (x, b) in line.iter_mut().enumerate() {
                 if *b == b'S' {
@@ -62,7 +59,7 @@ fn part_1((grid, start, end): &Parsed) -> u32 {
                     let next_height = grid.get(pt.y() as usize).and_then(|line| line.get(pt.x() as usize));
                     next_height.map(|&x| x <= height + 1).unwrap_or(false)
                 })
-                .map(|pt| (Reverse(count + 1), pt))
+                .map(|pt| (Reverse(count + 1), pt)),
         );
     }
     unreachable!()
@@ -89,7 +86,7 @@ fn part_2((grid, _, end): &Parsed) -> u32 {
                     let next_height = grid.get(pt.y() as usize).and_then(|line| line.get(pt.x() as usize));
                     next_height.map(|&x| height <= x + 1).unwrap_or(false)
                 })
-                .map(|pt| (Reverse(count + 1), pt))
+                .map(|pt| (Reverse(count + 1), pt)),
         );
     }
     unreachable!()
@@ -120,7 +117,10 @@ mod tests {
 
     test!(part_1() == 31);
     test!(part_2() == 29);
-    bench_parse!(|p: &Parsed| (p.0.len(), p.1, p.2), (41, (0, 20).into(), (72, 20).into()));
+    bench_parse!(
+        |p: &Parsed| (p.0.len(), p.1, p.2),
+        (41, (0, 20).into(), (72, 20).into())
+    );
     bench!(part_1() == 420);
     bench!(part_2() == 414);
 }

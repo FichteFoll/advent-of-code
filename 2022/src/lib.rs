@@ -9,7 +9,7 @@ pub mod test;
 
 #[cfg(feature = "fnv")]
 pub mod collections {
-    pub use fnv::{FnvHashSet as HashSet, FnvHashMap as HashMap};
+    pub use fnv::{FnvHashMap as HashMap, FnvHashSet as HashSet};
 }
 
 #[cfg(not(feature = "fnv"))]
@@ -20,11 +20,8 @@ pub mod collections {
 }
 
 pub fn read_file(day: usize) -> String {
-    std::fs::read_to_string(
-        std::env::var("INPUT")
-            .unwrap_or(format!("input/day{day:0>2}.txt")),
-    )
-    .unwrap()
+    let path = std::env::var("INPUT").unwrap_or(format!("input/day{day:0>2}.txt"));
+    std::fs::read_to_string(path).unwrap()
 }
 
 // requires `DAY` & `parse_input`

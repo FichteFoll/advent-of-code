@@ -37,9 +37,7 @@ mod parse {
         for line in stacks_block_iter {
             let lbytes = line.as_bytes();
             (0..num_stacks)
-                .flat_map(|i|
-                    lbytes.get(i * 4 + 1).map(|&b| (i, b as char))
-                )
+                .flat_map(|i| lbytes.get(i * 4 + 1).map(|&b| (i, b as char)))
                 .filter(|(_, c)| *c != ' ')
                 .for_each(|(i, c)| stacks[i].push(c));
         }
@@ -47,7 +45,8 @@ mod parse {
     }
 
     fn parse_instrs(instr_block: &str) -> Vec<Instr> {
-        instr_block.lines()
+        instr_block
+            .lines()
             .map(|line| {
                 let words: Vec<_> = line.split_ascii_whitespace().collect();
                 Instr {
