@@ -89,7 +89,7 @@ fn get_num(map: &mut Parsed, key: &str) -> Option<i64> {
     while let Some(current) = queue.last() {
         let resolved = match map.get(current).unwrap() {
             Some(m) => m.resolve(&map),
-            None => return None, // "humn" found (`key` was "humn")
+            None => return None, // "humn" found
         };
         match resolved {
             Ok(new) => {
@@ -99,7 +99,6 @@ fn get_num(map: &mut Parsed, key: &str) -> Option<i64> {
                 map.insert(current.clone(), Some(new));
                 queue.pop();
             }
-            Err(to_resolve) if to_resolve.is_empty() => return None, // "humn" found
             Err(to_resolve) => queue.extend(to_resolve),
         };
     }
@@ -109,12 +108,9 @@ fn get_num(map: &mut Parsed, key: &str) -> Option<i64> {
 fn find_solution(mut map: &mut Parsed, key: &str, target: i64) -> i64 {
     // Recursively resolve operations until n is satisifed
     // (using tail recursion).
-    let Monkey::Term(op, key1, key2) = (match map.get(key).unwrap() {
-            None => return target,
-            Some(m) => m.clone(),
-        }) else {
-        unreachable!();
-    };
+    let Some(monkey) = map.get(key).unwrap() else {
+    return target; };
+    let Monkey::Term(op, key1, key2) = monkey.clone() else { unreachable!() };
     let n1 = get_num(&mut map, &key1);
     let n2 = get_num(&mut map, &key2);
     match (n1, n2) {
@@ -135,8 +131,8 @@ impl Monkey {
         match &self {
             &Monkey::Term(op, key1, key2) => {
                 let mut err_vec = vec![];
-                let operand1 = map.get(key1).unwrap().as_ref().ok_or_else(|| vec![])?.num();
-                let operand2 = map.get(key2).unwrap().as_ref().ok_or_else(|| vec![])?.num();
+                let operand1 = map.get(key1).unwrap().as_ref().and_then(|n| n.num());
+                let operand2 = map.get(key2).unwrap().as_ref().and_then(|n| n.num());
                 if let Some((n1, n2)) = operand1.zip(operand2) {
                     return Ok(Monkey::Num(op.eval(n1, n2)));
                 }
@@ -215,7 +211,7 @@ mod tests {
 
     test!(part_1() == 152);
     test!(part_2() == 301);
-    // bench_parse!(Vec::len, 0);
+    bench_parse!(HashMap::len, 2217);
     bench!(part_1() == 62386792426088);
     bench!(part_2() == 3876027196185);
 }
