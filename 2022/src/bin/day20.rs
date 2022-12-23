@@ -187,7 +187,7 @@ mod tests {
     test!(part_2() == 1623178306);
     bench_parse!(Vec::len, 5000);
     bench!(part_1() == 13522);
-    // bench!(part_2() == 0); > 6482162565011
+    bench!(part_2() == 17113168880158);
 
     #[test]
     fn move_numbers_part_1() {
