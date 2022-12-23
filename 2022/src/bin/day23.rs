@@ -26,25 +26,35 @@ fn parse_input(input: &str) -> Parsed {
         .collect()
 }
 
-fn part_1(field: &Parsed) -> usize {
-    let mut field = field.clone();
+fn part_1(parsed: &Parsed) -> usize {
+    let mut field = parsed.clone();
     for i in 0..10 {
-        field = round(&field, i);
+        field = round(&field, i).unwrap();
     }
     count_empty(&field)
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(parsed: &Parsed) -> usize {
+    let mut field = parsed.clone();
+    for i in 0.. {
+        match round(&field, i) {
+            Some(next_field) => field = next_field,
+            _ => return i + 1,
+        }
+    }
+    unreachable!()
 }
 
-fn round(field: &Parsed, i: usize) -> Parsed {
+fn round(field: &Parsed, i: usize) -> Option<Parsed> {
     let mut next_field = HashSet::default();
     let mut next_to_cur = HashMap::default();
     let mut contested = HashSet::default();
 
     for pt in field {
-        let next_pt = next_point(field, pt, i);
+        let Some(next_pt) = next_point(field, pt, i) else {
+            next_field.insert(*pt);
+            continue;
+        };
         match next_to_cur.entry(next_pt) {
             Entry::Occupied(_) => {
                 contested.insert(next_pt);
@@ -55,13 +65,18 @@ fn round(field: &Parsed, i: usize) -> Parsed {
             }
         }
     }
+    // Subtract points from total that will not be moved.
+    let moved = field.len() - next_field.len() - contested.len();
+    if moved == 0 {
+        return None;
+    }
     for (to, from) in next_to_cur.into_iter() {
         next_field.insert(match contested.contains(&to) {
             true => from,
             false => to,
         });
     }
-    next_field
+    Some(next_field)
 }
 
 static LOOKUP: [[Point<2>; 3]; 4] = [
@@ -72,7 +87,7 @@ static LOOKUP: [[Point<2>; 3]; 4] = [
     [Point::<2>::E, Point::<2>::NE, Point::<2>::SE],
 ];
 
-fn next_point(map: &Parsed, pt: &Point<2>, i: usize) -> Point<2> {
+fn next_point(map: &Parsed, pt: &Point<2>, i: usize) -> Option<Point<2>> {
     let candidates: Vec<_> = (0..4)
         .filter_map(|j| {
             let lookup = LOOKUP[(i + j) % LOOKUP.len()];
@@ -83,9 +98,9 @@ fn next_point(map: &Parsed, pt: &Point<2>, i: usize) -> Point<2> {
         })
         .collect();
     if candidates.is_empty() || candidates.len() == 4 {
-        *pt
+        None
     } else {
-        candidates[0]
+        Some(candidates[0])
     }
 }
 
@@ -131,8 +146,8 @@ mod tests {
         ";
 
     test!(part_1() == 110);
-    // test!(part_2() == 0);
+    test!(part_2() == 20);
     bench_parse!(HashSet::len, 2648);
     bench!(part_1() == 4158);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 1014);
 }
