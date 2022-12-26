@@ -92,15 +92,13 @@ const START: State = State {
 
 impl State {
     fn branches(&self, bp: &Blueprint) -> Vec<Self> {
-        // TODO reduce problem space by prioritizing
-        // and filtering known bad combinations, such as:
-        // - having more robots than the most expensive build plan,
-        // - having a different robot constellation for minute n with more resources.
         once(self.step_no_build())
             .chain((0..N_ROBOTS).flat_map(|rob_i| self.try_build(bp, rob_i)))
+            // Filter out states with more robots for a resource than any build plan needs,
+            // except for GEODE.
             .filter(|next| {
-                bp.iter().all(|plan| {
-                    izip!(next.robots.iter(), plan.iter()).any(|(robs, needed)| robs <= needed)
+                next.robots[..GEODE].iter().enumerate().all(|(i, &robs)| {
+                    bp.iter().any(|plan| plan[i] >= robs)
                 })
             })
             .collect()
@@ -133,21 +131,29 @@ fn simulate(bp: &Blueprint) -> usize {
     let mut states = HashMap::default();
     states.insert(START.robots, vec![START.resources]);
     for i in 0..MINUTES {
-        println!("Minute {}: {} states", i + 1, states.len());
+        let n_res_vecs: usize = states.values().map(|v| v.len()).sum();
+        println!(
+            "Minute {i}: {} robots states & {} ressource states",
+            states.len(),
+            n_res_vecs
+        );
         states = {
             let mut new_states = HashMap::default();
             for (robots, resources_vec) in states {
                 for resources in resources_vec {
                     let state = State { robots, resources };
                     for next in state.branches(bp) {
+                        // Filter out resource states that we have a better solution for already,
+                        // i.e. strictly more resources for each.
                         let other_entries: &mut Vec<[usize; N_RESOURCE]> =
                             new_states.entry(next.robots).or_default();
                         let all_better = !other_entries.is_empty()
-                            && other_entries.iter().all(|other| {
-                                izip!(next.resources.iter(), other.iter()).all(|(a, b)| a <= b)
-                                    || next.resources[GEODE] < other[GEODE]
-                            });
+                            && other_entries
+                                .iter()
+                                .all(|other| all_ge(other, &next.resources));
                         if !all_better {
+                            other_entries
+                                .retain(|other| !all_ge(&next.resources, other));
                             other_entries.push(next.resources);
                         }
                     }
@@ -156,12 +162,18 @@ fn simulate(bp: &Blueprint) -> usize {
             new_states
         };
     }
+    println!("Final states: {}", states.len());
     states
         .into_values()
         .flat_map(|resources_vec| resources_vec.into_iter())
         .map(|resources| resources[GEODE])
         .max()
         .unwrap()
+}
+
+#[inline(always)]
+fn all_ge(xs: &[usize], ys: &[usize]) -> bool {
+    izip!(xs.iter(), ys.iter()).all(|(x, y)| x >= y)
 }
 
 #[cfg(test)]
@@ -204,7 +216,7 @@ mod tests {
     test!(part_1() == 33);
     // test!(part_2() == 0);
     bench_parse!(Vec::len, 30);
-    // bench!(part_1() == 0);
+    bench!(part_1() == 1681);
     // bench!(part_2() == 0);
 
     #[test]
@@ -214,7 +226,7 @@ mod tests {
 
     #[test_case(1 => 9)]
     #[test_case(2 => 12)]
-    fn sumulate_test_input(bp_index: usize) -> usize {
+    fn simulate_test_input(bp_index: usize) -> usize {
         let bp = TEST_BLUEPRINTS[bp_index - 1];
         simulate(&bp)
     }
