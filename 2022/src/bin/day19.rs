@@ -69,14 +69,18 @@ mod parse {
 fn part_1(parsed: &Parsed) -> usize {
     parsed
         .iter()
-        .map(simulate)
+        .map(|bp| simulate(bp, 24))
         .enumerate()
         .map(|(i, result)| (i + 1) * result)
         .sum()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(parsed: &Parsed) -> usize {
+    parsed
+        .iter()
+        .take(3)
+        .map(|bp| simulate(bp, 32))
+        .product()
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -125,18 +129,10 @@ impl State {
     }
 }
 
-fn simulate(bp: &Blueprint) -> usize {
-    const MINUTES: usize = 24;
-
+fn simulate(bp: &Blueprint, minutes: usize) -> usize {
     let mut states = HashMap::default();
     states.insert(START.robots, vec![START.resources]);
-    for i in 0..MINUTES {
-        let n_res_vecs: usize = states.values().map(|v| v.len()).sum();
-        println!(
-            "Minute {i}: {} robots states & {} ressource states",
-            states.len(),
-            n_res_vecs
-        );
+    for i in 0..minutes {
         states = {
             let mut new_states = HashMap::default();
             for (robots, resources_vec) in states {
@@ -161,8 +157,16 @@ fn simulate(bp: &Blueprint) -> usize {
             }
             new_states
         };
+        // Leaving this in because that way it's more visible that things are happining
+        // during the several seconds of runtime for part 2
+        let n_res_vecs: usize = states.values().map(|v| v.len()).sum();
+        println!(
+            "Minute {}: {} robots states & {} ressource states",
+            i + 1,
+            states.len(),
+            n_res_vecs
+        );
     }
-    println!("Final states: {}", states.len());
     states
         .into_values()
         .flat_map(|resources_vec| resources_vec.into_iter())
@@ -214,10 +218,10 @@ mod tests {
     ];
 
     test!(part_1() == 33);
-    // test!(part_2() == 0);
     bench_parse!(Vec::len, 30);
     bench!(part_1() == 1681);
-    // bench!(part_2() == 0);
+    // Takes over 20s.
+    // bench!(part_2() == 5394);
 
     #[test]
     fn test_parse_input() {
@@ -226,9 +230,16 @@ mod tests {
 
     #[test_case(1 => 9)]
     #[test_case(2 => 12)]
-    fn simulate_test_input(bp_index: usize) -> usize {
+    fn simulate_test_input_24(bp_index: usize) -> usize {
         let bp = TEST_BLUEPRINTS[bp_index - 1];
-        simulate(&bp)
+        simulate(&bp, 24)
+    }
+
+    // #[test_case(1 => 56)] // This example takes really long to compute
+    #[test_case(2 => 62)]
+    fn simulate_test_input_32(bp_index: usize) -> usize {
+        let bp = TEST_BLUEPRINTS[bp_index - 1];
+        simulate(&bp, 32)
     }
 
     #[test]
