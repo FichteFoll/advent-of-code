@@ -18,8 +18,7 @@ type Grid = Vec<Vec<Option<Blizzard>>>;
 
 #[derive(Clone)]
 struct Parsed {
-    horizontal: Grid,
-    vertical: Grid,
+    blizzards: Grid,
     len_x: usize,
     len_y: usize,
     start_pt: Point<2>,
@@ -31,22 +30,19 @@ main!();
 fn parse_input(input: &str) -> Parsed {
     let lines: Vec<_> = input.lines().collect();
     let size = (lines[0].len() - 2, lines.len() - 2);
-    let mut horizontal: Grid = vec![vec![None; size.1]; size.0];
-    let mut vertical: Grid = horizontal.clone();
+    let mut blizzards: Grid = vec![vec![None; size.1]; size.0];
     for (y, line) in lines[1..=size.1].iter().enumerate() {
         for (x, &b) in line.as_bytes()[1..=size.0].into_iter().enumerate() {
             match b {
                 b'.' => (),
-                b'>' | b'<' => horizontal[x][y] = Some(b),
-                b'v' | b'^' => vertical[x][y] = Some(b),
+                b'>' | b'<' | b'v' | b'^' => blizzards[x][y] = Some(b),
                 _ => panic!("unrecognized char {b}"),
             }
         }
     }
-    let (len_x, len_y) = (horizontal.len(), horizontal[0].len());
+    let (len_x, len_y) = (blizzards.len(), blizzards[0].len());
     Parsed {
-        horizontal,
-        vertical,
+        blizzards,
         len_x,
         len_y,
         start_pt: Point([0, -1]),
@@ -104,10 +100,10 @@ fn is_free(p: &Parsed, pt: &Point<2>, step: usize) -> bool {
     }
     let (x, y) = (pt.x() as usize, pt.y() as usize);
     // West and south directions use "math" to prevent underflows.
-    let east_free = p.horizontal[(x + step) % p.len_x][y] != Some(b'<');
-    let west_free = p.horizontal[(x + step * (p.len_x - 1)) % p.len_x][y] != Some(b'>');
-    let north_free = p.vertical[x][(y + step) % p.len_y] != Some(b'^');
-    let south_free = p.vertical[x][(y + step * (p.len_y - 1)) % p.len_y] != Some(b'v');
+    let east_free = p.blizzards[(x + step) % p.len_x][y] != Some(b'<');
+    let west_free = p.blizzards[(x + step * (p.len_x - 1)) % p.len_x][y] != Some(b'>');
+    let north_free = p.blizzards[x][(y + step) % p.len_y] != Some(b'^');
+    let south_free = p.blizzards[x][(y + step * (p.len_y - 1)) % p.len_y] != Some(b'v');
     west_free && east_free && south_free && north_free
 }
 
@@ -133,7 +129,7 @@ mod tests {
 
     test!(part_1() == 18);
     test!(part_2() == 54);
-    bench_parse!(|p: &Parsed| p.horizontal.len(), 120);
+    bench_parse!(|p: &Parsed| p.blizzards.len(), 120);
     bench!(part_1() == 305);
     bench!(part_2() == 905);
 }
