@@ -53,10 +53,13 @@ fn part_1((grid, start, end): &Parsed) -> u32 {
         *best_count = count;
         let height = grid[point.y() as usize][point.x() as usize];
         queue.extend(
-            point.direct_neighbors()
+            point
+                .direct_neighbors()
                 .into_iter()
                 .filter(|pt| {
-                    let next_height = grid.get(pt.y() as usize).and_then(|line| line.get(pt.x() as usize));
+                    let next_height = grid
+                        .get(pt.y() as usize)
+                        .and_then(|line| line.get(pt.x() as usize));
                     next_height.map(|&x| x <= height + 1).unwrap_or(false)
                 })
                 .map(|pt| (Reverse(count + 1), pt)),
@@ -80,10 +83,13 @@ fn part_2((grid, _, end): &Parsed) -> u32 {
             return count;
         }
         queue.extend(
-            point.direct_neighbors()
+            point
+                .direct_neighbors()
                 .into_iter()
                 .filter(|pt| {
-                    let next_height = grid.get(pt.y() as usize).and_then(|line| line.get(pt.x() as usize));
+                    let next_height = grid
+                        .get(pt.y() as usize)
+                        .and_then(|line| line.get(pt.x() as usize));
                     next_height.map(|&x| height <= x + 1).unwrap_or(false)
                 })
                 .map(|pt| (Reverse(count + 1), pt)),

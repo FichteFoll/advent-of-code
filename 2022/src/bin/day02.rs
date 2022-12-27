@@ -19,13 +19,15 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    parsed.iter()
+    parsed
+        .iter()
         .map(|&(other, mine)| score_against(mine, other))
         .sum()
 }
 
 fn part_2(parsed: &Parsed) -> usize {
-    parsed.iter()
+    parsed
+        .iter()
         .map(|&(other, outcome)| {
             let mine = second_for(other, outcome);
             outcome * 3 + mine + 1

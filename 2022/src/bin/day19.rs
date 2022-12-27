@@ -4,7 +4,7 @@
 #![feature(let_chains)]
 #![feature(test)]
 
-use std::iter::once;
+use std::iter::{once, zip};
 
 use aoc2022::collections::*;
 use aoc2022::*;
@@ -76,11 +76,7 @@ fn part_1(parsed: &Parsed) -> usize {
 }
 
 fn part_2(parsed: &Parsed) -> usize {
-    parsed
-        .iter()
-        .take(3)
-        .map(|bp| simulate(bp, 32))
-        .product()
+    parsed.iter().take(3).map(|bp| simulate(bp, 32)).product()
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
@@ -101,16 +97,17 @@ impl State {
             // Filter out states with more robots for a resource than any build plan needs,
             // except for GEODE.
             .filter(|next| {
-                next.robots[..GEODE].iter().enumerate().all(|(i, &robs)| {
-                    bp.iter().any(|plan| plan[i] >= robs)
-                })
+                next.robots[..GEODE]
+                    .iter()
+                    .enumerate()
+                    .all(|(i, &robs)| bp.iter().any(|plan| plan[i] >= robs))
             })
             .collect()
     }
 
     fn step_no_build(&self) -> Self {
         let mut next = self.clone();
-        for (resource, produced) in izip!(next.resources.iter_mut(), self.robots.iter()) {
+        for (resource, produced) in zip(next.resources.iter_mut(), self.robots.iter()) {
             *resource += produced;
         }
         next
@@ -148,8 +145,7 @@ fn simulate(bp: &Blueprint, minutes: usize) -> usize {
                                 .iter()
                                 .all(|other| all_ge(other, &next.resources));
                         if !all_better {
-                            other_entries
-                                .retain(|other| !all_ge(&next.resources, other));
+                            other_entries.retain(|other| !all_ge(&next.resources, other));
                             other_entries.push(next.resources);
                         }
                     }
@@ -177,7 +173,7 @@ fn simulate(bp: &Blueprint, minutes: usize) -> usize {
 
 #[inline(always)]
 fn all_ge(xs: &[usize], ys: &[usize]) -> bool {
-    izip!(xs.iter(), ys.iter()).all(|(x, y)| x >= y)
+    zip(xs.iter(), ys.iter()).all(|(x, y)| x >= y)
 }
 
 #[cfg(test)]

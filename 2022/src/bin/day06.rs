@@ -67,6 +67,7 @@ fn find_unique_sequence_on<const SEQUENCE_LEN: usize>(parsed: &String) -> usize 
 }
 
 #[allow(unused)]
+#[rustfmt::skip]
 fn find_unique_sequence_bitmask<const N: usize>(parsed: &String) -> usize {
     // This isn't my idea or implementation, but I liked it enough to include it here anyway.
     // It's also O(n) but uses the fact that XOR with a duplicate bit

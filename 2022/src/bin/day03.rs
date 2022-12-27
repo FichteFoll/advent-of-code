@@ -38,18 +38,23 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> u32 {
-    parsed.iter()
+    parsed
+        .iter()
         .map(|(a, b)| (a & b).trailing_zeros() + 1)
         .sum()
 }
 
 fn part_2(parsed: &Parsed) -> u32 {
-    parsed.chunks(3)
-        .map(|group| group.iter()
-            .map(|(a, b)| a | b)
-            .fold(u64::MAX, |a, x| a & x)
-            .trailing_zeros() + 1
-        )
+    parsed
+        .chunks(3)
+        .map(|group| {
+            group
+                .iter()
+                .map(|(a, b)| a | b)
+                .fold(u64::MAX, |a, x| a & x)
+                .trailing_zeros()
+                + 1
+        })
         .sum()
 }
 

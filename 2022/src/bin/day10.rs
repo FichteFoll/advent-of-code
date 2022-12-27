@@ -43,24 +43,27 @@ fn part_2(parsed: &Parsed) -> String {
         .into_iter()
         .flat_map(|chunk| {
             once('\n').chain(
-                chunk.iter()
+                chunk
+                    .iter()
                     .enumerate()
-                    .map(|(i, x)| if (i as i32 - x).abs() <= 1 { '#' } else { '.' })
+                    .map(|(i, x)| match x.abs_diff(i as i32) {
+                        0 | 1 => '#',
+                        _ => '.',
+                    }),
             )
         })
         .collect()
 }
 
 fn calc_xes(instructions: &Parsed) -> Vec<i32> {
-    instructions.iter()
-        .scan(1, |x, instr| {
-            match instr {
-                Instr::Noop => Some(vec![*x]),
-                Instr::AddX(y) => {
-                    let ret = vec![*x; 2];
-                    *x += y;
-                    Some(ret)
-                }
+    instructions
+        .iter()
+        .scan(1, |x, instr| match instr {
+            Instr::Noop => Some(vec![*x]),
+            Instr::AddX(y) => {
+                let ret = vec![*x; 2];
+                *x += y;
+                Some(ret)
             }
         })
         .flatten()

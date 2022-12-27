@@ -32,7 +32,8 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    parsed.iter()
+    parsed
+        .iter()
         .filter(|(a, b)| {
             a.start() >= b.start() && a.end() <= b.end()
                 || b.start() >= a.start() && b.end() <= a.end()
@@ -41,7 +42,8 @@ fn part_1(parsed: &Parsed) -> usize {
 }
 
 fn part_2(parsed: &Parsed) -> usize {
-    parsed.iter()
+    parsed
+        .iter()
         .filter(|(a, b)| {
             a.contains(b.start())
                 || a.contains(b.end())

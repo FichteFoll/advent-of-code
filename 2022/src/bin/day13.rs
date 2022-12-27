@@ -2,9 +2,9 @@
 #![feature(is_sorted)]
 #![feature(test)]
 
-use itertools::izip;
 use std::cmp::Ordering;
 use std::collections::BinaryHeap;
+use std::iter::zip;
 
 use aoc2022::*;
 use parse::parse_input;
@@ -84,7 +84,8 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> usize {
-    parsed.iter()
+    parsed
+        .iter()
         .enumerate()
         .flat_map(|(i, pair)| pair.is_sorted().then_some(i + 1))
         .sum()
@@ -110,14 +111,17 @@ fn part_2(parsed: &Parsed) -> usize {
 }
 
 impl std::cmp::PartialOrd for Item {
+    #[rustfmt::skip]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self, other) {
             (Item::Num(n1), Item::Num(n2)) => equal_is_none(n1.cmp(n2)),
             (i1 @ Item::Num(_), i2 @ Item::List(_)) => Item::List(vec![i1.clone()]).partial_cmp(i2),
             (i1 @ Item::List(_), i2 @ Item::Num(_)) => i1.partial_cmp(&Item::List(vec![i2.clone()])),
-            (Item::List(l1), Item::List(l2)) => izip!(l1, l2)
-                .find_map(|(i1, i2)| i1.partial_cmp(i2))
-                .or_else(|| equal_is_none(l1.len().cmp(&l2.len()))),
+            (Item::List(l1), Item::List(l2)) => {
+                zip(l1, l2)
+                    .find_map(|(i1, i2)| i1.partial_cmp(i2))
+                    .or_else(|| equal_is_none(l1.len().cmp(&l2.len())))
+            }
         }
     }
 }

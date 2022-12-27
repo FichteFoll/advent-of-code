@@ -79,7 +79,8 @@ fn operate_crane(parsed: &Parsed, reverse: bool) -> String {
             to_stack.extend(from_stack.drain(from_len_after..));
         };
     }
-    stacks.into_iter()
+    stacks
+        .into_iter()
         .flat_map(|s| s.borrow_mut().pop())
         .collect()
 }
@@ -108,6 +109,7 @@ mod tests {
     bench!(part_1() == "VRWBSFZWM".to_string());
     bench!(part_2() == "RBTWJWMCF".to_string());
 
+    #[rustfmt::skip]
     #[test]
     fn test_parse_example() {
         let expected = (

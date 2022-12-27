@@ -1,8 +1,8 @@
 use itertools::iproduct;
-use itertools::izip;
 use itertools::Itertools;
 use std::fmt::Display;
 use std::fmt::Formatter;
+use std::iter::zip;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Point<const N: usize>(pub [i32; N]);
@@ -126,7 +126,7 @@ impl<const N: usize> Point<N> {
 
     #[must_use]
     pub fn manhattan_to(&self, other: &Self) -> i32 {
-        izip!(self.0.iter(), other.0.iter())
+        zip(self.0.iter(), other.0.iter())
             .map(|(a, b)| (a - b).abs())
             .sum()
     }
@@ -294,16 +294,22 @@ mod ops {
 mod point2 {
     use super::Point;
 
-    impl Point<2> {
-        pub const NW: Self = Self([-1, -1]);
-        pub const N:  Self = Self([ 0, -1]);
-        pub const NE: Self = Self([ 1, -1]);
-        pub const W:  Self = Self([-1,  0]);
-        pub const E:  Self = Self([ 1,  0]);
-        pub const SW: Self = Self([-1,  1]);
-        pub const S:  Self = Self([ 0,  1]);
-        pub const SE: Self = Self([ 1,  1]);
+    #[rustfmt::skip]
+    mod constants {
+        use super::Point;
+        impl Point<2> {
+            pub const NW: Self = Self([-1, -1]);
+            pub const N:  Self = Self([ 0, -1]);
+            pub const NE: Self = Self([ 1, -1]);
+            pub const W:  Self = Self([-1,  0]);
+            pub const E:  Self = Self([ 1,  0]);
+            pub const SW: Self = Self([-1,  1]);
+            pub const S:  Self = Self([ 0,  1]);
+            pub const SE: Self = Self([ 1,  1]);
+        }
+    }
 
+    impl Point<2> {
         pub fn rotate_right(&mut self, by: i32) {
             self.rotate_left(360 - by);
         }

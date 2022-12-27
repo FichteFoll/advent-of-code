@@ -46,7 +46,12 @@ mod parse {
         let test_false = lines.next()?[30..].parse().ok()?;
         let test = (test_num, test_true, test_false);
 
-        Some(Monkey { items, operation, test, throw_count: 0 })
+        Some(Monkey {
+            items,
+            operation,
+            test,
+            throw_count: 0,
+        })
     }
 }
 
@@ -81,7 +86,8 @@ fn play_round(monkeys: &mut Parsed, relief: impl Fn(Item) -> Item) {
 }
 
 fn score(monkeys: Vec<Monkey>) -> Item {
-    monkeys.into_iter()
+    monkeys
+        .into_iter()
         .map(|m| m.throw_count)
         .sorted_unstable()
         .rev()
@@ -105,7 +111,10 @@ impl Monkey {
             .map(|old| {
                 let new = relief(self.operation.apply(old));
                 self.throw_count += 1;
-                let target = if new % self.test.0 == 0 { self.test.1 } else { self.test.2 };
+                let target = match new % self.test.0 {
+                    0 => self.test.1,
+                    _ => self.test.2,
+                };
                 (target, new)
             })
             .collect()

@@ -72,7 +72,10 @@ fn part_2(parsed: &Parsed) -> usize {
 
 impl Item {
     fn new_dir(name: String) -> Self {
-        Dir { name, children: vec![] }
+        Dir {
+            name,
+            children: vec![],
+        }
     }
 
     fn name(&self) -> &str {

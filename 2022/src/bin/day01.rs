@@ -19,6 +19,7 @@ pub fn parse_input(input: &str) -> Parsed {
         .collect()
 }
 
+#[rustfmt::skip]
 fn part_1(parsed: &Parsed) -> u64 {
     parsed.iter()
         .map(|block| block.iter().sum())
@@ -26,6 +27,7 @@ fn part_1(parsed: &Parsed) -> u64 {
         .unwrap()
 }
 
+#[rustfmt::skip]
 fn part_2(parsed: &Parsed) -> u64 {
     let sums: BinaryHeap<u64> = parsed.iter()
         .map(|block| block.iter().sum())

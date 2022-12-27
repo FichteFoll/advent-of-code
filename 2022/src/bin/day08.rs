@@ -38,9 +38,9 @@ fn part_2(grid: &Parsed) -> usize {
             let start = grid[y][x];
             [
                 count_visible(start, transposed_grid[x][..y].iter().rev()), // to top
-                count_visible(start, grid[y][..x].iter().rev()), // to left
-                count_visible(start, transposed_grid[x][y + 1..].iter()), // to bottom
-                count_visible(start, grid[y][x + 1..].iter()), // to right
+                count_visible(start, grid[y][..x].iter().rev()),            // to left
+                count_visible(start, transposed_grid[x][y + 1..].iter()),   // to bottom
+                count_visible(start, grid[y][x + 1..].iter()),              // to right
             ]
             .into_iter()
             .product()
@@ -76,8 +76,8 @@ fn count_visible_horizontal(grid: &[Vec<u8>], positions: &mut HashSet<Point>, tr
 
 fn count_visible(start: u8, remaining: impl Iterator<Item = &u8>) -> usize {
     let mut heights = remaining.copied().peekable();
-    heights.peeking_take_while(|&t| t < start).count()
-        + heights.peek().map_or(0, |_| 1) // add the last tree if any
+    // Add the last tree, if any.
+    heights.peeking_take_while(|&t| t < start).count() + heights.peek().map_or(0, |_| 1)
 }
 
 fn transpose<T: Clone>(grid: &Vec<Vec<T>>) -> Vec<Vec<T>> {

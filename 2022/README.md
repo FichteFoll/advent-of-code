@@ -85,13 +85,9 @@ Other than that, I needed about
 ## Dependencies
 
 - **itertools**:
-  Provides some generally useful macros
-  and utility methods for iterators.
-  I especially like the `izip!` macro
-  because it declares upfront what is being iterated over
-  (and prevents `rustfmt` from adding 2 additional line breaks),
-  and `iproduct!` for similar reasons
-  (like reducing nesting levels).
+  Provides some generally useful utility methods for iterators.
+  Additionally, I like the `izip!` and `iproduct!` macros
+  for reducing nesting levels and long-ish `Iterator` call chains.
 
 - **paste**:
   Used for my test macros and reducing boilerplate.
