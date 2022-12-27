@@ -63,6 +63,9 @@ Other than that, I needed about
   but if that's bothers you
   there is always the option to use `println!` instead.
 
+- I keep wanting to `.flat_map` an `Option`
+  but the appropriate function is called `.and_then` instead.
+
 - The error message(s) for trying to `.flatten()` an `Option<&Option<_>>`
   could use some improvements.
   rustc would complain about the type not implementing the `Iterator` trait
@@ -109,6 +112,33 @@ Other than that, I needed about
 ## Individual Days
 
 The following may contain spoilers.
+
+## Day 01
+
+Nothing exciting here.
+
+## Day 02
+
+Classic example of the tests needing more lines than the code.
+
+## Day 03
+
+I used a `u64` as a bit set
+since we only need 26\*2 fields.
+This makes the code much faster than with a `HashSet`.
+
+## Day 04
+
+Nothing exciting here.
+
+## Day 05
+
+I struggled a bit with making the same code
+reusable across the two parts without much duplication
+and ended up having having to duplicate an entire line
+because I couldn't get Rust to treat a reversed iterator
+like any other.
+Dyn trait objects really aren't cool to work with.
 
 TODO
 
@@ -159,6 +189,20 @@ Because this and the previous day too me so long,
 I ended up deferring working on day 21 to the following day
 and skipped 22.
 I would end up working on that last.
+
+### Day 22
+
+I worked on this task as the last one,
+not because I found it difficult in particular
+but because I needed a break
+and hardly had time on that day.
+
+Part 2 was annoying
+and I quickly decided to go for a solution with hardcoded transitions.
+I ended up making some errors in the initial map,
+so I used a trick I found somewhere else:
+Moving 200 steps in any direction from any point
+should always wrap around to the starting position.
 
 ### Day 24
 
