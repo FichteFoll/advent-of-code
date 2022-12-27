@@ -50,6 +50,8 @@ but I distract myself from "too much Rust"
 (if that's even possible)
 by comparing mine against other solutions
 in a different language.
+You can read more details and a summary
+in [the subfolder's README](./2022#readme).
 
 
 ## Completed
@@ -67,7 +69,7 @@ year |                         | sum
 2019 |+++++++++++ +++++ +      |  34
 2020 |+++++++++++++++++++ ++-  |  43
 2021 |+++++++++++++++++++++ ++-|  47
-2022 |    work in progress     |  ??
+2022 |+++++++++++++++++++++++++|  50
 ```
 
 `+` represents two stars, `-` one star
