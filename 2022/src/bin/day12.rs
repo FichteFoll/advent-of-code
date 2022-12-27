@@ -5,7 +5,6 @@ use std::collections::BinaryHeap;
 
 use aoc2022::coord::Point;
 use aoc2022::*;
-use parse::parse_input;
 
 const DAY: usize = 12;
 
@@ -14,26 +13,22 @@ type Parsed = (Grid, Point<2>, Point<2>);
 
 main!();
 
-mod parse {
-    use super::*;
-
-    pub fn parse_input(input: &str) -> Parsed {
-        let mut start = Default::default();
-        let mut end = start;
-        let mut grid: Grid = input.lines().map(|line| line.bytes().collect()).collect();
-        for (y, line) in grid.iter_mut().enumerate() {
-            for (x, b) in line.iter_mut().enumerate() {
-                if *b == b'S' {
-                    *b = b'a';
-                    start = (x, y).into();
-                } else if *b == b'E' {
-                    *b = b'z';
-                    end = (x, y).into();
-                }
+fn parse_input(input: &str) -> Parsed {
+    let mut start = Default::default();
+    let mut end = start;
+    let mut grid: Grid = input.lines().map(|line| line.bytes().collect()).collect();
+    for (y, line) in grid.iter_mut().enumerate() {
+        for (x, b) in line.iter_mut().enumerate() {
+            if *b == b'S' {
+                *b = b'a';
+                start = (x, y).into();
+            } else if *b == b'E' {
+                *b = b'z';
+                end = (x, y).into();
             }
         }
-        (grid, start, end)
     }
+    (grid, start, end)
 }
 
 fn part_1((grid, start, end): &Parsed) -> u32 {
