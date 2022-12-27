@@ -18,10 +18,9 @@ fn parse_input(input: &str) -> Parsed {
         .lines()
         .enumerate()
         .flat_map(|(y, line)| {
-            line.as_bytes()
-                .into_iter()
+            line.bytes()
                 .enumerate()
-                .filter_map(move |(x, &b)| (b == b'#').then_some((x, y).into()))
+                .filter_map(move |(x, b)| (b == b'#').then_some((x, y).into()))
         })
         .collect()
 }

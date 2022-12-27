@@ -134,19 +134,19 @@ fn move_numbers_slice_copy(parsed: &Parsed, iterations: usize) -> isize {
         .sum()
 }
 
-fn move_num_slice_copy(numbers: &mut Vec<(usize, isize)>, pos: usize, new_pos: usize) {
+fn move_num_slice_copy(numbers: &mut [(usize, isize)], pos: usize, new_pos: usize) {
     use std::cmp::Ordering::*;
     let n = numbers[pos];
     match new_pos.cmp(&pos) {
         Equal => (),
         Greater => {
-            let mut other = numbers[pos + 1..=new_pos].to_vec();
-            numbers[pos..new_pos].copy_from_slice(&mut other);
+            let other = numbers[pos + 1..=new_pos].to_vec();
+            numbers[pos..new_pos].copy_from_slice(&other);
             numbers[new_pos] = n;
         }
         Less => {
-            let mut other = numbers[new_pos..pos].to_vec();
-            numbers[new_pos + 1..=pos].copy_from_slice(&mut other);
+            let other = numbers[new_pos..pos].to_vec();
+            numbers[new_pos + 1..=pos].copy_from_slice(&other);
             numbers[new_pos] = n;
         }
     };

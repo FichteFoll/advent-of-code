@@ -32,7 +32,7 @@ fn parse_input(input: &str) -> Parsed {
     let size = (lines[0].len() - 2, lines.len() - 2);
     let mut blizzards: Grid = vec![vec![None; size.1]; size.0];
     for (y, line) in lines[1..=size.1].iter().enumerate() {
-        for (x, &b) in line.as_bytes()[1..=size.0].into_iter().enumerate() {
+        for (x, &b) in line.as_bytes()[1..=size.0].iter().enumerate() {
             match b {
                 b'.' => (),
                 b'>' | b'<' | b'v' | b'^' => blizzards[x][y] = Some(b),

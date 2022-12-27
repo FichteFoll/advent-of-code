@@ -58,7 +58,7 @@ fn parse_grid(map_str: &str) -> Vec<Vec<Option<Tile>>> {
 fn parse_cmds(code_str: &str) -> Vec<Cmd> {
     let moves = code_str
         .split(['L', 'R'])
-        .map(|s| s.parse().ok().map(|n| Cmd::Move(n)));
+        .map(|s| s.parse().ok().map(Cmd::Move));
     let rotations = code_str
         .trim()
         .bytes()
@@ -67,7 +67,7 @@ fn parse_cmds(code_str: &str) -> Vec<Cmd> {
             b'R' => Some(Cmd::RotateRight),
             _ => None,
         })
-        .map(|cmd| Some(cmd));
+        .map(Some);
     // Interleaves iterators of `Option`
     // to handle rotation or number coming first.
     moves.interleave(rotations).flatten().collect()
@@ -91,7 +91,7 @@ fn part_1((grid, cmds): &Parsed) -> i32 {
                     if next_tile.is_none() {
                         // Wrap around by going in the opposite direction
                         // until we reach the end.
-                        let mut rev_dir = state.dir.clone();
+                        let mut rev_dir = state.dir;
                         rev_dir.rotate_right(180);
                         loop {
                             let prev_pos = next_pos + rev_dir;
@@ -307,7 +307,7 @@ mod tests {
                     row.get(x)
                         .cloned()
                         .flatten()
-                        .and_then(|_| Some(Point([x as i32, y as i32])))
+                        .map(|_| Point([x as i32, y as i32]))
                 })
             })
             .collect();

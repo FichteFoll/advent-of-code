@@ -15,7 +15,7 @@ fn main() {
 }
 
 fn parse_input(input: &str) -> Parsed {
-    input.lines().map(|line| parse_snafu(line)).collect()
+    input.lines().map(parse_snafu).collect()
 }
 
 fn part_1(parsed: &Parsed) -> String {
@@ -36,11 +36,11 @@ fn parse_snafu(snafu: &str) -> i64 {
 }
 
 fn to_snafu(mut n: i64) -> String {
-    if n == 0 {
-        return '0'.to_string();
-    } else if n < 0 {
-        unimplemented!();
-    }
+    match n {
+        0 => return '0'.to_string(),
+        _ if n < 0 => unimplemented!(),
+        _ => (),
+    };
     let mut bytes = vec![];
     while n != 0 {
         let carry = match n % 5 {

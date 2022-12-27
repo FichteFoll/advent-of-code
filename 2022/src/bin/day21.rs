@@ -88,7 +88,7 @@ fn get_num(map: &mut Parsed, key: &str) -> Option<i64> {
     let mut queue: Vec<_> = [key.to_string()].into();
     while let Some(current) = queue.last() {
         let resolved = match map.get(current).unwrap() {
-            Some(m) => m.resolve(&map),
+            Some(m) => m.resolve(map),
             None => return None, // "humn" found
         };
         match resolved {
@@ -105,22 +105,22 @@ fn get_num(map: &mut Parsed, key: &str) -> Option<i64> {
     unreachable!()
 }
 
-fn find_solution(mut map: &mut Parsed, key: &str, target: i64) -> i64 {
+fn find_solution(map: &mut Parsed, key: &str, target: i64) -> i64 {
     // Recursively resolve operations until n is satisifed
     // (using tail recursion).
     let Some(monkey) = map.get(key).unwrap() else {
     return target; };
     let Monkey::Term(op, key1, key2) = monkey.clone() else { unreachable!() };
-    let n1 = get_num(&mut map, &key1);
-    let n2 = get_num(&mut map, &key2);
+    let n1 = get_num(map, &key1);
+    let n2 = get_num(map, &key2);
     match (n1, n2) {
         (Some(operand), None) => {
             let next_n = op.resolve_right(operand, target);
-            find_solution(&mut map, &key2, next_n)
+            find_solution(map, &key2, next_n)
         }
         (None, Some(operand)) => {
             let next_n = op.resolve_left(operand, target);
-            find_solution(&mut map, &key1, next_n)
+            find_solution(map, &key1, next_n)
         }
         _ => panic!("no humn found"),
     }
