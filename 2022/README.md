@@ -57,6 +57,41 @@ Other than that,
 I needed about 0.5-3 hours for each day,
 including refactoring and discussions.
 
+## Project Structure & Compilation
+
+Each day has been written as a separate binary
+while sharing some common code
+like macros to reduce boilerplate
+and an n-dimensional coordinate struct called `Point`
+that I have been using for a few years now.
+
+You can run them via
+```sh
+# Grabs the respective day's input from the `input` folder.
+$ cargo run --bin day01
+# Can also take the input file name from an env var.
+INPUT=custom_input.txt cargo run --bin day08
+```
+
+Each day also has tests to ensure they are working
+(and to make developing things at a time more convenient),
+usually with the example inputs
+as well as my benchmarks for my actual inputs
+that I store in the `input` folder
+to check their performance.
+Some tests take a bit longer to run in debug builds.
+The same `--bin` argument as for running can be used.
+
+```sh
+$ cargo test --release
+$ cargo bench --bin day20
+```
+
+> **Note**
+> I use experimental and unstable features,
+> so a nightly version of Rust is required
+> (at the time of writing).
+
 ## Takeaways for Rust
 
 - Compared to the last year,
