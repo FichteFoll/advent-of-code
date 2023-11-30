@@ -8,7 +8,7 @@ sometimes because I was too stubborn with my initial implementation idea
 and sometimes because I didn't read the task properly
 or forgot an important detail while working on it.
 You can read more details
-in the [individual task notes][#individual-days] below.
+in the [individual task notes](#individual-days) below.
 
 Also this was the first time I actually completed all tasks
 and I only needed 2 extra days.
