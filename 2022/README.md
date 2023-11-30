@@ -24,7 +24,7 @@ meaning it was a good opportunity
 to exchange knowledge, tips and whatnot.
 Just in general a good point of discussion
 if you don't have to also discuss
-ow to build a set-like intersection with a map
+how to build a set-like intersection with a map
 because your standard library doesn't implement sets.
 
 ## Procedure
@@ -179,7 +179,7 @@ reusable across the two parts without much duplication
 and ended up having having to duplicate an entire line
 because I couldn't get Rust to treat a reversed iterator
 like any other.
-Dyn trait objects really aren't cool to work with.
+`dyn` trait objects really aren't cool to work with.
 
 ### [Day 06]
 
