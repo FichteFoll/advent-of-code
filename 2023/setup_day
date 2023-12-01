@@ -1,0 +1,85 @@
+#!/bin/zsh
+
+set +e
+
+today=$(date +%d)
+day=${1-$today}
+input=input/day$day.txt
+src=src/bin/day$day.rs
+
+mkdir -p input src/bin
+
+if [ -e ".venv" ]; then
+    source ./.venv/bin/activate
+else
+    echo "No virtual environment found at '.venv'. Creating …"
+    python -m venv .venv
+    source ./.venv/bin/activate
+    pip install -U advent-of-code-data
+fi
+
+if [ -e "$input" ]; then
+    echo "$input already exists"
+elif command -v aocd >/dev/null; then
+    # fetch the puzzle input via https://github.com/wimglenn/advent-of-code-data
+    aocd $day > "$input"
+    # add trailing newline if necessary
+    sed -i -e '$a\' "$input"
+    echo "$input created"
+else
+    echo "aocd not found; skipping input file creation"
+fi
+
+exit # TODO split into haskell and rust templates
+
+if [ -e "$src" ]; then
+    echo "$src already exists"
+else
+    <<EOF > "$src"
+#![feature(test)]
+
+use aoc2022::*;
+use parse::parse_input;
+
+const DAY: usize = $((day));
+
+type Parsed = Vec<usize>;
+
+main!();
+
+mod parse {
+    use super::*;
+
+    pub fn parse_input(input: &str) -> Parsed {
+        input
+            .lines()
+            .map(|line| line.parse().unwrap())
+            .collect()
+    }
+}
+
+fn part_1(_parsed: &Parsed) -> usize {
+    todo!()
+}
+
+fn part_2(_parsed: &Parsed) -> usize {
+    todo!()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    extern crate test;
+
+    const TEST_INPUT: &str = "\\
+        ";
+
+    test!(part_1() == 0);
+    // test!(part_2() == 0);
+    // bench_parse!(Vec::len, 0);
+    // bench!(part_1() == 0);
+    // bench!(part_2() == 0);
+}
+EOF
+    echo "$src created"
+fi
