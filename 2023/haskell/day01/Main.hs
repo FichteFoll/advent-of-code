@@ -1,6 +1,6 @@
 module Main where
 
-import Control.Applicative (liftA2)
+import Control.Applicative
 import Data.Char
 import Debug.Trace
 
@@ -25,6 +25,7 @@ extractDigits1 :: String -> [Int]
 extractDigits1 = map digitToInt . filter isDigit
 
 extractDigits2 :: String -> [Int]
+-- keep the last character to support overlapping words (needs at most one char)
 extractDigits2 ('z':'e':'r':xs@('o':_))     = 0:extractDigits2 xs
 extractDigits2 ('o':'n':xs@('e':_))         = 1:extractDigits2 xs
 extractDigits2 ('t':'w':xs@('o':_))         = 2:extractDigits2 xs
