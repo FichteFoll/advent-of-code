@@ -1,4 +1,4 @@
-module Bench where
+module Bench (main) where
 
 import Criterion.Main
 import Main hiding (main)

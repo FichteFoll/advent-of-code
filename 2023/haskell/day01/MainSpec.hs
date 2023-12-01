@@ -1,4 +1,4 @@
-module MainSpec where
+module MainSpec (main) where
 
 import Test.Hspec
 import Main hiding (main)

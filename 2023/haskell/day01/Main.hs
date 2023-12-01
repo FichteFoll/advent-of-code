@@ -1,4 +1,4 @@
-module Main where
+module Main (main, parse, part1, part2, extractDigits2, calcLine) where
 
 import Control.Applicative
 import Data.Char
