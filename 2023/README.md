@@ -29,6 +29,7 @@ For Arch, I used the following packages:
 - [`ghc`](https://www.haskell.org/ghc/) & `ghc-libs`: standard Haskell compiler and interpreter & libraries
 - [`haskell-language-server`](https://github.com/haskell/haskell-language-server): self-explanatory
 - [`haskell-hspec`](https://hspec.github.io/): testing framework
+- [`haskell-criterion`](http://www.serpentine.com/criterion/): benchmarking framework
 
 To run the solutions,
 navigate to a folder and use `runhaskell` to run files or tests.
@@ -40,6 +41,15 @@ runhaskell MainSpec.hs
 runhaskell Main.hs < ../../inputs/day01.txt
 ```
 
+To run the benchmarks,
+compile the accompanying benchmarking code
+and simply run it.
+
+```bash
+cd haskell/day01
+ghc -dynamic -O2 -main-is Bench Bench.hs
+./Bench < ../../input/day01.txt
+```
 
 ### Rust
 
