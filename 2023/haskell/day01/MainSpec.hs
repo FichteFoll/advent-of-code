@@ -39,14 +39,14 @@ main = do
          part2 input `shouldBe` 55218
 
     describe "extractDigits2" $ do
-      it "extracts 'zero'" $
-        extractDigits2 "zero" `shouldBe` [0]
-      it "extracts 'zero1'" $
-        extractDigits2 "zero1" `shouldBe` [0, 1]
-      it "extracts 'xxxxzeroxxxx1xxxx'" $
-        extractDigits2 "xxxxzeroxxxx1xxxx" `shouldBe` [0, 1]
+      it "extracts 'two'" $
+        extractDigits2 "two" `shouldBe` [2]
+      it "extracts 'two1'" $
+        extractDigits2 "two1" `shouldBe` [2, 1]
+      it "extracts 'xxxxtwoxxxx1xxxx'" $
+        extractDigits2 "xxxxtwoxxxx1xxxx" `shouldBe` [2, 1]
       it "extracts all digit words" $
-        extractDigits2 "zero one two three four five six seven eight nine" `shouldBe` [0..9]
+        extractDigits2 "one two three four five six seven eight nine" `shouldBe` [1..9]
       it "extracts overlapping 'eighthreesevenine'" $
         extractDigits2 "eighthreesevenine" `shouldBe` [8, 3, 7, 9]
 

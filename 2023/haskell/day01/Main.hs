@@ -26,7 +26,6 @@ extractDigits1 = map digitToInt . filter isDigit
 
 extractDigits2 :: String -> [Int]
 -- keep the last character to support overlapping words (needs at most one char)
-extractDigits2 ('z':'e':'r':xs@('o':_))     = 0:extractDigits2 xs
 extractDigits2 ('o':'n':xs@('e':_))         = 1:extractDigits2 xs
 extractDigits2 ('t':'w':xs@('o':_))         = 2:extractDigits2 xs
 extractDigits2 ('t':'h':'r':'e':xs@('e':_)) = 3:extractDigits2 xs
