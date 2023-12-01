@@ -1,8 +1,28 @@
 # Advent of Code 2023
 
-## Haskell
+## Summary
 
-### Setup
+to be added later
+
+## Procedure
+
+Each day I followed the following three steps:
+
+1. Read and solve part 1.
+1. Read and solve part 2
+   (trying to reuse as much of part 1 as possible).
+1. (Optional) Refactor and compare with other solutions (via Discord)
+   to see what else could be improved.
+
+I tried to consider performance in the initial implementation
+and that mostly held true,
+avoiding brute-force solutions where possible
+and achieving competitive benchmark results for the most part.
+There are of course exceptions to this.
+
+## Project Structure & Compilation
+
+### Haskell
 
 For Arch, I used the following packages:
 
@@ -10,9 +30,8 @@ For Arch, I used the following packages:
 - [`haskell-language-server`](https://github.com/haskell/haskell-language-server): self-explanatory
 - [`haskell-hspec`](https://hspec.github.io/): testing framework
 
-### Environment
-
-Navigate to a folder and use `runhaskell` to run files or tests.
+To run the solutions,
+navigate to a folder and use `runhaskell` to run files or tests.
 For the `Main.hs` file, pipe in the input file:
 
 ```bash
@@ -21,6 +40,14 @@ runhaskell MainSpec.hs
 runhaskell Main.hs < ../../inputs/day01.txt
 ```
 
+
+### Rust
+
+Nothing yet
+
+## Individual Days
+
+The following may contain spoilers.
 
 ### Day 01
 
