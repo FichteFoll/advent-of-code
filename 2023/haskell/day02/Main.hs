@@ -20,27 +20,40 @@ parse = map (sets . content) . lines
     content = drop 2 . dropWhile (/= ':')
     sets = map cubes . wordsWhen (== ';')
     cubes = map parseCube . wordsWhen (== ',')
-    parseCube x = case words x of
-      [n, color] -> (color, read n)
-      _ -> error $ "unable to parse cube text: " ++ x
+    parseCube x =
+      case words x of
+        [n, color] -> (color, read n)
+        _ -> error $ "unable to parse cube text: " ++ x
 
 part1 :: Input -> Int
 part1 = sum . map fst . filter isAllowed . zip [1..]
   where
     allowed :: [Cube]
     allowed = [("red", 12), ("green", 13), ("blue", 14)]
-    isAllowed (_, sets) = null
-      [ True
-      | cubes <- sets
-      , (col1, n1) <- cubes
-      , (col2, n2) <- allowed
-      , col1 == col2
-      , n1 > n2
-      ]
+    isAllowed (_, sets)
+      = null
+        [ True
+        | cubes <- sets
+        , (cCol, cNum) <- cubes
+        , (aCol, aNum) <- allowed
+        , cCol == aCol
+        , cNum > aNum
+        ]
 
 part2 :: Input -> Int
-part2 x = 0
-
+part2 = sum . map power
+  where
+    power :: [[Cube]] -> Int
+    power sets =
+      product
+        [ maximum
+          [ cNum
+          | cubes <- sets
+          , (cCol, cNum) <- cubes
+          , cCol == col
+          ]
+        | col <- ["red", "green", "blue"]
+        ]
 
 wordsWhen :: (Char -> Bool) -> String -> [String]
 wordsWhen p s

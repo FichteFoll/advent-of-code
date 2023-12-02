@@ -73,3 +73,10 @@ This day's delays were sponsored by:
 
 Not the usual simple task for the first day,
 but I'm still mad about the last point.
+
+
+### Day 02
+
+More straight forward compared to the previous day,
+but parsing text like that in Haskell is not too pleasant.
+Still, I think I found a decent solution – powered by list comprehensions.
