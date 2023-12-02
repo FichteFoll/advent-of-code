@@ -1,0 +1,39 @@
+{
+    "folders":
+    [
+        {
+            "path": ".",
+            "folder_exclude_patterns": ["target"],
+        },
+        // use only current year's folder for easier LSP integration,
+        // find in files and goto anything
+        {
+            "path": "../2019"
+        },
+        // {
+        //     "path": "../2022"
+        // },
+    ],
+    "build_systems": [
+        {
+            "name": "Test $day",
+            "cmd": ["cargo", "test", "--bin", "${file_base_name}"],
+            "working_dir": "$project_path",
+        },
+        {
+            "name": "Run $day",
+            "cmd": ["cargo", "run", "--bin", "${file_base_name}"],
+            "working_dir": "$project_path",
+        },
+        {
+            "name": "Bench $day",
+            "cmd": ["cargo", "bench", "--bin", "${file_base_name}"],
+            "working_dir": "$project_path",
+        },
+        {
+            "name": "Clipp",
+            "cmd": ["cargo", "clippy"],
+            "working_dir": "$project_path",
+        },
+    ],
+}
