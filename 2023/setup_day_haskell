@@ -1,0 +1,108 @@
+#!/bin/zsh
+
+set +e
+
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+
+today=$(date +%d)
+day=${1-$today}
+
+mkdir -pv haskell/day$day
+cd haskell/day$day
+
+if [ -e Main.hs ]; then
+    echo "Main.hs already exists"
+else
+    <<EOF > Main.hs
+module Main (main, parse, part1, part2) where
+
+import Control.Applicative
+import Data.Char
+import Debug.Trace
+
+type Input = [String]
+
+main :: IO ()
+main = do
+  input <- parse <$> getContents
+  putStrLn $ "Part 1: " ++ show (part1 input)
+  putStrLn $ "Part 2: " ++ show (part2 input)
+
+parse :: String -> Input
+parse = lines
+
+part1 :: Input -> Int
+part1 x = 0
+
+part2 :: Input -> Int
+part2 x = 0
+EOF
+    echo "Main.hs created"
+fi
+
+if [ -e MainSpec.hs ]; then
+    echo "MainSpec.hs already exists"
+else
+    <<EOF > MainSpec.hs
+module MainSpec (main) where
+
+import Test.Hspec
+import Main hiding (main)
+
+exampleText
+  = unlines
+    [
+    ]
+
+
+main :: IO ()
+main = do
+  input <- parse <$> readFile "../../input/day$day.txt"
+  let exampleInput = parse exampleText
+
+  hspec $ do
+    describe "parse" $ do
+      it "parses example input (length)" $
+        length exampleInput \`shouldBe\` 0
+
+      it "parses real input (length)" $
+        length input \`shouldBe\` 0
+
+    -- describe "part1" $ do
+    --   it "computes accepted result for example input" $
+    --     part1 exampleInput \`shouldBe\` 0
+
+    --   it "computes accepted result" $
+    --     part1 input \`shouldBe\` 0
+
+    -- describe "part2" $ do
+    --   it "computes accepted result for example input" $
+    --     part2 exampleInput \`shouldBe\` 0
+
+    --   it "computes accepted result" $
+    --      part2 input \`shouldBe\` 0
+EOF
+    echo "MainSpec.hs created"
+fi
+
+if [ -e Bench.hs ]; then
+    echo "Bench.hs already exists"
+else
+    <<EOF > Bench.hs
+module Bench (main) where
+
+import Criterion.Main
+import Main hiding (main)
+
+main = do
+  inputString <- getContents
+  let input = parse inputString
+  defaultMain
+    [ bench "parse" $ whnf parse inputString
+    , bench "part1" $ whnf part1 input
+    , bench "part2" $ whnf part2 input]
+EOF
+    echo "Bench.hs created"
+fi
+
+exit

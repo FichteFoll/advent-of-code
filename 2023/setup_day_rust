@@ -1,0 +1,62 @@
+#!/bin/zsh
+
+set +e
+
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+
+today=$(date +%d)
+day=${1-$today}
+src=src/bin/day$day.rs
+
+mkdir -pv src/bin
+if [ -e "$src" ]; then
+    echo "$src already exists"
+else
+    <<EOF > "$src"
+#![feature(test)]
+
+use aoc2023::*;
+use parse::parse_input;
+
+const DAY: usize = $((day));
+
+type Parsed = Vec<usize>;
+
+main!();
+
+mod parse {
+    use super::*;
+
+    pub fn parse_input(input: &str) -> Parsed {
+        input
+            .lines()
+            .map(|line| line.parse().unwrap())
+            .collect()
+    }
+}
+
+fn part_1(_parsed: &Parsed) -> usize {
+    todo!()
+}
+
+fn part_2(_parsed: &Parsed) -> usize {
+    todo!()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    extern crate test;
+
+    const TEST_INPUT: &str = "\\
+        ";
+
+    test!(part_1() == 0);
+    // test!(part_2() == 0);
+    // bench_parse!(Vec::len, 0);
+    // bench!(part_1() == 0);
+    // bench!(part_2() == 0);
+}
+EOF
+    echo "$src created"
+fi
