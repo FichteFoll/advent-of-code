@@ -2,6 +2,7 @@ module MainSpec (main) where
 
 import Test.Hspec
 import Main hiding (main)
+import Data.Bifunctor (bimap)
 
 exampleText
   = unlines
@@ -26,10 +27,10 @@ main = do
   hspec $ do
     describe "parse" $ do
       it "parses example input (length)" $
-        length exampleInput `shouldBe` 10
+        bimap length length exampleInput `shouldBe` (10, 10)
 
       it "parses real input (length)" $
-        length input `shouldBe` 140
+        bimap length length input `shouldBe` (140, 1211)
 
     describe "part1" $ do
       it "computes accepted result for example input" $
