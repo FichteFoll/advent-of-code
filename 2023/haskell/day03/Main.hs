@@ -10,8 +10,8 @@ import Debug.Trace
 import Linear.V2
 
 type Input = ([String], [Number])
--- data Number = Number (V2 Int) Int Int
 data Number = Number { _pos :: V2 Int, _val :: Int, _len :: Int }
+  deriving Show
 $(makeLenses ''Number)
 
 main :: IO ()
@@ -49,4 +49,24 @@ part1 (grid, nums) = sum $ map (view val) $ filter hasAdjacentSymbol nums
     isSymbol = liftA2 (&&) (/= '.') (not . isDigit)
 
 part2 :: Input -> Int
-part2 x = 0
+part2 (grid, nums)
+  = sum
+    $ map (product . map (view val))
+    $ filter ((== 2) . length)
+    $ map adjacentNums stars
+  where
+    stars =
+      [ (x, y)
+      | (y, row) <- zip [0..] grid
+      , (x, char) <- zip [0..] row
+      , (grid !! y !! x) == '*'
+      ]
+    adjacentNums (x, y) =
+      [ num
+      | num <- nums
+      , let xNum = num ^. (pos . _x)
+      , let yNum = num ^. (pos . _y)
+      , abs (yNum - y) <= 1
+      , x - 1 <= xNum + num ^. len - 1
+      , xNum <= x + 1
+      ]
