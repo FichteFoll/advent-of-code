@@ -28,13 +28,13 @@ parse text = (grid, nums)
       [ Number (V2 x y) (read value') (length value')
       | (y, row) <- zip [0..] grid
       , (x, char) <- zip [0..] row
-      , isDigit $ row !! x
-      , x == 0 || not (isDigit $ row !! (x - 1))
+      , isDigit char
+      , x == 0 || not (isDigit $ row !! pred x)
       , let value' = takeWhile isDigit $ drop x row
       ]
 
 part1 :: Input -> Int
-part1 (grid, nums) = sum $ map (view val) $ filter hasAdjacentSymbol nums
+part1 (grid, nums) = sum $ map (^. val) $ filter hasAdjacentSymbol nums
   where
     hasAdjacentSymbol num
       = or
@@ -51,7 +51,7 @@ part1 (grid, nums) = sum $ map (view val) $ filter hasAdjacentSymbol nums
 part2 :: Input -> Int
 part2 (grid, nums)
   = sum
-    $ map (product . map (view val))
+    $ map (product . map (^. val))
     $ filter ((== 2) . length)
     $ map adjacentNums stars
   where
@@ -59,7 +59,7 @@ part2 (grid, nums)
       [ (x, y)
       | (y, row) <- zip [0..] grid
       , (x, char) <- zip [0..] row
-      , (grid !! y !! x) == '*'
+      , char == '*'
       ]
     adjacentNums (x, y) =
       [ num
