@@ -27,6 +27,7 @@ There are of course exceptions to this.
 On Arch Linux, I used the following packages:
 
 - [`ghc`](https://www.haskell.org/ghc/) & `ghc-libs`: standard Haskell compiler and interpreter & libraries
+- `haskell-linear`: vector library
 
 Optional:
 
