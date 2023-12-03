@@ -1,0 +1,14 @@
+default:
+  @just --list
+
+# Run script for DAY with input
+run DAY:
+    runhaskell day{{DAY}}/Main.hs < ../input/day{{DAY}}.txt
+
+# Run tests for DAY
+test DAY:
+    cd day{{DAY}} && runhaskell MainSpec.hs
+
+# Run benchmarks for DAY with input
+bench DAY:
+    cd day{{DAY}} && ghc -dynamic -O2 -main-is Bench Bench.hs && ./Bench < ../../input/day{{DAY}}.txt

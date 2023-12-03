@@ -24,15 +24,35 @@ There are of course exceptions to this.
 
 ### Haskell
 
-For Arch, I used the following packages:
+On Arch Linux, I used the following packages:
 
 - [`ghc`](https://www.haskell.org/ghc/) & `ghc-libs`: standard Haskell compiler and interpreter & libraries
+
+Optional:
+
 - [`haskell-language-server`](https://github.com/haskell/haskell-language-server): self-explanatory
 - [`haskell-hspec`](https://hspec.github.io/): testing framework
 - [`haskell-criterion`](http://www.serpentine.com/criterion/): benchmarking framework
 
-To run the solutions,
-navigate to a folder and use `runhaskell` to run files or tests.
+For convenience, a `justfile` is included in the `haskell` subfolder:
+
+```bash
+$ cd haskell
+$ just -l
+Available recipes:
+    bench DAY # Run benchmarks for DAY with input
+    default
+    run DAY   # Run script for DAY with input
+    test DAY  # Run tests for DAY
+$ just run 01
+…
+```
+
+---
+
+To run the solutions manually,
+navigate to the respective folder
+and use `runhaskell` to run files or tests.
 For the `Main.hs` file, pipe in the input file:
 
 ```bash
