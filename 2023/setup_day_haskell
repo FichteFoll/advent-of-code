@@ -54,7 +54,6 @@ exampleText
     [
     ]
 
-
 main :: IO ()
 main = do
   input <- parse <$> readFile "../../input/day$day.txt"
