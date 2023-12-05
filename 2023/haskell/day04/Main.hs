@@ -5,6 +5,7 @@ module Main (main, parse, part1, part2) where
 import Control.Applicative
 import Debug.Trace
 import Data.List (intersect)
+import Control.Lens
 
 type Input = [([Int], [Int])]
 
@@ -15,10 +16,9 @@ main = do
   putStrLn $ "Part 2: " ++ show (part2 input)
 
 parse :: String -> Input
-parse = map (mapPair (map read) . split . drop 2 . words) . lines
+parse = map (over both (map read) . split . drop 2 . words) . lines
   where
     split = fmap (drop 1) . break (== "|")
-    mapPair a = liftA2 (,) (a . fst) (a . snd)
 
 part1 :: Input -> Int
 part1 = sum . map (points . wins)
