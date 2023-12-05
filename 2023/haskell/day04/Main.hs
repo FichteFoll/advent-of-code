@@ -27,12 +27,12 @@ part1 = sum . map (points . wins)
     points n = 2 ^ (n - 1)
 
 part2 :: Input -> Int
-part2 = flip part2' [0]
+part2 = part2' [0]
 
-part2' :: Input -> [Int] -> Int
-part2' [] _ = 0
-part2' cards [] = part2' cards [0]
-part2' (card:cards) (extra:extras) = count + part2' cards extras'
+part2' :: [Int] -> Input -> Int
+part2' _ [] = 0
+part2' [] cards = part2' [0] cards
+part2' (extra:extras) (card:cards) = count + part2' extras' cards
   where
     count = 1 + extra
     extras' = zipWithPad (+) 0 extras (replicate (wins card) count)
