@@ -4,8 +4,9 @@ set +e
 
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
+lang=${1:?language parameter is unset}
 today=$(date +%d)
-day=${1-$today}
+day=${2-$today}
 input=input/day$day.txt
 
 if [ -e ".venv" ]; then
@@ -30,7 +31,7 @@ else
     echo "aocd not found; skipping input file creation"
 fi
 
-case "$2" in
+case "$lang" in
     rust)
         ./setup_day_rust;;
     haskell)
