@@ -65,9 +65,9 @@ main = do
       it "computes accepted result for example input" $
         part2 exampleInput `shouldBe` 46
 
-      -- takes too long to complete
+      -- takes too long to complete (about 14 min on my desktop)
       -- it "computes accepted result" $
-      --    part2 input `shouldBe` 0
+      --    part2 input `shouldBe` 41222968
 
     describe "resolve" $ do
       it "resolves seed 79 of the example input" $
