@@ -34,6 +34,12 @@ parse text = (seeds, maps)
 part1 :: Input -> Int
 part1 (seeds, maps) = minimum $ map (\n -> foldl resolve n maps) seeds
 
+-- TODO this bruteforce method takes a long time
+-- A better idea would be to fold all maps into one,
+-- order them by their starting point
+-- and then traverse through the seeds in batches,
+-- where we only care about the first and smallest seed of each batch.
+
 part2 :: Input -> Int
 part2 (seeds, maps) = minimum $ map (\n -> foldl resolve n maps) (unrange seeds)
 
