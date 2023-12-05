@@ -101,3 +101,18 @@ but I'm still mad about the last point.
 More straight forward compared to the previous day,
 but parsing text like that in Haskell is not too pleasant.
 Still, I think I found a decent solution – powered by list comprehensions.
+
+
+### Day 03
+
+Somehow, getting the condition right for the second part
+took me a couple of tries (and a forced break).
+After I was finished,
+I simplified it using more vector features and lenses,
+but that turned out to need 30 times as much time,
+so I discarded it.
+
+### Day 04
+
+Finally something simple that Haskell works well for.
+
