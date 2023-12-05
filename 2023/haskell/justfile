@@ -5,6 +5,10 @@ default:
 run DAY:
     runhaskell day{{DAY}}/Main.hs < ../input/day{{DAY}}.txt
 
+# Build script for DAY with optimizations and run with input
+build_opt_run DAY:
+    cd day{{DAY}} && ghc -dynamic -O2 Main.hs && ./Main < ../../input/day{{DAY}}.txt
+
 # Run tests for DAY
 test DAY:
     cd day{{DAY}} && runhaskell MainSpec.hs
