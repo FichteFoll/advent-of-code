@@ -36,7 +36,12 @@ part1 :: Input -> Int
 part1 (seeds, maps) = minimum $ map (\n -> foldl resolve n maps) seeds
 
 part2 :: Input -> Int
-part2 x = 0
+part2 (seeds, maps) = minimum $ map (\n -> foldl resolve n maps) (unrange seeds)
+
+unrange :: [Int] -> [Int]
+unrange [] = []
+unrange (a:b:xs) = take b [a..] ++ unrange xs
+unrange [_] = error "list must have an even number of items"
 
 resolve :: Int -> [Map] -> Int
 resolve n [] = n

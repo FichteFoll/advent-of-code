@@ -61,13 +61,16 @@ main = do
       it "computes accepted result" $
         part1 input `shouldBe` 457535844
 
-    -- describe "part2" $ do
-    --   it "computes accepted result for example input" $
-    --     part2 exampleInput `shouldBe` 0
+    describe "part2" $ do
+      it "computes accepted result for example input" $
+        part2 exampleInput `shouldBe` 46
 
-    --   it "computes accepted result" $
-    --      part2 input `shouldBe` 0
+      it "computes accepted result" $
+         part2 input `shouldBe` 0
 
     describe "resolve" $ do
-      it "resolves the first seed of the example input" $
+      it "resolves seed 79 of the example input" $
         scanl resolve 79 (snd exampleInput) `shouldBe` [79, 81, 81, 81, 74, 78, 78, 82]
+
+      it "resolves seed 82 of the example input" $
+        scanl resolve 82 (snd exampleInput) `shouldBe` [82, 84, 84, 84, 77, 45, 46, 46]
