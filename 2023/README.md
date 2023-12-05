@@ -28,6 +28,7 @@ On Arch Linux, I used the following packages:
 
 - [`ghc`](https://www.haskell.org/ghc/) & `ghc-libs`: standard Haskell compiler and interpreter & libraries
 - `haskell-linear`: vector library
+- `haskell-split`: utilities for splitting lists (like `String`s)
 
 Optional:
 
