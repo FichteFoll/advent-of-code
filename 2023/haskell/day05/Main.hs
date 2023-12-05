@@ -1,21 +1,20 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Main (main, parse, part1, part2, resolve) where
 
 import Control.Applicative
 import Control.Lens
 import Data.Char
+import Data.Ix
 import Debug.Trace
 import Data.List.Split
 -- import qualified Data.Text as T
 
-data MapFrag = MapFrag { _dest :: Int, _source :: Int, _len :: Int }
-  deriving Show
-$(makeLenses ''MapFrag)
+-- maps a source range to an offset
+type MapFrag = ((Int, Int), Int)
 type Input = ([Int], [[MapFrag]])
 
-toMapFrag [a, b, c] = MapFrag a b c
+toMapFrag [dest, source, len] = ((source, source + len - 1), dest - source)
 toMapFrag x = error $ "bad list:" ++ show x
 
 main :: IO ()
@@ -45,8 +44,7 @@ unrange [_] = error "list must have an even number of items"
 
 resolve :: Int -> [MapFrag] -> Int
 resolve n [] = n
-resolve n (m:_) | 0 <= offset && offset < m ^. len = m ^. dest + offset
-  where offset = n - m ^. source
+resolve n ((src, offset):_) | inRange src n = n + offset
 resolve n (_:ms) = resolve n ms
 
 -- debug s x = trace (s ++ ": " ++ show x) x
