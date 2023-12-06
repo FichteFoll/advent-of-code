@@ -4,6 +4,7 @@ import Control.Applicative
 import Control.Arrow
 import Control.Lens
 import Data.Char
+import Data.List (singleton)
 import Data.List.Split (splitOn)
 import Debug.Trace
 
@@ -24,4 +25,4 @@ part1 = product . map numWins
   where numWins (time, dist) = length $ filter (> dist) $ uncurry (zipWith (*)) $ liftA2 (,) id reverse [1..pred time]
 
 part2 :: Input -> Int
-part2 x = 0
+part2 = part1 . singleton . over both (read . concatMap show) . unzip
