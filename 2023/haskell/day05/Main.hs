@@ -51,11 +51,11 @@ resolveRange rs ms = concatMap (`resolveRange'` ms) rs
 
 resolveRange' :: (Int, Int) -> [MapFrag] -> [(Int, Int)]
 resolveRange' r [] = [r]
-resolveRange' r@(r1, r2) m@((mr@(mr1, mr2), offset):ms)
+resolveRange' r@(r1, r2) m@(((mr1, mr2), offset):ms)
   | mr1 <=  r1 && r1 <= mr2 && r2 <= mr2 = [over both (+ offset) r]
   | mr1 <=  r1 && r1 <= mr2              = (r1 + offset, mr2 + offset) : resolveRange' (succ mr2, r2) ms
   |  r1 <  mr1 && r2 >= mr1              = (r1, pred (min r2 mr1)) : resolveRange' (minmax r2 mr1) m
   | mr2 <   r1                           = resolveRange' r ms
   | r2  <  mr1                           = [r]
-  | otherwise = error $ "case not covered: " ++ show r ++ " " ++ show mr
+  | otherwise = error "case not covered"
   where minmax a b = (min a b, max a b)
