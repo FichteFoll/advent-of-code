@@ -65,9 +65,8 @@ main = do
       it "computes accepted result for example input" $
         part2 exampleInput `shouldBe` 46
 
-      -- takes too long to complete (about 14 min on my desktop)
-      -- it "computes accepted result" $
-      --    part2 input `shouldBe` 41222968
+      it "computes accepted result" $
+         part2 input `shouldBe` 41222968
 
     describe "resolve" $ do
       it "resolves seed 79 of the example input" $
@@ -75,3 +74,16 @@ main = do
 
       it "resolves seed 82 of the example input" $
         scanl resolve 82 (snd exampleInput) `shouldBe` [82, 84, 84, 84, 77, 45, 46, 46]
+
+    describe "resolveRange" $ do
+      it "maps '79 1' to a single range" $
+        resolveRange [(79, 79)] (head $ snd exampleInput) `shouldBe` [(81, 81)]
+
+      it "maps '97 4' to three ranges (map 2, map 1, id)" $
+        resolveRange [(97, 100)] (head $ snd exampleInput) `shouldBe` [(99, 99), (50, 51), (100, 100)]
+
+      it "maps '49 2' to two ranges (id, map 2)" $
+        resolveRange [(49, 50)] (head $ snd exampleInput) `shouldBe` [(49, 49), (52, 52)]
+
+      it "maps '0 100' to four ranges (id, map 2, map 1, id)" $
+        resolveRange [(0, 100)] (head $ snd exampleInput) `shouldBe` [(0, 49), (52, 99), (50, 51), (100, 100)]
