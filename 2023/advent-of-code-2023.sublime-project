@@ -14,6 +14,9 @@
         //     "path": "../2022"
         // },
     ],
+    "settings": {
+        "rulers": [120],
+    },
     "build_systems": [
         {
             "name": "Rust: Test $day",
