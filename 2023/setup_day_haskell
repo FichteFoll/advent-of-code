@@ -16,8 +16,6 @@ else
     <<EOF > Main.hs
 module Main (main, parse, part1, part2) where
 
-import Control.Applicative
-import Data.Char
 import Debug.Trace
 
 type Input = [String]
