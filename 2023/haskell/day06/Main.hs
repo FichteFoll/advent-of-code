@@ -1,10 +1,8 @@
 module Main (main, parse, part1, part2) where
 
-import Control.Applicative
-import Control.Arrow
+import Control.Applicative (liftA2)
 import Control.Lens
 import Data.List (singleton)
-import Debug.Trace
 
 -- (time, distance)
 type Input = [(Int, Int)]

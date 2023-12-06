@@ -1,8 +1,7 @@
 module Main (main, parse, part1, part2, extractDigits2, calcLine) where
 
-import Control.Applicative
-import Data.Char
-import Debug.Trace
+import Control.Applicative (liftA2)
+import Data.Char (digitToInt, isDigit)
 
 type Input = [String]
 

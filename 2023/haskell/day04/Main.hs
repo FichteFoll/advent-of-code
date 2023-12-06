@@ -2,8 +2,6 @@
 
 module Main (main, parse, part1, part2) where
 
-import Control.Applicative
-import Debug.Trace
 import Data.List (intersect)
 import Control.Lens
 

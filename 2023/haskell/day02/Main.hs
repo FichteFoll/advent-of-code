@@ -2,12 +2,10 @@
 
 module Main (main, parse, part1, part2) where
 
-import Control.Applicative
-import Data.Char
-import Debug.Trace
-import qualified Data.Text as T
+import Control.Applicative (liftA2)
+import Data.List.Split (splitOn)
 
-type Cube = (T.Text, Int)
+type Cube = (String, Int)
 type Input = [[[Cube]]]
 
 main :: IO ()
@@ -18,16 +16,16 @@ main = do
 
 -- Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
 parse :: String -> Input
-parse = map (sets . content) . T.lines . T.pack
+parse = map (sets . content) . lines
   where
     -- we assume the games to be in order
-    content line = T.splitOn ": " line !! 1
-    sets = map cubes . T.splitOn "; "
-    cubes = map parseCube . T.splitOn ", "
+    content line = splitOn ": " line !! 1
+    sets = map cubes . splitOn "; "
+    cubes = map parseCube . splitOn ", "
     parseCube x =
-      case T.words x of
-        [n, color] -> (color, read $ T.unpack n)
-        _ -> error $ "unable to parse cube text: " ++ T.unpack x
+      case words x of
+        [n, color] -> (color, read n)
+        _ -> error $ "unable to parse cube text: " ++ x
 
 part1 :: Input -> Int
 part1 = sum . map fst . filter isAllowed . zip [1..]

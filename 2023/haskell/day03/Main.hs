@@ -2,11 +2,9 @@
 
 module Main (main, parse, part1, part2) where
 
-import Control.Applicative
-import Control.Lens hiding (element)
-import Control.Lens.TH
-import Data.Char
-import Debug.Trace
+import Control.Applicative (liftA2)
+import Control.Lens
+import Data.Char (isDigit)
 import Linear.V2
 
 type Input = ([String], [Number])
