@@ -22,7 +22,7 @@ parse = uncurry zip . over both (map read . drop 1 . words) . fmap (drop 1) . br
 
 part1 :: Input -> Int
 part1 = product . map numWins
-  where numWins (time, dist) = length $ filter (> dist) $ uncurry (zipWith (*)) $ liftA2 (,) id reverse [1..pred time]
+  where numWins (time, dist) = length $ filter (> dist) $ zipWith (*) [0..time] [time, pred time..]
 
 part2 :: Input -> Int
 part2 = part1 . singleton . over both (read . concatMap show) . unzip

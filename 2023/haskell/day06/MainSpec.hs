@@ -33,6 +33,6 @@ main = do
       it "computes accepted result for example input" $
         part2 exampleInput `shouldBe` 71503
 
-      -- requires optimizations to not need a lot of RAM
-      -- it "computes accepted result" $
-      --    part2 input `shouldBe` 35961505
+      -- needs ~ 5s without optimizations, less than a second with
+      it "computes accepted result" $
+         part2 input `shouldBe` 35961505
