@@ -9,7 +9,8 @@ import Data.List (sort)
 import Data.List.Split (splitWhen)
 
 -- maps a source range to an offset
-type MapFrag = ((Int, Int), Int)
+type Range = (Int, Int)
+type MapFrag = (Range, Int)
 type Input = ([Int], [[MapFrag]])
 
 toMapFrag [dest, source, len] = ((source, source + len - 1), dest - source)
@@ -41,15 +42,15 @@ resolve n [] = n
 resolve n ((src, offset):_) | inRange src n = n + offset
 resolve n (_:ms) = resolve n ms
 
-rangify :: [Int] -> [(Int, Int)]
+rangify :: [Int] -> [Range]
 rangify [] = []
 rangify (a:b:xs) = (a, a + b - 1) : rangify xs
 rangify [_] = error "list must have an even number of items"
 
-resolveRange :: [(Int, Int)] -> [MapFrag] -> [(Int, Int)]
+resolveRange :: [Range] -> [MapFrag] -> [Range]
 resolveRange rs ms = concatMap (`resolveRange'` ms) rs
 
-resolveRange' :: (Int, Int) -> [MapFrag] -> [(Int, Int)]
+resolveRange' :: Range -> [MapFrag] -> [Range]
 resolveRange' r [] = [r]
 resolveRange' r@(r1, r2) m@(((mr1, mr2), offset):ms)
   | mr1 <=  r1 && r1 <= mr2 && r2 <= mr2 = [over both (+ offset) r]
