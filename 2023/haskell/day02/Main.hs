@@ -1,8 +1,7 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -W #-}
 
 module Main (main, parse, part1, part2) where
 
-import Control.Applicative (liftA2)
 import Data.List.Split (splitOn)
 
 type Cube = (String, Int)

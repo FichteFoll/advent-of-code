@@ -1,4 +1,4 @@
--- {-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -W #-}
 
 module Main (main, parse, part1, part2) where
 

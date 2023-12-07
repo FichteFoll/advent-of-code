@@ -14,6 +14,8 @@ if [ -e Main.hs ]; then
     echo "Main.hs already exists"
 else
     <<EOF > Main.hs
+{-# OPTIONS_GHC -W #-}
+
 module Main (main, parse, part1, part2) where
 
 type Input = [String]

@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -W #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Main (main, parse, part1, part2) where

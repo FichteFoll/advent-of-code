@@ -1,9 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -W #-}
 
 module Main (main, parse, part1, part2, resolve, resolveRange) where
 
 import Control.Lens
-import Data.Function (on)
 import Data.Ix (inRange)
 import Data.List (sort)
 import Data.List.Split (splitWhen)
