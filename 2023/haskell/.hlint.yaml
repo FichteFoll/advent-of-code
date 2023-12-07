@@ -1,0 +1,12 @@
+# https://github.com/ndmitchell/hlint
+# https://github.com/ndmitchell/hlint/blob/master/data/default.yaml
+
+- modules:
+  - {name: Debug.Trace, within: []}
+  - {name: Data.Text, as: T}
+
+
+# Turn on hints that are off by default
+- warn: {name: Use explicit module export list}
+- group: {name: use-lens, enabled: true}
+# - group: {name: generalise-for-conciseness, enabled: true}
