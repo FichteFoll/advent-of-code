@@ -4,6 +4,7 @@
         {
             "path": ".",
             "folder_exclude_patterns": ["target"],
+            "file_exclude_patterns": ["Main", "Bench", "*.hi"],
         },
         // use only current year's folder for easier LSP integration,
         // find in files and goto anything
