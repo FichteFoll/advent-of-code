@@ -29,6 +29,7 @@ solve j = sum . zipWith (*) [1..] . map snd . sortBy (cardKey j)
 cardKey jokers = compare `on` (tier &&& cardOrd) . fst
   where
     tier hand
+      | null hand = [0]
       | jokers && 'J' `elem` hand = mapHead succ . tier $ dropOnceOn (== 'J') hand
       | otherwise = sortOn Down . map length . group . sort $ hand
     cardOrd = map (`elemIndex` cardOrder)

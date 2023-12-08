@@ -38,8 +38,7 @@ main = do
         part2 exampleInput `shouldBe` 5905
 
       it "computes accepted result" $
-         part2 input `shouldBe` 0
-         -- < 248859687
+         part2 input `shouldBe` 248652697
 
     describe "cardKey" $ do
       let testCardKey j cardA cmp cardB = it (concat ["compares ", show cardA, " ", show cmp, " ", show cardB, ", jokers: ", show j]) $ do
@@ -60,6 +59,7 @@ main = do
       testCardKey True "2345J" LT "2344J"
       testCardKey True "2223J" GT "JJJ32"
       testCardKey True "222JJ" GT "JJ222"
+      testCardKey True "JJJJJ" LT "JJJJ2"
 
       it "sorts example input via sortBy (no jokers)" $
         (map fst . sortBy (cardKey False) $ exampleInput) `shouldBe`
