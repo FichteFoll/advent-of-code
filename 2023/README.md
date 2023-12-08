@@ -113,7 +113,46 @@ I simplified it using more vector features and lenses,
 but that turned out to need 30 times as much time,
 so I discarded it.
 
+
 ### Day 04
 
 Finally something simple that Haskell works well for.
 
+
+### Day 05
+
+The most complex input so far,
+but parsing is manageable if you omit the unimportant details.
+The order of the numbers in the input is very unintuitive,
+so I quickly changed that during parsing.
+Afterwards it's rather straigh-forward for part 1.
+
+Part 2 was brute-forceable for my first implementation
+and took about 15 minutes
+(with optimizations! otherwise it would hog too many resources).
+However, there are some ways to optimize this
+and I did that on the following day when I had more time.
+Hint: just handle multiple numbers at once.
+
+
+### Day 06
+
+The task here was pretty simple
+and implementing it was, too.
+Even more surprising that the bruteforce method
+solved part 2 in less than a second.
+
+If you want it to be even faster,
+you can also solve the quadratic formula instead,
+which I did later as well,
+since I was curious about implementing it in Haskell.
+Turns out that converting numeric types
+is still not my forte.
+
+
+### Day 07
+
+Sounded a bit rough at first,
+bit was actually pretty fun to implement.
+Two edge cases bit me hard in part 2,
+but I'm pretty satisfied with the result.
