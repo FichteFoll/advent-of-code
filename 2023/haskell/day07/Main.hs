@@ -3,12 +3,11 @@
 module Main (main, parse, part1, part2, cardKey) where
 
 import Data.Function (on)
-import Data.List (sort, sortBy, group, elemIndex)
-import Control.Arrow ((&&&))
+import Data.List (sort, sortBy, group, elemIndex, sortOn)
+import Control.Arrow ((&&&), first)
+import Data.Ord (Down(..))
 
-type Card = Char
-type Hand = [Card]
-type Input = [(Hand, Int)]
+type Input = [(String, Int)]
 
 main :: IO ()
 main = do
@@ -20,13 +19,20 @@ parse :: String -> Input
 parse = map (fmap (read . tail) . break (== ' ')) . lines
 
 part1 :: Input -> Int
-part1 = sum . zipWith (*) [1..] . map snd . sortBy cardKey
+part1 = solve False
 
 part2 :: Input -> Int
-part2 _ = 0
+part2 = solve True
 
-cardKey = compare `on` (tier &&& cardOrd) . fst
+solve j = sum . zipWith (*) [1..] . map snd . sortBy (cardKey j)
+
+cardKey jokers = compare `on` (tier &&& cardOrd) . fst
   where
-    tier = sortBy (flip compare) . map length . group . sort
+    tier hand
+      | jokers && 'J' `elem` hand = mapHead succ . tier $ dropOnceOn (== 'J') hand
+      | otherwise = sortOn Down . map length . group . sort $ hand
     cardOrd = map (`elemIndex` cardOrder)
-    cardOrder = "23456789TJQKA"
+    cardOrder | jokers    = "23456789TQKA"
+              | otherwise = "23456789TJQKA"
+    dropOnceOn f xs = takeWhile (not . f) xs ++ tail (dropWhile (not . f) xs)
+    mapHead f = uncurry (<>) . first (map f) . splitAt 1
