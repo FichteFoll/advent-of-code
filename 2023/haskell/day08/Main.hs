@@ -23,13 +23,23 @@ part1 (lrs, net) = countSteps net "AAA" (cycle lrs)
 
 countSteps :: Network -> String -> [Char] -> Int
 countSteps _ "ZZZ" _ = 0
-countSteps net pos (lr:lrs) = 1 + countSteps net (pos' net) lrs
-  where
-    pos' ((key, branch):net')
-      | key == pos = getter lr branch
-      | otherwise = pos' net'
-    getter 'L' = fst
-    getter 'R' = snd
+countSteps net pos (lr:lrs) = 1 + countSteps net (nextPos net lr pos) lrs
 
 part2 :: Input -> Int
-part2 _ = 0
+part2 (lrs, net) = countSteps2 net start (cycle lrs)
+  where
+    start = [pos | (pos, _) <- net, last pos == 'A']
+
+countSteps2 :: Network -> [String] -> [Char] -> Int
+countSteps2 _ state _ | all ((== 'Z') . last) state = 0
+countSteps2 net state (lr:lrs) = 1 + countSteps2 net state' lrs
+  where
+    state' = map (nextPos net lr) state
+
+nextPos :: Network -> Char -> String -> String
+nextPos ((key, branch):net') lr pos
+  | key == pos = getter lr branch
+  | otherwise = nextPos net' lr pos
+  where
+    getter 'L' = fst
+    getter 'R' = snd

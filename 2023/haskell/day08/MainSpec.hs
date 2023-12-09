@@ -17,10 +17,25 @@ exampleText
     , "ZZZ = (ZZZ, ZZZ)"
     ]
 
+exampleText2
+  = unlines
+    [ "LR"
+    , ""
+    , "11A = (11B, XXX)"
+    , "11B = (XXX, 11Z)"
+    , "11Z = (11B, XXX)"
+    , "22A = (22B, XXX)"
+    , "22B = (22C, 22C)"
+    , "22C = (22Z, 22Z)"
+    , "22Z = (22B, 22B)"
+    , "XXX = (XXX, XXX)"
+    ]
+
 main :: IO ()
 main = do
   input <- parse <$> readFile "../../input/day08.txt"
   let exampleInput = parse exampleText
+  let exampleInput2 = parse exampleText2
 
   hspec $ do
     describe "parse" $ do
@@ -37,9 +52,9 @@ main = do
       it "computes accepted result" $
         part1 input `shouldBe` 19631
 
-    -- describe "part2" $ do
-    --   it "computes accepted result for example input" $
-    --     part2 exampleInput `shouldBe` 0
+    describe "part2" $ do
+      it "computes accepted result for example input" $
+        part2 exampleInput2 `shouldBe` 6
 
-    --   it "computes accepted result" $
-    --      part2 input `shouldBe` 0
+      -- it "computes accepted result" $
+      --    part2 input `shouldBe` 0
