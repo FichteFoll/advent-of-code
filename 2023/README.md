@@ -156,3 +156,17 @@ Sounded a bit rough at first,
 bit was actually pretty fun to implement.
 Two edge cases bit me hard in part 2,
 but I'm pretty satisfied with the result.
+
+
+### Day 08
+
+Part one was fairly straight forward.
+Part two had me questioning at various times
+whether my mental model for detecting the loops was correct,
+after I had already found out that brute-forcing is not an option,
+until I just implemented it to see if it works.
+I eventually made some assumptions on the input
+(guarded by an `assert`)
+to simplify the implementation,
+which makes the example not pass
+but it matters not.
