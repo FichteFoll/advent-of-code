@@ -1,6 +1,7 @@
 {-# OPTIONS_GHC -W #-}
 
 module Main (main, parse, part1, part2) where
+import Data.List.Split (divvy)
 
 type Input = [[Int]]
 
@@ -29,7 +30,4 @@ prevNum ns
   | all (== 0) ns = 0
   | otherwise = head ns - prevNum (derive ns)
 
-derive :: [Int] -> [Int]
-derive [a, b] = [b - a]
-derive (a:ns@(b:_)) = b - a : derive ns
-derive ns = error $ "list too short " ++ show ns
+derive = map (\[a, b] -> b - a) . divvy 2 1
