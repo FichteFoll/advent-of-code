@@ -17,12 +17,17 @@ part1 :: Input -> Int
 part1 = sum . map nextNum
 
 part2 :: Input -> Int
-part2 _ = 0
+part2 = sum . map prevNum
 
 nextNum :: [Int] -> Int
 nextNum ns
   | all (== 0) ns = 0
   | otherwise = last ns + nextNum (derive ns)
+
+prevNum :: [Int] -> Int
+prevNum ns
+  | all (== 0) ns = 0
+  | otherwise = head ns - prevNum (derive ns)
 
 derive :: [Int] -> [Int]
 derive [a, b] = [b - a]
