@@ -33,9 +33,9 @@ fi
 
 case "$lang" in
     rust)
-        ./setup_day_rust;;
+        ./setup_day_rust $day;;
     haskell)
-        ./setup_day_haskell;;
+        ./setup_day_haskell $day;;
     *)
         exit;;
 esac
