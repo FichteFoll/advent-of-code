@@ -18,16 +18,11 @@ part1 :: Input -> Int
 part1 = sum . map nextNum
 
 part2 :: Input -> Int
-part2 = sum . map prevNum
+part2 = sum . map (nextNum . reverse)
 
 nextNum :: [Int] -> Int
 nextNum ns
   | all (== 0) ns = 0
   | otherwise = last ns + nextNum (derive ns)
-
-prevNum :: [Int] -> Int
-prevNum ns
-  | all (== 0) ns = 0
-  | otherwise = head ns - prevNum (derive ns)
 
 derive = map (\[a, b] -> b - a) . divvy 2 1
