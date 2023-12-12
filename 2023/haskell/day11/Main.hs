@@ -19,7 +19,7 @@ parse :: String -> Input
 parse = lines
 
 part1 :: Input -> Int
-part1 = solve 1
+part1 = solve 2
 
 part2 :: Input -> Int
 part2 = solve 1000000
@@ -35,8 +35,6 @@ galaxies gapSize rows
     , char == '#'
     ]
   where
-    offsets = scanl1 (+) . map ((* gapSize) . fromEnum . isBlank)
-    isBlank = all (== '.')
+    offsets = scanl1 (+) . map ((* pred gapSize) . fromEnum . all (== '.'))
 
-manhattan a b = V2 1 1 `dot` abs (a - b)
--- manhattan' = dot (V2 1 1) . abs . (-)
+manhattan a b = dot (V2 1 1) . abs $ a - b

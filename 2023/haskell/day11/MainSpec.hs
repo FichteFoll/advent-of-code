@@ -37,10 +37,9 @@ main = do
       it "computes accepted result" $
         part1 input `shouldBe` 9639160
 
-    -- describe "part2" $ do
-      -- it "computes accepted result" $
-      --   part2 input `shouldBe` 0
-        -- < 752936886232
+    describe "part2" $ do
+      it "computes accepted result" $
+        part2 input `shouldBe` 752936133304
 
     describe "solve" $ do
       context "with the example input" $ do

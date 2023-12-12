@@ -185,4 +185,8 @@ Skipped for now due to lack of time.
 
 ### Day 11
 
-TODO
+Takes a little bit of mental gymnastics
+but otherwise pretty straight forward
+(especially when you have a `transpose` function).
+I liked adapting my solution for part 2,
+even though I had a nasty off-by-one bug at first.
