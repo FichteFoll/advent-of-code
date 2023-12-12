@@ -1,12 +1,13 @@
 {-# OPTIONS_GHC -W #-}
 
-module Main (main, parse, part1, part2) where
+module Main (main, parse, part1, part2, solve) where
 
 import Linear.V2
 import Data.List (transpose)
 import Linear (dot)
 
-type Input = [V2 Int]
+type Input = [String]
+type Input' = [V2 Int]
 
 main :: IO ()
 main = do
@@ -15,21 +16,27 @@ main = do
   putStrLn $ "Part 2: " ++ show (part2 input)
 
 parse :: String -> Input
-parse text
+parse = lines
+
+part1 :: Input -> Int
+part1 = solve 1
+
+part2 :: Input -> Int
+part2 = solve 1000000
+
+solve gapSize rows = sum [manhattan g g' | g <- gs, g' <- gs, g < g']
+  where gs = galaxies gapSize rows
+
+galaxies :: Int -> Input -> Input'
+galaxies gapSize rows
   = [ V2 x y
     | (row, x) <- zip rows $ zipWith (+) [0..] $ offsets rows
     , (char, y) <- zip row $ zipWith (+) [0..] $ offsets $ transpose rows
     , char == '#'
     ]
   where
-    rows = lines text
-    offsets = scanl1 (+) . map (fromEnum . isBlank)
+    offsets = scanl1 (+) . map ((* gapSize) . fromEnum . isBlank)
     isBlank = all (== '.')
 
-part1 :: Input -> Int
-part1 gs = sum [manhattan g g' | g <- gs, g' <- gs, g < g']
-
-part2 :: Input -> Int
-part2 _ = 0
-
 manhattan a b = V2 1 1 `dot` abs (a - b)
+-- manhattan' = dot (V2 1 1) . abs . (-)

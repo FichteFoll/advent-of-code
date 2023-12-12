@@ -170,3 +170,19 @@ I eventually made some assumptions on the input
 to simplify the implementation,
 which makes the example not pass
 but it matters not.
+
+
+### Day 09
+
+Nothing noteworthy.
+Simple day for Haskell.
+
+
+### Day 10
+
+Skipped for now due to lack of time.
+
+
+### Day 11
+
+TODO

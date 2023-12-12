@@ -25,10 +25,10 @@ main = do
   hspec $ do
     describe "parse" $ do
       it "parses example input (length)" $
-        length exampleInput `shouldBe` 9
+        length exampleInput `shouldBe` 10
 
       it "parses real input (length)" $
-        length input `shouldBe` 433
+        length input `shouldBe` 140
 
     describe "part1" $ do
       it "computes accepted result for example input" $
@@ -38,8 +38,14 @@ main = do
         part1 input `shouldBe` 9639160
 
     -- describe "part2" $ do
-    --   it "computes accepted result for example input" $
-    --     part2 exampleInput `shouldBe` 0
+      -- it "computes accepted result" $
+      --   part2 input `shouldBe` 0
+        -- < 752936886232
 
-    --   it "computes accepted result" $
-    --      part2 input `shouldBe` 0
+    describe "solve" $ do
+      context "with the example input" $ do
+        it "computes accepted result for gapSize = 10" $
+          solve 10 exampleInput `shouldBe` 1030
+
+        it "computes accepted result for gapSize = 100" $
+          solve 100 exampleInput `shouldBe` 8410

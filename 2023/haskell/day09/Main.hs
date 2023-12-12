@@ -1,7 +1,6 @@
 {-# OPTIONS_GHC -W #-}
 
 module Main (main, parse, part1, part2) where
-import Data.List.Split (divvy)
 
 type Input = [[Int]]
 
@@ -23,6 +22,4 @@ part2 = sum . map (nextNum . reverse)
 nextNum :: [Int] -> Int
 nextNum ns
   | all (== 0) ns = 0
-  | otherwise = last ns + nextNum (derive ns)
-
-derive = map (\[a, b] -> b - a) . divvy 2 1
+  | otherwise = last ns + nextNum (zipWith (-) =<< tail $ ns)
