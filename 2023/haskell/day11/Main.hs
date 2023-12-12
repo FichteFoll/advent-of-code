@@ -2,9 +2,8 @@
 
 module Main (main, parse, part1, part2, solve) where
 
-import Linear.V2
 import Data.List (transpose)
-import Linear (dot)
+import Linear.V2
 
 type Input = [String]
 type Input' = [V2 Int]
@@ -37,4 +36,4 @@ galaxies gapSize rows
   where
     offsets = scanl1 (+) . map ((* pred gapSize) . fromEnum . all (== '.'))
 
-manhattan a b = dot (V2 1 1) . abs $ a - b
+manhattan = (sum .) . (abs .) . (-)
