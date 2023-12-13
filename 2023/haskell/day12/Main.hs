@@ -3,6 +3,8 @@
 module Main (main, parse, part1, part2,countCombinations) where
 
 import Data.List.Split (splitWhen)
+import Control.Arrow ((***))
+import Data.List (intercalate)
 
 type Input = [(String, [Int])]
 
@@ -20,7 +22,8 @@ part1 :: Input -> Int
 part1 = sum . map ((uncurry .) countCombinations Nothing)
 
 part2 :: Input -> Int
-part2 _ = 0
+part2 = part1 . map (unfold 5)
+  where unfold n = intercalate "?" . replicate n *** concat . replicate n
 
 countCombinations :: Maybe Int -> String -> [Int] -> Int
 -- carry, line, counts
