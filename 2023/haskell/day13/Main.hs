@@ -2,6 +2,7 @@
 
 module Main (main, parse, part1, part2) where
 
+import Control.Lens (element, (&), (%~))
 import Data.List (transpose)
 import Data.List.Split (splitWhen)
 
@@ -17,16 +18,18 @@ parse :: String -> Input
 parse = splitWhen null . lines
 
 part1 :: Input -> Int
-part1 = sum . map gridScore
+part1 = sum . map (head . gridScore)
 
 part2 :: Input -> Int
-part2 _ = 0
+part2 = sum . map gridScore'
 
-gridScore :: [String] -> Int
-gridScore grid = case (findMirrorH grid, findMirrorH $ transpose grid) of
-  ([h], []) -> 100 * h
-  ([], [v]) -> v
-  x -> error $ "got two or no matches " ++ show x
+gridScore :: [String] -> [Int]
+gridScore grid = map (*100) (findMirrorH grid) ++ findMirrorH (transpose grid)
+
+gridScore' :: [String] -> Int
+-- there *could* be multiple results here, but we only take the first
+gridScore' grid = head . filter (/= original) . concatMap gridScore . p2ify $ grid
+  where original = head $ gridScore grid
 
 findMirrorH :: [String] -> [Int]
 findMirrorH grid
@@ -36,3 +39,14 @@ findMirrorH grid
     , let down = drop i grid
     , and $ zipWith (==) up down
     ]
+
+p2ify :: [String] -> [[String]]
+p2ify grid
+  = [grid & element y . element x %~ flipChar
+    | y <- [0..pred $ length grid]
+    , x <- [0..pred $ length $ head grid]
+    ]
+  where
+    flipChar '#' = '.'
+    flipChar '.' = '#'
+    flipChar _ = undefined

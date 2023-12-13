@@ -191,6 +191,7 @@ but otherwise pretty straight forward
 I liked adapting my solution for part 2,
 even though I had a nasty off-by-one bug at first.
 
+
 ### Day 12
 
 I took the pattern matching approach here,
@@ -204,3 +205,11 @@ Because I've had a problem with optimizing tasks like this in the past
 which eventually lead me to burn out of it,
 I'm skipping finalizing part 2 until some time later,
 hopefully.
+
+
+### Day 13
+
+Powered by list comprehensions and arrows,
+this day was actually pretty fun.
+Fortunately, the "brute-force" method here performs just fine.
+Note like I have any idea currently how to do it differently.
