@@ -15,4 +15,10 @@ test DAY:
 
 # Run benchmarks for DAY with input
 bench DAY:
-    cd day{{DAY}} && ghc -dynamic -O2 -main-is Bench Bench.hs && ./Bench < ../../input/day{{DAY}}.txt
+    #!/usr/bin/env bash
+    set -euxo pipefail
+    cd day{{DAY}}
+    ln -s ../Bench.hs Bench.hs
+    trap 'rm Bench.hs' EXIT
+    ghc -dynamic -O2 -main-is Bench Bench.hs
+    ./Bench < ../../input/day{{DAY}}.txt
