@@ -190,3 +190,17 @@ but otherwise pretty straight forward
 (especially when you have a `transpose` function).
 I liked adapting my solution for part 2,
 even though I had a nasty off-by-one bug at first.
+
+### Day 12
+
+I took the pattern matching approach here,
+which worked pretty well for part 1 I'd say.
+Unfortunately, it obviously doesn't perform well on part 2,
+so I derived another solution using memoization in a Map,
+but that still didn't really bring the speed improvements I expected
+(and that I need for this to complete in less than a couple hours).
+Because I've had a problem with optimizing tasks like this in the past
+(i.e. the last AoC I attempted in Haskell only),
+which eventually lead me to burn out of it,
+I'm skipping finalizing part 2 until some time later,
+hopefully.
