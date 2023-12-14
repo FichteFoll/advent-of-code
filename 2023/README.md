@@ -213,3 +213,23 @@ Powered by list comprehensions and arrows,
 this day was actually pretty fun.
 Fortunately, the "brute-force" method here performs just fine.
 Note like I have any idea currently how to do it differently.
+
+
+## Day 14
+
+This was fun at first until part 2 came around and I …
+
+- implemented a cool constant-space repetition detection,
+  only to realized that the cycle repetitions are not adjacent;
+- got confused by the fixity of `` `mod` `` for a bit;
+- assumed the rotation went clockwise instead of counter-clockwise
+  because I can't read (or remember easy stuff);
+- had to implement grid-printing code to find the above;
+- explicitly read the docs to check
+  whether `iterate` returns the initial value as the first item,
+  only to then understand the opposite by missing 2 characters;
+- had fortunately just one off-by-one error that wasn't too hard to debug;
+- and probably did more things.
+
+All in all, this is definitely within the AoC spirit,
+but I struggled more with it than I should have.
