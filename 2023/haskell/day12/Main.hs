@@ -55,7 +55,7 @@ solveLine (line, ns) = traceShowId $ countCombinations' Map.empty [k] ! k
   where k = (Nothing, line, ns)
 
 type Key = (Maybe Int, String, [Int])
-type Cache = Map (Maybe Int, String, [Int]) Int
+type Cache = Map Key Int
 
 countCombinations' :: Cache -> [Key] -> Cache
 countCombinations' cache [] = cache
