@@ -35,4 +35,4 @@ main = do
         part2 exampleInput `shouldBe` 2
 
       it "computes accepted result" $
-         part2 input `shouldBe` 903
+        part2 input `shouldBe` 903

@@ -47,4 +47,4 @@ main = do
         part2 exampleInput `shouldBe` 400
 
       it "computes accepted result" $
-         part2 input `shouldBe` 27587
+        part2 input `shouldBe` 27587

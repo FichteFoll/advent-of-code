@@ -38,7 +38,7 @@ main = do
         part2 exampleInput `shouldBe` 5905
 
       it "computes accepted result" $
-         part2 input `shouldBe` 248652697
+        part2 input `shouldBe` 248652697
 
     describe "cardKey" $ do
       let testCardKey j cardA cmp cardB = it (concat ["compares ", show cardA, " ", show cmp, " ", show cardB, ", jokers: ", show j]) $ do

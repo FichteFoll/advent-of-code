@@ -67,7 +67,7 @@ main = do
         part2 exampleInput `shouldBe` 46
 
       it "computes accepted result" $
-         part2 input `shouldBe` 41222968
+        part2 input `shouldBe` 41222968
 
     describe "resolve, on the example input," $ do
       it "resolves seed 79 of the example input" $

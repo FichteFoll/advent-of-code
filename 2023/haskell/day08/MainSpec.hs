@@ -60,4 +60,4 @@ main = do
       --   part2 exampleInput2 `shouldBe` 6
 
       it "computes accepted result" $
-         part2 input `shouldBe` 21003205388413
+        part2 input `shouldBe` 21003205388413

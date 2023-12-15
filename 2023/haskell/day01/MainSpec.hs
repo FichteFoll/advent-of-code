@@ -36,7 +36,7 @@ main = do
       it "computes accepted result for example input" $
         part2 exampleInput2 `shouldBe` 281
       it "computes accepted result" $
-         part2 input `shouldBe` 55218
+        part2 input `shouldBe` 55218
 
     describe "extractDigits2" $ do
       it "extracts 'two'" $

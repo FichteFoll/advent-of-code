@@ -77,7 +77,7 @@ main = do
     --     part2 exampleInput \`shouldBe\` 0
 
     --   it "computes accepted result" $
-    --      part2 input \`shouldBe\` 0
+    --     part2 input \`shouldBe\` 0
 EOF
     echo "MainSpec.hs created"
 fi
