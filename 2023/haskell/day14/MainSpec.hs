@@ -2,7 +2,6 @@ module MainSpec (main) where
 
 import Test.Hspec
 import Main hiding (main)
-import Control.Arrow (first)
 
 exampleText
   = unlines
@@ -26,10 +25,10 @@ main = do
   hspec $ do
     describe "parse" $ do
       it "parses example input (length)" $
-        first length exampleInput `shouldBe` (18 + 17, (10, 10))
+        length exampleInput `shouldBe` 10
 
       it "parses real input (length)" $
-        first length input `shouldBe` (2029 + 1626, (100, 100))
+        length input `shouldBe` 100
 
     describe "part1" $ do
       it "computes accepted result for example input" $
