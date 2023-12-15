@@ -26,12 +26,12 @@ main = do
       it "computes accepted result" $
         part1 input `shouldBe` 511215
 
-    -- describe "part2" $ do
-    --   it "computes accepted result for example input" $
-    --     part2 exampleInput `shouldBe` 0
+    describe "part2" $ do
+      it "computes accepted result for example input" $
+        part2 exampleInput `shouldBe` 145
 
-    --   it "computes accepted result" $
-    --     part2 input `shouldBe` 0
+      it "computes accepted result" $
+        part2 input `shouldBe` 236057
 
     describe "hash" $ do
       it "computes expected result for 'HASH'" $

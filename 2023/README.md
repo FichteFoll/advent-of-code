@@ -233,3 +233,19 @@ This was fun at first until part 2 came around and I …
 
 All in all, this is definitely within the AoC spirit,
 but I struggled more with it than I should have.
+
+Eventually, someone else pointed out to me
+how I could very easily operate directly on the input
+and I couldn't resist implementing it.
+For my original solution,
+refer to the file history.
+
+
+# Day 15
+
+This task was written in a very imperative way,
+which is generally not what Haskell fits well with,
+but it turned out to be rather fun after all
+when using lenses.
+A pro Haskeller can probably do it smarter,
+but I think my solution here is decent.
