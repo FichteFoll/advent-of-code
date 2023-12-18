@@ -4,7 +4,7 @@ module Main (main, parse, part1, part2, cardKey) where
 
 import Data.Function (on)
 import Data.List (sort, sortBy, group, elemIndex, sortOn)
-import Control.Arrow ((&&&), first)
+import Control.Arrow ((&&&))
 import Data.Ord (Down(..))
 
 type Input = [(String, Int)]
@@ -35,5 +35,5 @@ cardKey jokers = compare `on` (tier &&& cardOrd) . fst
     cardOrd = map (`elemIndex` cardOrder)
     cardOrder | jokers    = "23456789TQKA"
               | otherwise = "23456789TJQKA"
-    dropOnceOn f xs = takeWhile (not . f) xs ++ tail (dropWhile (not . f) xs)
-    mapHead f = uncurry (<>) . first (map f) . splitAt 1
+    dropOnceOn f = uncurry (<>) . fmap tail . break f
+    mapHead f xs = f (head xs) : tail xs
