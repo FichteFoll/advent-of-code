@@ -2,7 +2,11 @@
 
 module Main (main, parse, part1, part2) where
 
+import Control.Arrow ((&&&))
+import Control.Lens ((^.), bimap)
+import Data.Semialign (Unzip(unzipWith))
 import Linear.V2
+import qualified Data.Set as Set
 
 type Input = [(V2 Int, Int, String)]
 
@@ -23,27 +27,43 @@ parse = map (parseLine . words) . lines
     parseDir "U" = V2 0 (-1)
     parseDir _   = undefined
 
--- TODO look out for gaps!
 part1 :: Input -> Int
-part1 input = length outline + length interior
-  where
-    outline = dig (V2 0 0) input
-    interior =
-      [ V2 x y
-      -- TODO
-      -- get all border tiles in col
-      -- groupBy (y' + 1 == y'')
-      -- break (y' < y)
-      -- both sides must be of odd length
-      -- ignore y' == y
-      |
-      ]
+-- Example input includes the starting point in the last instruction,
+-- so we don't add it again.
+part1 input = lagoonSize $ dig (V2 0 0) input
 
 part2 :: Input -> Int
 part2 _ = 0
 
 dig :: V2 Int -> Input -> [V2 Int]
 dig _ [] = []
-dig pos ((dir, n, col):xs)
-  | n == 0 = dig pos xs
-  | otherwise = pos : dig (pos + dir) ((dir, pred n, col):xs)
+dig pos ((dir, n, _):xs) = take n (tail $ iterate (+ dir) pos) ++ dig (pos + fmap (* n) dir) xs
+
+-- Traverse all points outside of the bounding box
+-- that don't cross the border.
+-- Everything not seen is then part of the lagoon.
+-- I hate this code but it's the first idea I had that should work.
+lagoonSize :: [V2 Int] -> Int
+lagoonSize outline = (succ maxX - minX) * (succ maxY - minY) - length extra
+  where
+    (xs, ys) = unzipWith ((^. _x) &&& (^. _y)) outline
+    (minX, maxX) = extend $ minMax xs
+    (minY, maxY) = extend $ minMax ys
+    minMax = minimum &&& maximum
+    extend = bimap pred succ
+    extra = go Set.empty [V2 minX minY]
+    go seen [] = seen
+    go seen (pt:pts)
+      | inBounds pt && notOutline pt && not (Set.member pt seen)
+        = go (Set.insert pt seen) $ neighbors pt ++ pts
+      | otherwise = go seen pts
+    inBounds (V2 x y) = minX <= x && x <= maxX && minY <= y && y <= maxY
+    notOutline pt = not $ Set.member pt $ Set.fromList outline
+
+neighbors :: V2 Int -> [V2 Int]
+neighbors (V2 x y) =
+  [ V2 (x-1) y
+  , V2 x (y-1)
+  , V2 (x+1) y
+  , V2 x (y+1)
+  ]

@@ -21,6 +21,14 @@ exampleText
     , "U 2 (#7a21e3)"
     ]
 
+simpleText3x3
+  = unlines
+    [ "D 2 (#000000)"
+    , "R 2 (#000000)"
+    , "U 2 (#000000)"
+    , "L 2 (#000000)"
+    ]
+
 main :: IO ()
 main = do
   input <- parse <$> readFile "../../input/day18.txt"
@@ -34,12 +42,16 @@ main = do
       it "parses real input (length)" $
         length input `shouldBe` 784
 
-    -- describe "part1" $ do
-    --   it "computes accepted result for example input" $
-    --     part1 exampleInput `shouldBe` 0
+    describe "part1" $ do
+      it "computes accepted result for simple 3x3 input" $
+        part1 (parse simpleText3x3) `shouldBe` 9
 
-    --   it "computes accepted result" $
-    --     part1 input `shouldBe` 0
+      it "computes accepted result for example input" $
+        part1 exampleInput `shouldBe` 62
+
+      -- takes to long when not optimized
+      -- it "computes accepted result" $
+      --   part1 input `shouldBe` 108909
 
     -- describe "part2" $ do
     --   it "computes accepted result for example input" $
