@@ -2,7 +2,6 @@
 
 module Main (main, parse, part1, part2, hash) where
 
-import Control.Applicative (liftA2)
 import Control.Lens ((&), (%~), at)
 import Data.Char (ord, digitToInt)
 import Data.List.Split (splitOn)
@@ -38,7 +37,7 @@ insert boxes next = boxes & at k %~ case cmd of
     '-' -> fmap (filter $ (/= label) . fst)
     _ -> error $ next ++ " " ++ [cmd]
   where
-    (label, cmd:num) = break (liftA2 (||) (== '-') (== '=')) next
+    (label, cmd:num) = break (`elem` "-=") next
     k = hash label
     flen = digitToInt $ head num -- num can be empty!
     insert' new [] = [new]
