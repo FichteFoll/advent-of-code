@@ -249,3 +249,14 @@ but it turned out to be rather fun after all
 when using lenses.
 A pro Haskeller can probably do it smarter,
 but I think my solution here is decent.
+
+
+# Day 16
+
+Again, a rather iterative task
+that needs to be solved with recursion in Haskell,
+but it was still somewhat fun to translate into code.
+
+For part two,
+the simple brute-force method is fast enough for me
+and I'm not convinced there is a smarter one anyway.

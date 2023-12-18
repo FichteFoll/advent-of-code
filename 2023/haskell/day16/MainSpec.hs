@@ -46,9 +46,10 @@ main = do
       it "computes accepted result" $
         part1 input `shouldBe` 7951
 
-    -- describe "part2" $ do
-    --   it "computes accepted result for example input" $
-    --     part2 exampleInput `shouldBe` 0
+    describe "part2" $ do
+      it "computes accepted result for example input" $
+        part2 exampleInput `shouldBe` 51
 
-    --   it "computes accepted result" $
-    --     part2 input `shouldBe` 0
+      -- needs 1 minute to compute with optimizations
+      -- it "computes accepted result" $
+      --   part2 input `shouldBe` 8148
