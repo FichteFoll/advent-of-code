@@ -8,7 +8,8 @@ import Data.Semialign (Unzip(unzipWith))
 import Linear.V2
 import qualified Data.Set as Set
 
-type Input = [(V2 Int, Int, String)]
+type Plan = (V2 Int, Int)
+type Input = [(Plan, Plan)]
 
 main :: IO ()
 main = do
@@ -19,25 +20,30 @@ main = do
 parse :: String -> Input
 parse = map (parseLine . words) . lines
   where
-    parseLine [d, n, col] = (parseDir d, read n, take 6 $ drop 2 col)
+    parseLine [[d], n, col] =
+      ( (parseDir d, read n)
+      , (parseDir $ col !! 7, read $ "0x" ++ take 5 (drop 2 col))
+      )
     parseLine ws = error $ "parse error: " ++ show ws
-    parseDir "R" = V2 1 0
-    parseDir "D" = V2 0 1
-    parseDir "L" = V2 (-1) 0
-    parseDir "U" = V2 0 (-1)
-    parseDir _   = undefined
+    parseDir c
+      | c `elem` "R0" = V2 1 0
+      | c `elem` "D1" = V2 0 1
+      | c `elem` "L2" = V2 (-1) 0
+      | c `elem` "U3" = V2 0 (-1)
+      | otherwise     = undefined
 
 part1 :: Input -> Int
 -- Example input includes the starting point in the last instruction,
 -- so we don't add it again.
-part1 input = lagoonSize $ dig (V2 0 0) input
+part1 = lagoonSize . dig (V2 0 0) . map fst
 
 part2 :: Input -> Int
-part2 _ = 0
+-- TODO uses too much RAM, quite expectedly
+part2 = lagoonSize . dig (V2 0 0) . map snd
 
-dig :: V2 Int -> Input -> [V2 Int]
+dig :: V2 Int -> [Plan] -> [V2 Int]
 dig _ [] = []
-dig pos ((dir, n, _):xs) = take n (tail $ iterate (+ dir) pos) ++ dig (pos + fmap (* n) dir) xs
+dig pos ((dir, n):xs) = take n (tail $ iterate (+ dir) pos) ++ dig (pos + fmap (* n) dir) xs
 
 -- Traverse all points outside of the bounding box
 -- that don't cross the border.
