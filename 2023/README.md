@@ -278,3 +278,21 @@ I've heard that there is a trick for solving this efficiently,
 but am unsure if I will be able to figure it out myself.
 
 Skipping part 2 for now.
+
+
+# Day 19
+
+Parsing was more work work than implementing part 1,
+but part 2 gave this a little twist.
+First of all,
+I had to change my parsing
+since it was too specialized for part 1,
+but additionally it started to feel a lot like day 5
+with added data complexity,
+which wasn't looking too fun in Haskell.
+Fortunately, I have grown somewhat accustomed to lenses by now,
+so the end result wasn't too horrible,
+but I procrastinated on this task for 2 days.
+(Additionally, my PC broke down in the middle of it,
+which killed some of my motivation
+and several hours of my time for hardware debugging.)
