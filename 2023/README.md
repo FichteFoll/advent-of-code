@@ -203,6 +203,7 @@ but that still didn't really bring the speed improvements I expected
 Because I've had a problem with optimizing tasks like this in the past
 (i.e. the last AoC I attempted in Haskell only),
 which eventually lead me to burn out of it,
+
 I'm skipping finalizing part 2 until some time later,
 hopefully.
 
