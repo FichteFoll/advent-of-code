@@ -260,3 +260,21 @@ but it was still somewhat fun to translate into code.
 For part two,
 the simple brute-force method is fast enough for me
 and I'm not convinced there is a smarter one anyway.
+
+
+# Day 17
+
+Skipped due to lack of time.
+
+
+# Day 18
+
+Part 1 allowed for some decently creative ideas (imho),
+one of which I eventually implemented,
+knowing fully well that it won't scale into multiple orders of magnitude.
+Of course, part 2 just had to be exactly that
+and I haven't really thought of an entirely different solution.
+I've heard that there is a trick for solving this efficiently,
+but am unsure if I will be able to figure it out myself.
+
+Skipping part 2 for now.
