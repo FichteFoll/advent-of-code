@@ -36,7 +36,11 @@ part1 :: Input -> Int
 part1 (ws, ps) = sum . map partSum $ filter (isAccepted ws) ps
 
 part2 :: Input -> Int
-part2 (ws, _) = allCombs ws [State "in" (Part 1 1 1 1) (Part 4000 4000 4000 4000)]
+part2 (ws, _)
+  = sum
+    . map countCombs
+    . filter ((== "A") . (^. pos))
+    $ allCombs ws [State "in" (Part 1 1 1 1) (Part 4000 4000 4000 4000)]
 
 parsePart :: String -> Part
 parsePart line = Part x' m' a' s'
@@ -80,11 +84,10 @@ isAccepted ws p = go "in"
 -- When rule is R, abort (add 0 to total count).
 -- If condition can match, split state into part that can match and pass part that can't into the next rule.
 -- If condition cannot match, pass to the next rule.
-allCombs :: Workflows -> [State] -> Int
-allCombs _ [] = 0
+allCombs :: Workflows -> [State] -> [State]
+allCombs _ [] = []
 allCombs ws (s:ss)
-  | s ^. pos == "R" = 0 + allCombs ws ss
-  | s ^. pos == "A" = partCombs s + allCombs ws ss
+  | s ^. pos `elem` ["A", "R"] = s : allCombs ws ss
   | otherwise = allCombs ws (branches ++ ss)
   where
     branches = concatMap lefts $ scanl branch [Right s] $ ws ! (s ^. pos)
@@ -104,6 +107,6 @@ allCombs ws (s:ss)
         low = s ^. (start . l)
         high = s ^. (end . l)
 
-partCombs :: State -> Int
-partCombs st = product $ map size [x, m, a, s]
+countCombs :: State -> Int
+countCombs st = product $ map size [x, m, a, s]
   where size lens = succ $ st ^. (end . lens) - st ^. (start . lens)
