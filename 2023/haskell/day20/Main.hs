@@ -16,6 +16,7 @@ type Key = String
 type Item = (Node, Key, [Key])
 
 data Pulse = Low | High deriving (Eq, Show)
+type DPulse = (String, Pulse, String)
 type State = (Map String Bool, Map String (Map String Pulse))
 
 -- return type of `graphFromEdges`
@@ -48,7 +49,16 @@ part1 :: Input -> Int
 part1 = pulseProduct . push 1000
 
 part2 :: Input -> Int
-part2 _ = 0
+part2 = succ . length . takeWhile (not . any hasRx) . iterPushes
+  where
+    hasRx (_, Low, "rx") = True
+    hasRx _ = False
+
+push :: Int -> Input -> [Pulse]
+push n = concatMap (map sndOf3) . take n . iterPushes
+
+iterPushes :: Input -> [[DPulse]]
+iterPushes inp = map snd $ tail $ iterate (push' inp . fst) (initialState inp, [])
 
 initialState :: Input -> State
 initialState (g, nfv, vfk) = (ffState, cState)
@@ -62,17 +72,14 @@ initialState (g, nfv, vfk) = (ffState, cState)
       , let inKs = [sndOf3 (nfv v) | (v, thisV) <- edges g, Just thisV == vfk k]
       ]
 
-push :: Int -> Input -> [Pulse]
-push n inp = concatMap snd . take n . tail $ iterate (push' inp . fst) (initialState inp, [])
-
-push' :: Input -> State -> (State, [Pulse])
+push' :: Input -> State -> (State, [DPulse])
 -- first pulse from button also counts
 push' (_, nfv, vfk) s = go s [] [("", Low, "broadcaster")]
   where
-    go state ps [] = (state, ps)
-    go state ps ((src, p, key):xs) = case vfk key of
-      Nothing -> go state (p:ps) xs
-      Just v -> go state' (p:ps) (xs ++ xs')
+    go state acc [] = (state, acc)
+    go state acc (x@(src, p, key):xs) = case vfk key of
+      Nothing -> go state (x:acc) xs
+      Just v -> go state' (x:acc) (xs ++ xs')
         where
           (n, _, ks) = nfv v
           (state', p') = step n
@@ -94,4 +101,5 @@ push' (_, nfv, vfk) s = go s [] [("", Low, "broadcaster")]
           mergeP Low High = Low
           mergeP _ _ = High
 
+pulseProduct :: [Pulse] -> Int
 pulseProduct = uncurry (*) . over both length . partition (== Low)
