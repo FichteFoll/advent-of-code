@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -W #-}
 
-module Main (main, parse, part1, part2) where
+module Main (main, parse, part1, part2, pulseProduct, push) where
 
 import Control.Lens
 import Data.Graph (Graph, graphFromEdges, Vertex, vertices, edges)

@@ -41,8 +41,14 @@ main = do
         length (vertices $ fstOf3 input) `shouldBe` 58
 
     describe "part1" $ do
+      it "computes expected result after 1 button push for example input 1" $
+        pulseProduct (push 1 exampleInput1) `shouldBe` 32
+
       it "computes accepted result for example input 1" $
         part1 exampleInput1 `shouldBe` 32000000
+
+      it "computes accepted result for example input 2" $
+        part1 exampleInput2 `shouldBe` 11687500
 
       it "computes accepted result" $
         part1 input `shouldBe` 730797576
