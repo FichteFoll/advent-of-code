@@ -13,6 +13,10 @@ build_opt_run DAY:
 test DAY:
     cd day{{DAY}} && runhaskell MainSpec.hs
 
+# Run tests for DAY
+test_opt DAY:
+    cd day{{DAY}} && ghc -dynamic -O2 -main-is MainSpec MainSpec.hs && time ./MainSpec
+
 # Run benchmarks for DAY with input
 bench DAY:
     #!/usr/bin/env bash
