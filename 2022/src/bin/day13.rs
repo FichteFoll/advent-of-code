@@ -110,6 +110,7 @@ fn part_2(parsed: &Parsed) -> usize {
         .product()
 }
 
+#[allow(clippy::non_canonical_partial_ord_impl)]
 impl std::cmp::PartialOrd for Item {
     #[rustfmt::skip]
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {

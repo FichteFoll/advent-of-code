@@ -80,7 +80,7 @@ fn count_visible(start: u8, remaining: impl Iterator<Item = &u8>) -> usize {
     heights.peeking_take_while(|&t| t < start).count() + heights.peek().map_or(0, |_| 1)
 }
 
-fn transpose<T: Clone>(grid: &Vec<Vec<T>>) -> Vec<Vec<T>> {
+fn transpose<T: Clone>(grid: &[Vec<T>]) -> Vec<Vec<T>> {
     let height = grid.len();
     let width = grid[0].len();
     let mut new_grid = vec![Vec::with_capacity(height); width];

@@ -40,7 +40,6 @@ fn part_1(parsed: &Parsed) -> i32 {
 fn part_2(parsed: &Parsed) -> String {
     calc_xes(parsed)
         .chunks(40)
-        .into_iter()
         .flat_map(|chunk| {
             once('\n').chain(
                 chunk

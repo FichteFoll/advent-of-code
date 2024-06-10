@@ -1,6 +1,5 @@
 #![feature(array_windows)]
 #![feature(custom_test_frameworks)]
-#![feature(once_cell)]
 #![feature(test)]
 
 use itertools::Either::{self, *};

@@ -91,7 +91,7 @@ impl<const N: usize> Point<N> {
         let posb = &pos.clone();
         (
             pos,
-            neg.iter().cloned().filter(|x| !posb.contains(x)).collect(),
+            neg.iter().filter(|&x| !posb.contains(x)).cloned().collect(),
         )
     }
 
