@@ -5,7 +5,7 @@ use itertools::Itertools;
 
 const DAY: usize = 1;
 
-type Parsed = (Vec<i32>, Vec<i32>);
+type Parsed = (Vec<u32>, Vec<u32>);
 
 main!();
 
@@ -18,16 +18,16 @@ pub fn parse_input(input: &str) -> Parsed {
     })
 }
 
-fn part_1(parsed: &Parsed) -> i32 {
+fn part_1(parsed: &Parsed) -> u32 {
     let nums1 = parsed.0.iter().sorted_unstable();
     let nums2 = parsed.1.iter().sorted_unstable();
-    nums1.zip(nums2).map(|(n1, n2)| (n1 - n2).abs()).sum()
+    nums1.zip(nums2).map(|(n1, n2)| n1.abs_diff(*n2)).sum()
 }
 
-fn part_2(parsed: &Parsed) -> usize {
+fn part_2(parsed: &Parsed) -> u32 {
     let nums1 = parsed.0.iter().sorted_unstable();
     let nums2_map = parsed.1.iter().counts_by(|x| x);
-    nums1.map(|n| *n as usize * nums2_map.get(n).unwrap_or(&0)).sum()
+    nums1.map(|n| n * *nums2_map.get(n).unwrap_or(&0) as u32).sum()
 }
 
 #[cfg(test)]
