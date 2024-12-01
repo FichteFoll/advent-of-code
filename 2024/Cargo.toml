@@ -1,0 +1,16 @@
+[package]
+name = "aoc2024"
+version = "0.1.0"
+authors = ["FichteFoll <fichtefoll2@googlemail.com>"]
+edition = "2024"
+
+[dependencies]
+itertools = "^0.13.0"
+fnv = { version = "^1.0.7", optional = true }
+
+[dev-dependencies]
+paste = "^1.0.15"
+test-case = "^3.3.1"
+
+[features]
+default = ["fnv"]
