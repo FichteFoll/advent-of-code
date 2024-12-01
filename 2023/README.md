@@ -73,9 +73,6 @@ ghc -dynamic -O2 -main-is Bench Bench.hs
 ./Bench < ../../input/day01.txt
 ```
 
-### Rust
-
-Nothing yet
 
 ## Individual Days
 
@@ -297,3 +294,15 @@ but I procrastinated on this task for 2 days.
 (Additionally, my PC broke down in the middle of it,
 which killed some of my motivation
 and several hours of my time for hardware debugging.)
+
+
+# Day 20
+
+This is the day I stopped working on AoC for this year.
+I'm writing this one year later
+and I can see that I implemented part 1
+but only managed to do a bruteforce implementation of part 2
+that does not finish in a reasonable period of time.
+
+Afterwards I didn't find the time for AoC anymore
+and consequently also skipped the remaining days.
