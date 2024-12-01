@@ -25,8 +25,10 @@ fn part_1(parsed: &Parsed) -> i32 {
     nums1.zip(nums2).map(|(n1, n2)| (n1 - n2).abs()).sum()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(parsed: &Parsed) -> usize {
+    let nums1 = parsed.iter().map(|(x, _)| x).sorted_unstable();
+    let nums2_map = parsed.iter().map(|(_, x)| x).counts_by(|x| x);
+    nums1.map(|n| *n as usize * nums2_map.get(n).unwrap_or(&0)).sum()
 }
 
 #[cfg(test)]
@@ -44,8 +46,8 @@ mod tests {
         ";
 
     test!(part_1() == 11);
-    // test!(part_2() == 0);
-    // bench_parse!(Vec::len, 0);
+    test!(part_2() == 31);
+    bench_parse!(Vec::len, 1000);
     bench!(part_1() == 2264607);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 19457120);
 }
