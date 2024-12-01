@@ -1,0 +1,60 @@
+{
+    "folders":
+    [
+        {
+            "path": ".",
+            "folder_exclude_patterns": ["target"],
+        },
+        // use only current year's folder for easier LSP integration,
+        // find in files and goto anything
+        // {
+        //     "path": "../2022"
+        // },
+    ],
+    "settings": {
+        "rulers": [120],
+    },
+    "build_systems": [
+        {
+            "name": "Rust: Test $day",
+            "selector": "source.rust",
+            "cmd": ["cargo", "test", "--bin", "${file_base_name}"],
+            "working_dir": "$project_path",
+        },
+        {
+            "name": "Rust: Run $day",
+            "selector": "source.rust",
+            "cmd": ["cargo", "run", "--bin", "${file_base_name}"],
+            "working_dir": "$project_path",
+        },
+        {
+            "name": "Rust: Bench $day",
+            "selector": "source.rust",
+            "cmd": ["cargo", "bench", "--bin", "${file_base_name}"],
+            "working_dir": "$project_path",
+        },
+        {
+            "name": "Haskell: Test $day",
+            "selector": "source.haskell",
+            "cmd": ["just", "test", "${file_path/.*day(\\d{2})$/\\1/}"],
+            "working_dir": "$project_path/haskell",
+        },
+        {
+            "name": "Haskell: Run $day",
+            "selector": "source.haskell",
+            "cmd": ["just", "run", "${file_path/.*day(\\d{2})$/\\1/}"],
+            "working_dir": "$project_path/haskell",
+        },
+        {
+            "name": "Haskell: Bench $day",
+            "selector": "source.haskell",
+            "cmd": ["just", "bench", "${file_path/.*day(\\d{2})$/\\1/}"],
+            "working_dir": "$project_path/haskell",
+        },
+        {
+            "name": "Clippy",
+            "cmd": ["cargo", "clippy"],
+            "working_dir": "$project_path",
+        },
+    ],
+}
