@@ -9,7 +9,7 @@ type Parsed = (Vec<u32>, Vec<u32>);
 
 main!();
 
-pub fn parse_input(input: &str) -> Parsed {
+fn parse_input(input: &str) -> Parsed {
     input.lines().fold((vec![], vec![]), |mut vs, line| {
         let pair_s = line.split_once("   ").unwrap();
         vs.0.push(pair_s.0.parse().unwrap());
@@ -27,7 +27,9 @@ fn part_1(parsed: &Parsed) -> u32 {
 fn part_2(parsed: &Parsed) -> u32 {
     let nums1 = parsed.0.iter().sorted_unstable();
     let nums2_map = parsed.1.iter().counts_by(|x| x);
-    nums1.map(|n| n * *nums2_map.get(n).unwrap_or(&0) as u32).sum()
+    nums1
+        .map(|n| n * *nums2_map.get(n).unwrap_or(&0) as u32)
+        .sum()
 }
 
 #[cfg(test)]
