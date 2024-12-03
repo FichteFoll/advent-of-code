@@ -7,6 +7,7 @@ edition = "2024"
 [dependencies]
 itertools = "^0.13.0"
 fnv = { version = "^1.0.7", optional = true }
+regex = "^1.11.1"
 
 [dev-dependencies]
 paste = "^1.0.15"
