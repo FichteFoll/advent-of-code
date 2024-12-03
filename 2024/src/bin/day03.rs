@@ -17,19 +17,17 @@ fn parse_input(input: &str) -> Parsed {
 
 fn part_1(parsed: &Parsed) -> usize {
     let re = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();
-    re.captures_iter(parsed)
-        .map(|cap| {
-            cap.get(1).unwrap().as_str().parse::<usize>().unwrap()
-                * cap.get(2).unwrap().as_str().parse::<usize>().unwrap()
-        })
-        .sum()
+    multiply(parsed, re)
 }
 
 fn part_2(parsed: &Parsed) -> usize {
     let re = Regex::new(r"mul\((\d+),(\d+)\)|don't\(\).*?do\(\)").unwrap();
+    multiply(parsed, re)
+}
+
+fn multiply(parsed: &Parsed, re: Regex) -> usize{
     re.captures_iter(parsed)
         .map(|cap| {
-            dbg!(cap.get(0).unwrap());
             if let Some(g1) = cap.get(1) && let Some(g2) = cap.get(2) {
                 g1.as_str().parse::<usize>().unwrap()
                     * g2.as_str().parse::<usize>().unwrap()
