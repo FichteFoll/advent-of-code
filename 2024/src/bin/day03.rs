@@ -15,22 +15,23 @@ fn parse_input(input: &str) -> Parsed {
     input.lines().join(" ")
 }
 
-fn part_1(parsed: &Parsed) -> usize {
+fn part_1(parsed: &Parsed) -> u32 {
     let re = Regex::new(r"mul\((\d+),(\d+)\)").unwrap();
     multiply(parsed, re)
 }
 
-fn part_2(parsed: &Parsed) -> usize {
+fn part_2(parsed: &Parsed) -> u32 {
     let re = Regex::new(r"mul\((\d+),(\d+)\)|don't\(\).*?do\(\)").unwrap();
     multiply(parsed, re)
 }
 
-fn multiply(parsed: &Parsed, re: Regex) -> usize{
+fn multiply(parsed: &Parsed, re: Regex) -> u32 {
     re.captures_iter(parsed)
         .map(|cap| {
-            if let Some(g1) = cap.get(1) && let Some(g2) = cap.get(2) {
-                g1.as_str().parse::<usize>().unwrap()
-                    * g2.as_str().parse::<usize>().unwrap()
+            if let Some(g1) = cap.get(1)
+                && let Some(g2) = cap.get(2)
+            {
+                g1.as_str().parse::<u32>().unwrap() * g2.as_str().parse::<u32>().unwrap()
             } else {
                 0
             }
