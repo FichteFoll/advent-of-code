@@ -115,3 +115,24 @@ because I use a `.` to match all the garbage
 between `don't()` and `do()` instructions
 but the input is spread over several lines,
 so I needed to account for that.
+
+### Day 04
+
+The first coordinate task already on the fourth day?
+Well, here we go.
+
+For part 1,
+I implemented a breath-first search
+because I was thinking about utilizing lazy evaluation,
+but Rust isn't Haskell,
+so I had to collect each step into a vector.
+This resulted in a lot of memory being allocated unnecessarily
+and made the solution quite slow.
+
+Part 2 was not compatible with my part 1 solution at all,
+so I wrote something entirely different –
+this time with DFS,
+`u8::checked_sub`,
+the `?` operator,
+and a good ol' coordinate switcheroo (x vs y axis)
+that also took me some time to spot.
