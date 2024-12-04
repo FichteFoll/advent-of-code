@@ -279,6 +279,22 @@ mod ops {
             }
         }
     }
+
+    mod mul {
+        use super::super::Point;
+        use std::ops::Mul;
+
+        impl<const N: usize> Mul<i32> for &Point<N> {
+            type Output = Point<N>;
+            fn mul(self, rhs: i32) -> Self::Output {
+                let mut coord = self.0;
+                for n in coord.iter_mut() {
+                    *n *= rhs;
+                }
+                Point(coord)
+            }
+        }
+    }
 }
 
 // (const) generics not yet supported by auto_ops crate.
