@@ -14,7 +14,7 @@ fn parse_input(input: &str) -> Parsed {
     input.lines().map(|line| line.bytes().collect()).collect()
 }
 
-const XMAS: [u8; 4] = ['X' as u8, 'M' as u8, 'A' as u8, 'S' as u8];
+const XMAS: [u8; 4] = [b'X', b'M', b'A', b'S'];
 
 fn part_1(grid: &Parsed) -> usize {
     let h = grid.len() as i32;
@@ -54,14 +54,14 @@ fn part_2(grid: &Parsed) -> usize {
     let x_range = 0..w;
 
     iproduct!(x_range, y_range)
-        .filter(|(x, y)| grid[*y][*x] == 'A' as u8)
+        .filter(|(x, y)| grid[*y][*x] == b'A')
         .filter(|p| is_x_mas(p, grid).unwrap_or(false))
         .count()
 }
 
 const LEGAL_DIAGONALS: [[u8; 2]; 2] = [
-    ['M' as u8, 'S' as u8],
-    ['S' as u8, 'M' as u8],
+    [b'M', b'S'],
+    [b'S', b'M'],
 ];
 
 fn is_x_mas((x, y): &(usize, usize), grid: &Parsed) -> Option<bool> {
