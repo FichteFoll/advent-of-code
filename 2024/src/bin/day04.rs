@@ -59,23 +59,17 @@ fn part_2(grid: &Parsed) -> usize {
         .count()
 }
 
-const LEGAL_DIAGONALS: [[u8; 2]; 2] = [
-    [b'M', b'S'],
-    [b'S', b'M'],
-];
+// Since the input only contains the chars X, M, A, S,
+// we can just xor the pairs
+// to check if both required chars are present.
+const LEGAL_HASH: u8 = b'M' ^ b'S';
 
 fn is_x_mas((x, y): &(usize, usize), grid: &Parsed) -> Option<bool> {
-    let diagonals = [
-        [
-            *grid.get(y.checked_sub(1)?)?.get(x.checked_sub(1)?)?,
-            *grid.get(y + 1)?.get(x + 1)?,
-        ],
-        [
-            *grid.get(y + 1)?.get(x.checked_sub(1)?)?,
-            *grid.get(y.checked_sub(1)?)?.get(x + 1)?,
-        ]
+    let hashes = [
+        *grid.get(y.checked_sub(1)?)?.get(x.checked_sub(1)?)? ^ *grid.get(y + 1)?.get(x + 1)?,
+        *grid.get(y + 1)?.get(x.checked_sub(1)?)? ^ *grid.get(y.checked_sub(1)?)?.get(x + 1)?,
     ];
-    Some(diagonals.into_iter().all(|d| LEGAL_DIAGONALS.contains(&d)))
+    Some(hashes.into_iter().all(|h| h == LEGAL_HASH))
 }
 
 #[cfg(test)]
