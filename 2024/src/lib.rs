@@ -4,7 +4,7 @@
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
 
-// pub mod coord;
+pub mod point;
 pub mod test;
 
 #[cfg(feature = "fnv")]
