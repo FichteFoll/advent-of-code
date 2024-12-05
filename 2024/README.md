@@ -136,3 +136,12 @@ this time with DFS,
 the `?` operator,
 and a good ol' coordinate switcheroo (x vs y axis)
 that also took me some time to spot.
+
+### Day 05
+
+I had a pesky logic error
+in my head
+and did not read correctly
+that rules only need to be considered
+if both numbers involved
+are part of the sequence to test.
