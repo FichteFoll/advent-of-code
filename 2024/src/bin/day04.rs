@@ -1,8 +1,7 @@
 #![feature(test)]
 
-use aoc2024::point::Point;
 use aoc2024::*;
-use itertools::{Itertools, iproduct};
+use itertools::iproduct;
 
 const DAY: usize = 4;
 
@@ -17,59 +16,70 @@ fn parse_input(input: &str) -> Parsed {
 const XMAS: [u8; 4] = [b'X', b'M', b'A', b'S'];
 
 fn part_1(grid: &Parsed) -> usize {
-    let h = grid.len() as i32;
-    let w = grid[0].len() as i32;
-    let y_range = 0..h;
-    let x_range = 0..w;
-
-    // DFS instead of BFS would be much more efficient.
-    let initial_pts = iproduct!(x_range.clone(), y_range.clone())
-        .map(Point::<2>::from)
-        .flat_map(|p| {
-            Point::<2>::ZERO
-                .neighbors()
-                .into_iter()
-                .map(move |dir| (p, dir))
-        })
-        .collect_vec();
-    XMAS.iter()
-        .enumerate()
-        .fold(initial_pts, |pts, (i, c)| {
-            pts.into_iter()
-                .filter(|(origin, dir)| {
-                    let p = origin + &(dir * i as i32);
-                    x_range.contains(&p.x())
-                        && y_range.contains(&p.y())
-                        && grid[p.y() as usize][p.x() as usize] == *c
-                })
-                .collect_vec()
-        })
-        .len()
+    iproduct!(0..grid[0].len(), 0..grid.len())
+        .filter(|&(x, y)| grid[y][x] == XMAS[0])
+        .filter(|pt| is_xmas(pt, grid))
+        .count()
 }
 
 fn part_2(grid: &Parsed) -> usize {
-    let h = grid.len();
-    let w = grid[0].len();
-    let y_range = 0..h;
-    let x_range = 0..w;
-
-    iproduct!(x_range, y_range)
-        .filter(|(x, y)| grid[*y][*x] == b'A')
-        .filter(|p| is_x_mas(p, grid).unwrap_or(false))
+    iproduct!(0..grid[0].len(), 0..grid.len())
+        .filter(|&(x, y)| grid[y][x] == b'A')
+        .filter(|pt| is_x_mas(grid, pt).unwrap_or(false))
         .count()
+}
+
+#[rustfmt::skip]
+enum Dir {
+    NW, N, NE,
+     W,     E,
+    SW, S, SE,
+}
+use Dir::*;
+
+impl Dir {
+    #[rustfmt::skip]
+    const ALL: [Dir; 8] = [
+        NW, N, NE,
+         W,     E,
+        SW, S, SE,
+    ];
+}
+
+fn is_xmas(pt: &(usize, usize), grid: &Parsed) -> bool {
+    Dir::ALL.iter().any(|dir| {
+        XMAS.iter()
+            .enumerate()
+            .skip(1)
+            .all(|(i, c)| char_in_dir(grid, pt, i, dir) == Some(*c))
+    })
 }
 
 // Since the input only contains the chars X, M, A, S,
 // we can just xor the pairs
 // to check if both required chars are present.
-const LEGAL_HASH: u8 = b'M' ^ b'S';
+const M_S_HASH: u8 = b'M' ^ b'S';
 
-fn is_x_mas((x, y): &(usize, usize), grid: &Parsed) -> Option<bool> {
+fn is_x_mas(grid: &Parsed, pt: &(usize, usize)) -> Option<bool> {
     let hashes = [
-        *grid.get(y.checked_sub(1)?)?.get(x.checked_sub(1)?)? ^ *grid.get(y + 1)?.get(x + 1)?,
-        *grid.get(y + 1)?.get(x.checked_sub(1)?)? ^ *grid.get(y.checked_sub(1)?)?.get(x + 1)?,
+        char_in_dir(grid, pt, 1, &NW)? ^ char_in_dir(grid, pt, 1, &SE)?,
+        char_in_dir(grid, pt, 1, &SW)? ^ char_in_dir(grid, pt, 1, &NE)?,
     ];
-    Some(hashes.into_iter().all(|h| h == LEGAL_HASH))
+    Some(hashes.into_iter().all(|h| h == M_S_HASH))
+}
+
+#[rustfmt::skip]
+fn char_in_dir(grid: &Parsed, &(x, y): &(usize, usize), i: usize, dir: &Dir) -> Option<u8> {
+    Some(match dir {
+        NW => *grid.get(y.checked_sub(i)?)?.get(x.checked_sub(i)?)?,
+        N  => *grid.get(y.checked_sub(i)?)?.get(x)?,
+        NE => *grid.get(y.checked_sub(i)?)?.get(x + i)?,
+         W => *grid.get(y)?                .get(x.checked_sub(i)?)?,
+         E => *grid.get(y)?                .get(x + i)?,
+        SW => *grid.get(y + i)?            .get(x.checked_sub(i)?)?,
+        S  => *grid.get(y + i)?            .get(x)?,
+        SE => *grid.get(y + i)?            .get(x + i)?,
+    })
 }
 
 #[cfg(test)]
