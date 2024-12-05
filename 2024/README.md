@@ -145,3 +145,8 @@ and did not read correctly
 that rules only need to be considered
 if both numbers involved
 are part of the sequence to test.
+
+The code for part 2 isn't exactly optimized,
+but I wanted to get it done fast
+so I can work on other stuff.
+May revisit later.
