@@ -150,3 +150,14 @@ The code for part 2 isn't exactly optimized,
 but I wanted to get it done fast
 so I can work on other stuff.
 May revisit later.
+
+### Day 06
+
+This task was actually quite fun –
+assuming you didn't have to reinvent the grid handling code
+like I did by re-using the `Grid2D` struct I built for 2021 already.
+
+Had a small gotcha with the instructions
+by not considering
+that I would need to turn more than once
+if the path after turning was also blocked.
