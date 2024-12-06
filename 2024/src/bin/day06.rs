@@ -11,6 +11,7 @@ use point::Point;
 const DAY: usize = 6;
 
 type Parsed = Grid2D<char>;
+type State = (Point<2>, Point<2>);
 
 static OBJECT: char = '#';
 static GUARD: char = '^';
@@ -33,36 +34,29 @@ fn part_2(grid: &Parsed) -> usize {
             let object = state.0 + state.1;
             !walked.contains(&object)
                 && grid.get(&object).is_some_and(|c| *c != OBJECT)
-                && !is_finite(grid, state, &object)
+                && !walk_guard_2(grid, state, Some(&object)).all_unique()
         })
         .count()
 }
 
-fn walk_guard(grid: &Parsed) -> impl Iterator<Item = (Point<2>, Point<2>)> {
-    successors(
-        Some((guard_pos(grid), Point::<2>::N)),
-        |&(mut pos, mut dir)| {
-            if grid.get(&(pos + dir))? == &OBJECT {
-                dir.rotate_right(90);
-            } else {
-                pos += dir;
-            }
-            Some((pos, dir))
-        },
-    )
+fn walk_guard(grid: &Parsed) -> impl Iterator<Item = State> {
+    walk_guard_2(grid, (guard_pos(grid), Point::<2>::N), None)
 }
 
-fn is_finite(grid: &Parsed, start: (Point<2>, Point<2>), object: &Point<2>) -> bool {
-    successors(Some(start), |&(mut pos, mut dir)| {
+fn walk_guard_2(
+    grid: &Parsed,
+    start: State,
+    object: Option<&Point<2>>,
+) -> impl Iterator<Item = State> {
+    successors(Some(start), move |&(mut pos, mut dir)| {
         let next = pos + dir;
-        if &next == object || grid.get(&next)? == &OBJECT {
+        if Some(&next) == object || grid.get(&next)? == &OBJECT {
             dir.rotate_right(90);
         } else {
             pos += dir;
         }
         Some((pos, dir))
     })
-    .all_unique()
 }
 
 fn guard_pos(grid: &Grid2D<char>) -> Point<2> {
