@@ -3,7 +3,9 @@
 
 #![allow(incomplete_features)]
 #![feature(generic_const_exprs)]
+#![feature(impl_trait_in_assoc_type)]
 
+pub mod grid2d;
 pub mod point;
 pub mod test;
 
