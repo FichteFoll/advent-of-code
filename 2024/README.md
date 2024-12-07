@@ -161,3 +161,15 @@ Had a small gotcha with the instructions
 by not considering
 that I would need to turn more than once
 if the path after turning was also blocked.
+
+Overall, this has been my favorite day so far.
+
+### Day 07
+
+For some reason,
+the first weekend task since the first day
+is much easier than the previous days.
+Not much to say here
+other than that I brute-forced
+used recursion
+and a simple early abort.

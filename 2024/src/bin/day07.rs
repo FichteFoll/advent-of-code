@@ -21,47 +21,51 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(parsed: &Parsed) -> u64 {
-    parsed
-        .iter()
-        .filter(|eq| can_be_valid(eq))
-        .map(|(r, _)| r)
-        .sum()
+    solve(parsed, &[Op::Mul, Op::Add])
 }
 
-fn part_2(_parsed: &Parsed) -> u64 {
-    todo!()
+fn part_2(parsed: &Parsed) -> u64 {
+    solve(parsed, &[Op::Mul, Op::Add, Op::Concat])
+}
+
+fn solve(parsed: &Parsed, ops: &[Op]) -> u64 {
+    parsed
+        .iter()
+        .filter(|eq| can_be_valid(ops, eq))
+        .map(|(r, _)| r)
+        .sum()
 }
 
 enum Op {
     Mul,
     Add,
+    Concat,
 }
 
 impl Op {
-    const ALL: [Op; 2] = [Op::Mul, Op::Add];
-
     fn eval(&self, n1: u64, n2: u64) -> u64 {
         match self {
             Op::Mul => n1 * n2,
             Op::Add => n1 + n2,
+            Op::Concat => n1 * 10u64.pow(n2.ilog10() + 1) + n2,
         }
     }
 }
 
-fn can_be_valid((expected, nums): &Equation) -> bool {
-    can_be_valid_rec(*expected, nums[0], &nums[1..])
+fn can_be_valid(ops: &[Op], (expected, nums): &Equation) -> bool {
+    can_be_valid_rec(ops, *expected, nums[0], &nums[1..])
 }
 
-fn can_be_valid_rec(expected: u64, n: u64, rest: &[u64]) -> bool {
+fn can_be_valid_rec(ops: &[Op], expected: u64, n: u64, rest: &[u64]) -> bool {
     if rest.len() == 0 {
         return n == expected;
     }
     if n > expected {
         return false;
     }
-    Op::ALL.iter().any(|op| {
+    ops.iter().any(|op| {
         let n2 = op.eval(n, rest[0]);
-        can_be_valid_rec(expected, n2, &rest[1..])
+        can_be_valid_rec(ops, expected, n2, &rest[1..])
     })
 }
 
@@ -83,8 +87,8 @@ mod tests {
         ";
 
     test!(part_1() == 3749);
-    // test!(part_2() == 0);
+    test!(part_2() == 11387);
     bench_parse!(Vec::len, 850);
     bench!(part_1() == 975671981569);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 223472064194845);
 }
