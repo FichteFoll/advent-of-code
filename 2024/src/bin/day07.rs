@@ -31,7 +31,7 @@ fn part_2(parsed: &Parsed) -> u64 {
 fn solve(parsed: &Parsed, ops: &[Op]) -> u64 {
     parsed
         .iter()
-        .filter(|eq| can_be_valid(ops, eq))
+        .filter(|eq| can_be_valid(ops, eq.0, &eq.1))
         .map(|(r, _)| r)
         .sum()
 }
@@ -52,8 +52,8 @@ impl Op {
     }
 }
 
-fn can_be_valid(ops: &[Op], (expected, nums): &Equation) -> bool {
-    can_be_valid_rec(ops, *expected, nums[0], &nums[1..])
+fn can_be_valid(ops: &[Op], expected: u64, nums: &[u64]) -> bool {
+    can_be_valid_rec(ops, expected, nums[0], &nums[1..])
 }
 
 fn can_be_valid_rec(ops: &[Op], expected: u64, n: u64, rest: &[u64]) -> bool {
@@ -63,10 +63,8 @@ fn can_be_valid_rec(ops: &[Op], expected: u64, n: u64, rest: &[u64]) -> bool {
     if n > expected {
         return false;
     }
-    ops.iter().any(|op| {
-        let n2 = op.eval(n, rest[0]);
-        can_be_valid_rec(ops, expected, n2, &rest[1..])
-    })
+    ops.iter()
+        .any(|op| can_be_valid_rec(ops, expected, op.eval(n, rest[0]), &rest[1..]))
 }
 
 #[cfg(test)]
