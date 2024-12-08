@@ -18,27 +18,28 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(grid: &Parsed) -> usize {
-    let mut antennas: HashMap<char, Vec<Point<2>>> = Default::default();
-    let mut antinodes: HashSet<Point<2>> = Default::default();
-    for (pt, &c) in grid.iter_enumerate() {
-        if c == '.' {
-            continue;
-        }
-        let mut ant = antennas.entry(c).or_default();
-        antinodes.extend(
-            ant.iter()
-                .flat_map(|&a| {
-                    let diff = a - pt;
-                    [a + diff, pt - diff].into_iter()
-                })
-                .filter(|a| grid.size.contains(a)),
-        );
-        ant.push(pt);
-    }
-    antinodes.len()
+    solve(grid, |&a1, &a2| {
+        let diff = a1 - a2;
+        [a1 + diff, a2 - diff]
+            .into_iter()
+            .filter(|a| grid.size.contains(a))
+            .collect()
+    })
 }
 
 fn part_2(grid: &Parsed) -> usize {
+    solve(grid, |&a1, &a2| {
+        let diff = a1 - a2;
+        let left = successors(Some(a1), |p| Some(p + &diff)).take_while(|p| grid.size.contains(p));
+        let right = successors(Some(a2), |p| Some(p - &diff)).take_while(|p| grid.size.contains(p));
+        left.chain(right).collect()
+    })
+}
+
+fn solve<F>(grid: &Parsed, generate_antinodes: F) -> usize
+where
+    F: Fn(&Point<2>, &Point<2>) -> Vec<Point<2>>,
+{
     let mut antennas: HashMap<char, Vec<Point<2>>> = Default::default();
     let mut antinodes: HashSet<Point<2>> = Default::default();
     for (pt, &c) in grid.iter_enumerate() {
@@ -46,15 +47,8 @@ fn part_2(grid: &Parsed) -> usize {
             continue;
         }
         let mut ant = antennas.entry(c).or_default();
-        antinodes.extend(ant.iter().flat_map(|&a| {
-            let diff = a - pt;
-            let left =
-                successors(Some(a), move |p| Some(p + &diff))
-                .take_while(|p| grid.size.contains(p));
-            let right = successors(Some(pt), move |p| Some(p - &diff))
-                .take_while(|p| grid.size.contains(p));
-            left.chain(right)
-        }));
+        let new_nodes = ant.iter().flat_map(|a| generate_antinodes(a, &pt));
+        antinodes.extend(new_nodes);
         ant.push(pt);
     }
     antinodes.len()
