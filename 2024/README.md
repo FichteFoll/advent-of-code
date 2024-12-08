@@ -173,3 +173,13 @@ Not much to say here
 other than that I brute-forced
 used recursion
 and a simple early abort.
+
+### Day 08
+
+Another grid task
+where my existing grid code came in handy.
+The necessary algorithms aren't fancy,
+but getting the types right
+as I unified both parts by utilizing a closure parameter
+proved to be a bit challenging
+compared to the rest of this task.
