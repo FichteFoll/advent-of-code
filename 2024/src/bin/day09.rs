@@ -18,15 +18,17 @@ enum Block {
 use Block::*;
 
 fn parse_input(input: &str) -> Parsed {
-    input.trim()
+    input
+        .trim()
         .bytes()
         .map(|b| b - b'0')
         .enumerate()
-        .map(|(i, f)| {
-            match i % 2 == 0 {
-                true => File { size: f, id: i as u64 / 2 },
-                false => Empty { size: f },
-            }
+        .map(|(i, f)| match i % 2 == 0 {
+            true => File {
+                size: f,
+                id: i as u64 / 2,
+            },
+            false => Empty { size: f },
         })
         .collect()
 }
@@ -42,10 +44,10 @@ fn part_1(parsed: &Parsed) -> u64 {
                     hash += (pointer + i) * id;
                 }
                 pointer += size as u64;
-            },
+            }
             Empty { size } => {
                 fill_space(&mut deq, size);
-            },
+            }
         }
     }
     hash
@@ -61,15 +63,18 @@ fn fill_space(deq: &mut VecDeque<Block>, space: u8) {
     };
     match space.checked_sub(size) {
         None => {
-            deq.push_front(File { size: space , id});
-            deq.push_back(File { size: size - space , id});
-        },
+            deq.push_front(File { size: space, id });
+            deq.push_back(File {
+                size: size - space,
+                id,
+            });
+        }
         Some(0) => {
-            deq.push_front(File { size , id});
-        },
+            deq.push_front(File { size, id });
+        }
         _ => {
             deq.push_front(Empty { size: space - size });
-            deq.push_front(File { size , id});
+            deq.push_front(File { size, id });
         }
     }
 }
