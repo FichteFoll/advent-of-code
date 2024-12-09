@@ -183,3 +183,19 @@ but getting the types right
 as I unified both parts by utilizing a closure parameter
 proved to be a bit challenging
 compared to the rest of this task.
+
+### Day 09
+
+Weekday tasks are definitely the harder ones.
+However, this one is a bit different from the others
+because it actually has a practical application
+and visualizes the problems of fragmentation.
+I considered using a `Vec` for each cell
+but then figured I could be smarter by treating files like blocks.
+Unfortunately, my enum choice made the code rather unwieldly
+and required lots of pattern matching.
+I'd like to optimize that
+but probably won't find the time.
+
+I also had to write a manual test case here
+to find a bug in my implementation for part 2.
