@@ -21,14 +21,13 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(grid: &Parsed) -> usize {
-    grid
-        .iter_enumerate()
+    grid.iter_enumerate()
         .filter_map(|(pt, &c)| (c == 0u8).then_some((pt, c)))
-        .map(|head| count_trails(grid, head))
+        .map(|head| score_by_target(grid, head))
         .sum()
 }
 
-fn count_trails(grid: &Parsed, head: (Point<2>, u8)) -> usize {
+fn score_by_target(grid: &Parsed, head: (Point<2>, u8)) -> usize {
     let mut queue: VecDeque<_> = [head].into();
     let mut seen: HashSet<_> = Default::default();
     let mut result = 0;
@@ -52,8 +51,45 @@ fn count_trails(grid: &Parsed, head: (Point<2>, u8)) -> usize {
     result
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(grid: &Parsed) -> usize {
+    grid.iter_enumerate()
+        .filter_map(|(pt, &c)| (c == 0u8).then_some((pt, c)))
+        .map(|head| score_by_path(grid, head))
+        .sum()
+}
+
+fn score_by_path(grid: &Parsed, head: (Point<2>, u8)) -> usize {
+    let mut first = Vec::with_capacity(9);
+    first.push(head);
+    let mut queue: VecDeque<_> = [first].into();
+    let mut seen: HashSet<_> = Default::default();
+    let mut result = 0;
+
+    while let Some(path) = queue.pop_front() {
+        if !seen.insert(path.clone()) {
+            continue;
+        }
+        let &(pt, h) = path.last().unwrap();
+        if h == 9 {
+            result += 1;
+            continue;
+        }
+
+        let next = pt
+            .direct_neighbors()
+            .into_iter()
+            .filter_map(|pt2| {
+                let h2 = *grid.get(&pt2)?;
+                (h + 1 == h2).then_some((pt2, h2))
+            })
+            .map(move |item| {
+                let mut n_path = path.clone();
+                n_path.push(item);
+                n_path
+            });
+        queue.extend(next);
+    }
+    result
 }
 
 #[cfg(test)]
@@ -75,10 +111,10 @@ mod tests {
         ";
 
     test!(part_1() == 36);
-    // test!(part_2() == 0);
+    test!(part_2() == 81);
     bench_parse!(|p: &Parsed| p.size, Size(47, 47));
     bench!(part_1() == 607);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 1384);
 
     #[test]
     fn test_p1_simple() {
@@ -96,6 +132,6 @@ mod tests {
     fn test_count_trails_2_5() {
         let head = (Point([2, 5]), 0);
         let parsed = parse_input(TEST_INPUT);
-        assert_eq!(count_trails(&parsed, head), 1);
+        assert_eq!(score_by_target(&parsed, head), 1);
     }
 }
