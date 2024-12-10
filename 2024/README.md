@@ -199,3 +199,13 @@ but probably won't find the time.
 
 I also had to write a manual test case here
 to find a bug in my implementation for part 2.
+
+### Day 10
+
+The first path-finding task,
+but we're used from that from all the previous years.
+After solving part 1 and 2 independently,
+I unified them (again) using closures
+just like for day 8.
+I'm undecided whether this makes it more readable
+but I'm closer to a generic solution now.
