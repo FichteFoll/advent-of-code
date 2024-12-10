@@ -46,7 +46,7 @@ where
         if c == '.' {
             continue;
         }
-        let mut ant = antennas.entry(c).or_default();
+        let ant = antennas.entry(c).or_default();
         let new_nodes = ant.iter().flat_map(|a| generate_antinodes(a, &pt));
         antinodes.extend(new_nodes);
         ant.push(pt);

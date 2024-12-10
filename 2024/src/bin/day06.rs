@@ -30,7 +30,7 @@ fn part_2(grid: &Parsed) -> usize {
     let mut walked = HashSet::default();
     walk_guard(grid)
         .filter(|&state| {
-            walked.insert(state.0.clone());
+            walked.insert(state.0);
             let object = state.0 + state.1;
             !walked.contains(&object)
                 && grid.get(&object).is_some_and(|c| *c != OBJECT)

@@ -36,7 +36,7 @@ fn part_2(parsed: &Parsed) -> usize {
 }
 
 fn is_safe(line: &[i32], safe_range: &RangeInclusive<i32>) -> bool {
-    line.into_iter()
+    line.iter()
         .tuple_windows()
         .map(|(a, b)| {
             Some(b - a)

@@ -57,7 +57,7 @@ fn can_be_valid(ops: &[Op], expected: u64, nums: &[u64]) -> bool {
 }
 
 fn can_be_valid_rec(ops: &[Op], expected: u64, n: u64, rest: &[u64]) -> bool {
-    if rest.len() == 0 {
+    if rest.is_empty() {
         return n == expected;
     }
     if n > expected {
