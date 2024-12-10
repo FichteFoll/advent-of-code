@@ -27,7 +27,7 @@ fn part_1(grid: &Parsed) -> usize {
         .map(|head| {
             score(
                 grid,
-                || head,
+                head,
                 |x| *x,
                 |_, item| item,
             )
@@ -41,7 +41,7 @@ fn part_2(grid: &Parsed) -> usize {
         .map(|head| {
             score(
                 grid,
-                || vec![head],
+                vec![head],
                 |path| *path.last().unwrap(),
                 |path, item| {
                     let mut n_path = path.clone();
@@ -53,19 +53,18 @@ fn part_2(grid: &Parsed) -> usize {
         .sum()
 }
 
-fn score<S, Fhs, Fpfs, Fds>(
+fn score<S, Fpfs, Fds>(
     grid: &Parsed,
-    head_state: Fhs,
+    head_state: S,
     pos_from_state: Fpfs,
     derive_state: Fds,
 ) -> usize
 where
-    Fhs: FnOnce() -> S,
+    S: Clone + Eq + Hash,
     Fpfs: Fn(&S) -> Position,
     Fds: Fn(&S, Position) -> S,
-    S: Clone + Eq + Hash,
 {
-    let mut queue: VecDeque<_> = [head_state()].into();
+    let mut queue: VecDeque<_> = [head_state].into();
     let mut seen: HashSet<_> = Default::default();
     let mut result = 0;
 
