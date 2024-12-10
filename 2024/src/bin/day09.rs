@@ -19,6 +19,20 @@ enum Block {
 }
 use Block::*;
 
+impl Block {
+    fn hash_step(&self, pointer: &mut u64, hash: &mut u64) {
+        match *self {
+            File { size, id } => {
+                *hash += ((0..size as u64).sum::<u64>() + *pointer * size as u64) * id;
+                *pointer += size as u64;
+            }
+            Empty { size } => {
+                *pointer += size as u64;
+            }
+        };
+    }
+}
+
 fn parse_input(input: &str) -> Parsed {
     input
         .trim()
@@ -40,16 +54,10 @@ fn part_1(parsed: &Parsed) -> u64 {
     let mut hash = 0u64;
     let mut pointer = 0u64;
     while let Some(b) = deq.pop_front() {
-        match b {
-            File { size, id } => {
-                for i in 0..size as u64 {
-                    hash += (pointer + i) * id;
-                }
-                pointer += size as u64;
-            }
-            Empty { size } => {
-                fill_space(&mut deq, size);
-            }
+        if let Empty { size } = b {
+            fill_space(&mut deq, size);
+        } else {
+            b.hash_step(&mut pointer, &mut hash)
         }
     }
     hash
@@ -74,8 +82,8 @@ fn fill_space(deq: &mut VecDeque<Block>, space: u8) {
         Some(0) => {
             deq.push_front(File { size, id });
         }
-        _ => {
-            deq.push_front(Empty { size: space - size });
+        Some(diff) => {
+            deq.push_front(Empty { size: diff });
             deq.push_front(File { size, id });
         }
     }
@@ -123,15 +131,7 @@ fn calc_hash(deq: &VecDeque<Block>) -> u64 {
     let mut hash = 0u64;
     let mut pointer = 0u64;
     for b in deq {
-        match *b {
-            File { size, id } => {
-                hash += ((0..size as u64).sum::<u64>() + pointer * size as u64) * id;
-                pointer += size as u64;
-            }
-            Empty { size } => {
-                pointer += size as u64;
-            }
-        };
+        b.hash_step(&mut pointer, &mut hash);
     }
     hash
 }
