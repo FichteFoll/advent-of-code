@@ -1,6 +1,6 @@
 #![feature(test)]
 
-use std::collections::VecDeque;
+use std::{collections::VecDeque, hash::Hash};
 
 use aoc2024::*;
 use collections::HashSet;
@@ -10,6 +10,7 @@ use point::Point;
 const DAY: usize = 10;
 
 type Parsed = Grid2D<u8>;
+type Position = (Point<2>, u8);
 
 main!();
 
@@ -23,53 +24,56 @@ fn parse_input(input: &str) -> Parsed {
 fn part_1(grid: &Parsed) -> usize {
     grid.iter_enumerate()
         .filter_map(|(pt, &c)| (c == 0u8).then_some((pt, c)))
-        .map(|head| score_by_target(grid, head))
+        .map(|head| {
+            score(
+                grid,
+                || head,
+                |x| *x,
+                |_, item| item,
+            )
+        })
         .sum()
-}
-
-fn score_by_target(grid: &Parsed, head: (Point<2>, u8)) -> usize {
-    let mut queue: VecDeque<_> = [head].into();
-    let mut seen: HashSet<_> = Default::default();
-    let mut result = 0;
-
-    while let Some(item) = queue.pop_front() {
-        if !seen.insert(item) {
-            continue;
-        }
-        let (pt, h) = item;
-        if h == 9 {
-            result += 1;
-            continue;
-        }
-
-        let next = pt.direct_neighbors().into_iter().filter_map(|pt2| {
-            let h2 = *grid.get(&pt2)?;
-            (h + 1 == h2).then_some((pt2, h2))
-        });
-        queue.extend(next);
-    }
-    result
 }
 
 fn part_2(grid: &Parsed) -> usize {
     grid.iter_enumerate()
         .filter_map(|(pt, &c)| (c == 0u8).then_some((pt, c)))
-        .map(|head| score_by_path(grid, head))
+        .map(|head| {
+            score(
+                grid,
+                || vec![head],
+                |path| *path.last().unwrap(),
+                |path, item| {
+                    let mut n_path = path.clone();
+                    n_path.push(item);
+                    n_path
+                },
+            )
+        })
         .sum()
 }
 
-fn score_by_path(grid: &Parsed, head: (Point<2>, u8)) -> usize {
-    let mut first = Vec::with_capacity(9);
-    first.push(head);
-    let mut queue: VecDeque<_> = [first].into();
+fn score<S, Fhs, Fpfs, Fds>(
+    grid: &Parsed,
+    head_state: Fhs,
+    pos_from_state: Fpfs,
+    derive_state: Fds,
+) -> usize
+where
+    Fhs: FnOnce() -> S,
+    Fpfs: Fn(&S) -> Position,
+    Fds: Fn(&S, Position) -> S,
+    S: Clone + Eq + Hash,
+{
+    let mut queue: VecDeque<_> = [head_state()].into();
     let mut seen: HashSet<_> = Default::default();
     let mut result = 0;
 
-    while let Some(path) = queue.pop_front() {
-        if !seen.insert(path.clone()) {
+    while let Some(state) = queue.pop_front() {
+        if !seen.insert(state.clone()) {
             continue;
         }
-        let &(pt, h) = path.last().unwrap();
+        let (pt, h) = pos_from_state(&state);
         if h == 9 {
             result += 1;
             continue;
@@ -82,11 +86,7 @@ fn score_by_path(grid: &Parsed, head: (Point<2>, u8)) -> usize {
                 let h2 = *grid.get(&pt2)?;
                 (h + 1 == h2).then_some((pt2, h2))
             })
-            .map(move |item| {
-                let mut n_path = path.clone();
-                n_path.push(item);
-                n_path
-            });
+            .map(|item| derive_state(&state, item));
         queue.extend(next);
     }
     result
@@ -126,12 +126,5 @@ mod tests {
             ";
         let parsed = parse_input(input);
         assert_eq!(part_1(&parsed), 1);
-    }
-
-    #[test]
-    fn test_count_trails_2_5() {
-        let head = (Point([2, 5]), 0);
-        let parsed = parse_input(TEST_INPUT);
-        assert_eq!(score_by_target(&parsed, head), 1);
     }
 }
