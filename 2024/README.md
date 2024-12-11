@@ -209,3 +209,10 @@ I unified them (again) using closures
 just like for day 8.
 I'm undecided whether this makes it more readable
 but I'm closer to a generic solution now.
+
+### Day 11
+
+Trivial part 1
+and memoization is the name for part 2.
+I'm glad I'm not using Haskell this time
+because I've had my fair share of trouble there.
