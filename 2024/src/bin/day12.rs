@@ -19,10 +19,18 @@ fn parse_input(input: &str) -> Parsed {
 }
 
 fn part_1(grid: &Parsed) -> usize {
+    solve(grid, price_perimeter)
+}
+
+fn part_2(grid: &Parsed) -> usize {
+    solve(grid, price_sides)
+}
+
+fn solve<F: Fn(HashSet<P>) -> usize>(grid: &Parsed, price: F) -> usize {
     collect_regions(grid)
         .into_values()
         .flat_map(Vec::into_iter)
-        .map(price_perimeter)
+        .map(price)
         .sum()
 }
 
@@ -61,14 +69,6 @@ fn price_perimeter(region: HashSet<P>) -> usize {
         .filter(|pt| !region.contains(pt))
         .count();
     area * perimeter
-}
-
-fn part_2(grid: &Parsed) -> usize {
-    collect_regions(grid)
-        .into_values()
-        .flat_map(Vec::into_iter)
-        .map(price_sides)
-        .sum()
 }
 
 fn price_sides(region: HashSet<P>) -> usize {
