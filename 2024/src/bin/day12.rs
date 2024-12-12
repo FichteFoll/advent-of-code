@@ -1,7 +1,5 @@
 #![feature(test)]
 
-use std::iter::successors;
-
 use itertools::Itertools;
 
 use aoc2024::*;
@@ -70,41 +68,37 @@ fn part_2(grid: &Parsed) -> usize {
         .into_values()
         .flat_map(Vec::into_iter)
         .map(price_sides)
-        .map(|p| dbg!(p))
         .sum()
 }
 
-// TODO this does not consider holes
 fn price_sides(region: HashSet<P>) -> usize {
     let area = region.len();
-    // The minimum point is guaranteed to have an edge on the west side and north side,
-    // so we begin traversing the west side
-    // but drop the first item to complete the iteration
-    // when we reach our starting point again.
-    let top_left = region.iter().min().unwrap().clone();
-    let start = (top_left, P::W);
-    // Move along edges, clockwise
-    let num_sides = successors(Some(start.clone()), |(pt, edge_dir)| {
-        let move_dir = edge_dir.rotated_right(90);
-        let pt_beyond_edge = pt + edge_dir;
-        let pt_forward = pt + &move_dir;
-        if region.contains(&pt_beyond_edge) {
-            // side ends inwards
-            Some((pt_beyond_edge, -move_dir))
-        } else if !region.contains(&pt_forward) {
-            // side ends outwards; don't move!
-            Some((*pt, move_dir))
-        } else {
-            // side continues
-            Some((pt_forward, *edge_dir))
-        }
-    })
-    .skip(1)
-    .take_while_inclusive(|s| s != &start)
-    .map(|(_, e)| e)
-    .dedup_with_count()
-    .count();
-    area * num_sides
+    // For each polygon with n edges, there are n corners,
+    // and corners can be determined
+    // by checking the neighbors of a single point.
+    let num_corners: usize = region
+        .iter()
+        .map(|pt| {
+            let neighbors = P::ZERO
+                .direct_neighbors()
+                .into_iter()
+                .filter(|npt| region.contains(&(pt + npt)))
+                .collect_vec();
+            let outer = match *neighbors {
+                [] => 4,
+                [_] => 2,
+                [a, b] if (a + b) != P::ZERO => 1,
+                _ => 0,
+            };
+            let inner = neighbors
+                .into_iter()
+                .tuple_combinations()
+                .filter(|(a, b)| a + b != P::ZERO && !region.contains(&(pt + a + *b)))
+                .count();
+            outer + inner
+        })
+        .sum();
+    area * num_corners
 }
 
 #[cfg(test)]
@@ -170,5 +164,5 @@ mod tests {
 
     bench_parse!(|p: &Parsed| p.size, Size(140, 140));
     bench!(part_1() == 1421958);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 885394);
 }
