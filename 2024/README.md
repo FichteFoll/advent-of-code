@@ -216,3 +216,16 @@ Trivial part 1
 and memoization is the name for part 2.
 I'm glad I'm not using Haskell this time
 because I've had my fair share of trouble there.
+
+### Day 12
+
+This was a tricky but fun task
+and took me the longest so far,
+I think.
+The solution for part 1
+is decently intuitive
+but for part 2
+you have to think a bit around the *corner*.
+I'm really thankful for the test cases provided here
+because they helped a lot with identifying and ironing out
+*edge* cases.
