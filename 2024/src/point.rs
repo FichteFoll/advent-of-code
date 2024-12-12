@@ -168,6 +168,22 @@ impl<'a, const N: usize> TryFrom<&'a [i32]> for Point<N> {
 }
 
 mod ops {
+    mod neg {
+        use super::super::Point;
+        use std::ops::Neg;
+
+        impl<const N: usize> Neg for Point<N> {
+            type Output = Self;
+
+            fn neg(mut self) -> Self::Output {
+                for a in self.0.iter_mut() {
+                    *a *= -1;
+                }
+                self
+            }
+        }
+    }
+
     mod add {
         use super::super::Point;
         use std::ops::{Add, AddAssign};
@@ -347,6 +363,18 @@ mod point2 {
                 }
                 _ => panic!("invalid rotation {by}"),
             }
+        }
+
+        pub fn rotated_right(&self, by: i32) -> Self {
+            let mut new = self.clone();
+            new.rotate_left(360 - by);
+            new
+        }
+
+        pub fn rotated_left(&self, by: i32) -> Self {
+            let mut new = self.clone();
+            new.rotate_left(by);
+            new
         }
     }
 
