@@ -6,7 +6,7 @@ use parse::parse_input;
 const DAY: usize = 13;
 
 type Parsed = Vec<Machine>;
-type I = i32;
+type I = i64;
 type P = (I, I);
 #[derive(Debug)]
 struct Machine {
@@ -46,19 +46,24 @@ mod parse {
 fn part_1(parsed: &Parsed) -> I {
     parsed
         .iter()
-        .flat_map(|m| solve_machine(m, 100))
+        .flat_map(|m| solve_machine(m, Some(100), 0))
         .sum()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(parsed: &Parsed) -> I {
+    parsed
+        .iter()
+        .flat_map(|m| solve_machine(m, None, 10000000000000))
+        .sum()
 }
 
-fn solve_machine(m: &Machine, max_allowed: I) -> Option<I> {
-    let a = whole_div(m.p.0 * m.b.1 - m.p.1 * m.b.0, m.a.0 * m.b.1 - m.a.1 * m.b.0)?;
-    let b = whole_div(m.p.1 - a * m.a.1, m.b.1)?;
-    let range = 0..=max_allowed;
-    (range.contains(&a) && range.contains(&b)).then_some(3 * a + b)
+fn solve_machine(m: &Machine, max: Option<I>, offset: I) -> Option<I> {
+    let a = whole_div(
+        (m.p.0 + offset) * m.b.1 - (m.p.1 + offset) * m.b.0,
+        m.a.0 * m.b.1 - m.a.1 * m.b.0,
+    )?;
+    let b = whole_div((m.p.1 + offset) - a * m.a.1, m.b.1)?;
+    (a >= 0 && b >= 0 && max.is_none_or(|m| a <= m && b <= m)).then_some(3 * a + b)
 }
 
 fn whole_div(a: I, b: I) -> Option<I> {
