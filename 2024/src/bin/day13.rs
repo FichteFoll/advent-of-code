@@ -58,6 +58,7 @@ fn part_2(parsed: &Parsed) -> I {
 }
 
 fn solve_machine(m: &Machine, max: Option<I>, offset: I) -> Option<I> {
+    // See ../../notes/day13.md
     let a = whole_div(
         (m.p.0 + offset) * m.b.1 - (m.p.1 + offset) * m.b.0,
         m.a.0 * m.b.1 - m.a.1 * m.b.0,

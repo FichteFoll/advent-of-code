@@ -229,3 +229,19 @@ you have to think a bit around the *corner*.
 I'm really thankful for the test cases provided here
 because they helped a lot with identifying and ironing out
 *edge* cases.
+
+### Day 13
+
+The obligatory linear algebra task has arrived.
+The task description of part 1
+was very obvious about
+brute force not being the solution for part 2,
+so I went with the mathematical solution for the first part already.
+After a small hiccup with my formula
+that took a long time to debug,
+because I refused to write this out on paper
+(or properly in latex),
+and another small hiccup
+based on incorrect assumptions about what `checked_div` means
+and whether or not negative numbers can occur,
+this turned out to be a rather neat task.
