@@ -96,8 +96,8 @@ mod tests {
         ";
 
     test!(part_1() == 480);
-    // test!(part_2() == 0);
+    test!(part_2() == 875318608908); // inserted after the fact
     bench_parse!(Vec::len, 320);
-    // bench!(part_1() == 0); <41285
-    // bench!(part_2() == 0);
+    bench!(part_1() == 40069);
+    bench!(part_2() == 71493195288102);
 }
