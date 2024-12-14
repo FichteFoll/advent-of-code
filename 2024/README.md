@@ -245,3 +245,19 @@ and another small hiccup
 based on incorrect assumptions about what `checked_div` means
 and whether or not negative numbers can occur,
 this turned out to be a rather neat task.
+
+
+### Day 13
+
+First part was comparatively trivial
+and a known puzzle from previous years,
+mostly subject to off-by-one errors (of which I had one).
+
+The second part jumps you
+with a lack of information
+and requires some creativity
+in formulating what you *think* the result could look like
+into code.
+I had a good hunch here
+but missed the part in the description
+that mentions "most" robots being part of the image …
