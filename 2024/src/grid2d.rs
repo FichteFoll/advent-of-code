@@ -215,7 +215,14 @@ mod test {
     }
 
     #[test]
-    fn test_swap() {
+    fn test_swap_same_row() {
+        let mut grid: Grid2D<char> = ["abcd", "ABCD"].into_iter().map(str::chars).collect();
+        grid.swap(&Point([0, 0]), &Point([1, 0]));
+        assert_eq!(grid.iter().next(), Some(&'b'));
+    }
+
+    #[test]
+    fn test_swap_different_row() {
         let mut grid: Grid2D<char> = ["abcd", "ABCD"].into_iter().map(str::chars).collect();
         grid.swap(&Point([0, 0]), &Point([0, 1]));
         assert_eq!(grid.iter().next(), Some(&'A'));
