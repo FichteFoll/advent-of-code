@@ -246,8 +246,7 @@ based on incorrect assumptions about what `checked_div` means
 and whether or not negative numbers can occur,
 this turned out to be a rather neat task.
 
-
-### Day 13
+### Day 14
 
 First part was comparatively trivial
 and a known puzzle from previous years,
@@ -261,3 +260,22 @@ into code.
 I had a good hunch here
 but missed the part in the description
 that mentions "most" robots being part of the image …
+
+### Day 15
+
+The first part instructions sound simple
+and allow some freedom in solving it.
+
+The second part are an interesting twist on this
+and depending on how you solved part 1,
+you can re-use some parts of your code,
+but the logic becomes more complex.
+Theoretically, the algorithm of part 1 is a full subset of part 2
+but can be much simpler because it is linear.
+For performance reasons,
+I decided to re-use of my half of my part 1 solution in part 2
+because the horizontal movements remain basically the same
+and are optimized for my storage (using `Vec::swap`).
+Overall, this day needed quite a lot of code
+compared to the previous ones,
+but it's not exactly hard.
