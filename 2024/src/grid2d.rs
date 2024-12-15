@@ -40,8 +40,7 @@ impl<T> Grid2D<T> {
         self.grid.iter().enumerate().flat_map(|(y, row)| {
             row.iter()
                 .enumerate()
-                .map(|(x, cell)| (Point([x as i32, y as i32]), cell))
-                .collect::<Vec<_>>()
+                .map(move |(x, cell)| (Point([x as i32, y as i32]), cell))
         })
     }
 
@@ -49,8 +48,7 @@ impl<T> Grid2D<T> {
         self.grid.iter_mut().enumerate().flat_map(|(y, row)| {
             row.iter_mut()
                 .enumerate()
-                .map(|(x, cell)| (Point([x as i32, y as i32]), cell))
-                .collect::<Vec<_>>()
+                .map(move |(x, cell)| (Point([x as i32, y as i32]), cell))
         })
     }
 
