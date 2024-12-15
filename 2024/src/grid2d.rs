@@ -8,7 +8,7 @@ use crate::point::Point;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Grid2D<T> {
-    pub grid: Vec<Vec<T>>,
+    pub rows: Vec<Vec<T>>,
     pub size: Size,
 }
 
@@ -17,27 +17,27 @@ pub struct Size(pub usize, pub usize);
 
 impl<T> Grid2D<T> {
     pub fn get(&self, pt: &Point<2>) -> Option<&T> {
-        self.grid
+        self.rows
             .get(pt.y() as usize)
             .and_then(|row| row.get(pt.x() as usize))
     }
 
     pub fn get_mut(&mut self, pt: &Point<2>) -> Option<&mut T> {
-        self.grid
+        self.rows
             .get_mut(pt.y() as usize)
             .and_then(|row| row.get_mut(pt.x() as usize))
     }
 
     pub fn set(&mut self, pt: &Point<2>, value: T) {
-        self.grid[pt.y() as usize][pt.x() as usize] = value;
+        self.rows[pt.y() as usize][pt.x() as usize] = value;
     }
 
     pub fn iter(&self) -> impl Iterator<Item = &T> {
-        self.grid.iter().flat_map(|row| row.iter())
+        self.rows.iter().flat_map(|row| row.iter())
     }
 
     pub fn iter_enumerate(&self) -> impl Iterator<Item = (Point<2>, &T)> {
-        self.grid.iter().enumerate().flat_map(|(y, row)| {
+        self.rows.iter().enumerate().flat_map(|(y, row)| {
             row.iter()
                 .enumerate()
                 .map(move |(x, cell)| (Point([x as i32, y as i32]), cell))
@@ -45,7 +45,7 @@ impl<T> Grid2D<T> {
     }
 
     pub fn iter_enumerate_mut(&mut self) -> impl Iterator<Item = (Point<2>, &mut T)> {
-        self.grid.iter_mut().enumerate().flat_map(|(y, row)| {
+        self.rows.iter_mut().enumerate().flat_map(|(y, row)| {
             row.iter_mut()
                 .enumerate()
                 .map(move |(x, cell)| (Point([x as i32, y as i32]), cell))
@@ -65,7 +65,7 @@ impl<T> Grid2D<T> {
     where
         F: Fn(&T) -> T + Copy,
     {
-        self.grid.iter().map(|row| row.iter().map(f)).collect()
+        self.rows.iter().map(|row| row.iter().map(f)).collect()
     }
 
     #[must_use]
@@ -73,7 +73,7 @@ impl<T> Grid2D<T> {
     where
         F: Fn(Point<2>, &T) -> T,
     {
-        self.grid
+        self.rows
             .iter()
             .enumerate()
             .map(|(y, row)| {
@@ -89,7 +89,7 @@ impl<T> Grid2D<T> {
 impl<T: Default> Grid2D<T> {
     pub fn swap(&mut self, pt1: &Point<2>, pt2: &Point<2>) {
         if pt1.y() == pt2.y() {
-            self.grid[pt1.y() as usize].swap(pt1.x() as usize, pt2.x() as usize);
+            self.rows[pt1.y() as usize].swap(pt1.x() as usize, pt2.x() as usize);
         } else {
             let a = std::mem::take(&mut self[pt1]);
             let b = std::mem::replace(&mut self[pt2], a);
@@ -102,13 +102,13 @@ impl<T> Index<&Point<2>> for Grid2D<T> {
     type Output = T;
 
     fn index(&self, index: &Point<2>) -> &Self::Output {
-        &self.grid[index.y() as usize][index.x() as usize]
+        &self.rows[index.y() as usize][index.x() as usize]
     }
 }
 
 impl<T> IndexMut<&Point<2>> for Grid2D<T> {
     fn index_mut(&mut self, index: &Point<2>) -> &mut Self::Output {
-        &mut self.grid[index.y() as usize][index.x() as usize]
+        &mut self.rows[index.y() as usize][index.x() as usize]
     }
 }
 
@@ -140,7 +140,7 @@ impl<T> IntoIterator for Grid2D<T> {
     type IntoIter = impl Iterator<Item = T>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.grid.into_iter().flat_map(|row| row.into_iter())
+        self.rows.into_iter().flat_map(|row| row.into_iter())
     }
 }
 
@@ -155,7 +155,7 @@ where
             .map(|nested_iter| nested_iter.into_iter().collect())
             .collect();
         let size = Size(grid.first().map(Vec::len).unwrap_or(0), grid.len());
-        Grid2D { grid, size }
+        Grid2D { rows: grid, size }
     }
 }
 
@@ -164,7 +164,7 @@ where
     T: Display,
 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), Error> {
-        for row in self.grid.iter() {
+        for row in self.rows.iter() {
             for cell in row {
                 cell.fmt(f)?;
             }
