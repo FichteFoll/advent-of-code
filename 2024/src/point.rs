@@ -1,8 +1,9 @@
-use itertools::iproduct;
-use itertools::Itertools;
 use std::fmt::Display;
 use std::fmt::Formatter;
 use std::iter::zip;
+
+use itertools::Itertools;
+use itertools::iproduct;
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Point<const N: usize>(pub [i32; N]);
