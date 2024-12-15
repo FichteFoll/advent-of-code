@@ -201,7 +201,8 @@ mod tests {
     bench!(part_2() == 1457703);
 
     test!(small, TEST_INPUT_SMALL, part_1() == 2028);
-    test!(small, TEST_INPUT_SMALL_2, part_2() == (100 * 1 + 5) + (100 * 2 + 7) + (100 * 3 + 6));
+    // (100 * 1 + 5) + (100 * 2 + 7) + (100 * 3 + 6)
+    test!(small, TEST_INPUT_SMALL_2, part_2() == 618);
 
     #[test]
     fn part_2_special() {
