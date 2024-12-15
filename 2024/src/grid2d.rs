@@ -1,6 +1,6 @@
 use std::fmt::{Display, Error, Formatter};
 use std::iter::FromIterator;
-use std::ops::Range;
+use std::ops::{Index, IndexMut, Range};
 
 use itertools::iproduct;
 
@@ -83,6 +83,32 @@ impl<T> Grid2D<T> {
                     .collect::<Vec<_>>()
             })
             .collect()
+    }
+}
+
+impl<T: Default> Grid2D<T> {
+    pub fn swap(&mut self, pt1: &Point<2>, pt2: &Point<2>) {
+        if pt1.y() == pt2.y() {
+            self.grid[pt1.y() as usize].swap(pt1.x() as usize, pt2.x() as usize);
+        } else {
+            let a = std::mem::take(&mut self[pt1]);
+            let b = std::mem::replace(&mut self[pt2], a);
+            let _ = std::mem::replace(&mut self[pt1], b);
+        }
+    }
+}
+
+impl<T> Index<&Point<2>> for Grid2D<T> {
+    type Output = T;
+
+    fn index(&self, index: &Point<2>) -> &Self::Output {
+        &self.grid[index.y() as usize][index.x() as usize]
+    }
+}
+
+impl<T> IndexMut<&Point<2>> for Grid2D<T> {
+    fn index_mut(&mut self, index: &Point<2>) -> &mut Self::Output {
+        &mut self.grid[index.y() as usize][index.x() as usize]
     }
 }
 
@@ -178,5 +204,20 @@ mod test {
         let grid: Grid2D<char> = ["abcd", "abcd"].into_iter().map(str::chars).collect();
         let pt = grid.position(|c| *c == 'c');
         assert_eq!(pt, Some(Point([2, 0])));
+    }
+
+    #[test]
+    fn test_index() {
+        let mut grid: Grid2D<char> = ["abcd", "abcd"].into_iter().map(str::chars).collect();
+        assert_eq!(grid[&Point([0, 0])], 'a');
+        grid[&Point([3, 0])] = 'D';
+        assert_eq!(grid[&Point([3, 0])], 'D');
+    }
+
+    #[test]
+    fn test_swap() {
+        let mut grid: Grid2D<char> = ["abcd", "ABCD"].into_iter().map(str::chars).collect();
+        grid.swap(&Point([0, 0]), &Point([0, 1]));
+        assert_eq!(grid.iter().next(), Some(&'A'));
     }
 }
