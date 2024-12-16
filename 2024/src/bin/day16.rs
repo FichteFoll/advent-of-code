@@ -4,7 +4,7 @@
 use std::{collections::BTreeSet, iter::Peekable};
 
 use aoc2024::*;
-use collections::HashSet;
+use collections::{HashSet, HashMap};
 use grid2d::Grid2D;
 use point::Point;
 
@@ -25,7 +25,7 @@ fn main() {
     let input = read_file(DAY);
     let grid = parse_input(&input);
     let mut it = solve(&grid).peekable();
-    // println!("Part 1: {}", part_1_it(&mut it));
+    println!("Part 1: {}", part_1_it(&mut it));
     println!("Part 2: {}", part_2_it(it));
 }
 
@@ -67,19 +67,21 @@ fn solve(grid: &Parsed) -> impl Iterator<Item = ItItem> {
     };
     let end_pt = grid.position(|c| c == &'E').unwrap();
     let mut queue: BTreeSet<State> = [start].into();
+    let mut min_map: HashMap<(P, P), I> = Default::default();
     let mut result = None;
     // Use the experimental `gen` block feature because why not.
     gen move {
-        while let Some(mut s) = queue.pop_first() {
-            dbg!(&queue.len(), s.cost);
+        while let Some(s) = queue.pop_first() {
+            let min_entry = min_map.entry((s.pos, s.dir)).or_insert(I::MAX);
+            if *min_entry < s.cost {
+                continue;
+            }
+            *min_entry = s.cost;
             if result.is_some_and(|r| r < s.cost) {
                 break;
             }
             if s.pos == end_pt {
-                s.path.push(s.pos);
-                dbg!(&queue.len());
-                println!("result: {}", s.cost);
-                print_path(grid, &s.path);
+                // print_path(grid, &s.path);
                 result = Some(s.cost);
                 yield (s.cost, s.path);
                 continue;
@@ -88,7 +90,7 @@ fn solve(grid: &Parsed) -> impl Iterator<Item = ItItem> {
             match grid.get(&n_pos).unwrap() {
                 &'.' | &'E' => {
                     let mut n_path = s.path.clone();
-                    n_path.push(s.pos);
+                    n_path.push(n_pos);
                     queue.insert(State {
                         cost: s.cost + COST_MOVE,
                         just_turned: false,
@@ -118,6 +120,7 @@ fn solve(grid: &Parsed) -> impl Iterator<Item = ItItem> {
     }
 }
 
+#[allow(dead_code)]
 fn print_path(grid: &Parsed, path: &[P]) {
     let mut grid = grid.clone();
     for p in path {
@@ -184,6 +187,6 @@ mod tests {
     test!(ex1, TEST_INPUT_1, part_2() == 45);
     test!(ex2, TEST_INPUT_2, part_2() == 64);
     bench_parse!(|p: &Parsed| p.size, Size(141, 141));
-    // bench!(part_1() == 109496); // needs ~10s, not benchable
-    // bench!(part_2() == 0);
+    bench!(part_1() == 109496);
+    bench!(part_2() == 551);
 }
