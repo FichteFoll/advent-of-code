@@ -279,3 +279,11 @@ and are optimized for my storage (using `Vec::swap`).
 Overall, this day needed quite a lot of code
 compared to the previous ones,
 but it's not exactly hard.
+
+## Day 16
+
+I shot myself in the foot
+by switching to a `BTreeMap` for part 2
+when I should have remained with a set
+because otherwise the part would be de-duplicated,
+which is exactly what you don't want for part 2.
