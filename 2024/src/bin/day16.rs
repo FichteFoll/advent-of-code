@@ -12,10 +12,11 @@ const DAY: usize = 16;
 
 type Parsed = Grid2D<char>;
 type P = Point<2>;
-type ItItem = (usize, Vec<P>);
+type I = usize;
+type ItItem = (I, Vec<P>);
 
-const COST_MOVE: usize = 1;
-const COST_ROTATE: usize = 1000;
+const COST_MOVE: I = 1;
+const COST_ROTATE: I = 1000;
 
 // Non-standard `main`
 // since we only need to compute once that way
@@ -24,7 +25,7 @@ fn main() {
     let input = read_file(DAY);
     let grid = parse_input(&input);
     let mut it = solve(&grid).peekable();
-    println!("Part 1: {}", part_1_it(&mut it));
+    // println!("Part 1: {}", part_1_it(&mut it));
     println!("Part 2: {}", part_2_it(it));
 }
 
@@ -32,24 +33,22 @@ fn parse_input(input: &str) -> Parsed {
     input.lines().map(str::chars).collect()
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Debug)]
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Default)]
 struct State {
-    cost: usize,
+    cost: I,
+    /// Prevent turning twice in a row.
+    just_turned: bool,
     pos: P,
     dir: P,
-    /// Tracks whether we rotated in the last operation
-    /// to prevent non-90-degree turns.
-    just_rotated: bool,
     path: Vec<P>,
 }
 
-fn part_1_it<I: Iterator<Item = ItItem>>(it: &mut Peekable<I>) -> usize {
+fn part_1_it<T: Iterator<Item = ItItem>>(it: &mut Peekable<T>) -> I {
     it.peek().unwrap().0
 }
 
-fn part_2_it<F: Iterator<Item = ItItem>>(it: F) -> usize {
-    it
-        .map(|(_, s)| s)
+fn part_2_it<T: Iterator<Item = ItItem>>(it: T) -> usize {
+    it.map(|(_, s)| s)
         .fold(HashSet::default(), |mut acc, pts| {
             acc.extend(pts);
             acc
@@ -59,20 +58,20 @@ fn part_2_it<F: Iterator<Item = ItItem>>(it: F) -> usize {
 
 fn solve(grid: &Parsed) -> impl Iterator<Item = ItItem> {
     // Basically Dijkstra.
-    // Using the experimental `gen` block feature because why not.
-    gen {
-        let start_pos = grid.position(|c| c == &'S').unwrap();
-        let start = State {
-            cost: 0,
-            pos: start_pos,
-            dir: P::E,
-            just_rotated: false,
-            path: [start_pos].into(),
-        };
-        let end_pt = grid.position(|c| c == &'E').unwrap();
-        let mut queue: BTreeSet<State> = [start].into();
-        let mut result = None;
+    let start_pos = grid.position(|c| c == &'S').unwrap();
+    let start = State {
+        pos: start_pos,
+        dir: P::E,
+        path: [start_pos].into(),
+        ..Default::default()
+    };
+    let end_pt = grid.position(|c| c == &'E').unwrap();
+    let mut queue: BTreeSet<State> = [start].into();
+    let mut result = None;
+    // Use the experimental `gen` block feature because why not.
+    gen move {
         while let Some(mut s) = queue.pop_first() {
+            dbg!(&queue.len(), s.cost);
             if result.is_some_and(|r| r < s.cost) {
                 break;
             }
@@ -92,30 +91,28 @@ fn solve(grid: &Parsed) -> impl Iterator<Item = ItItem> {
                     n_path.push(s.pos);
                     queue.insert(State {
                         cost: s.cost + COST_MOVE,
+                        just_turned: false,
                         pos: n_pos,
                         dir: s.dir,
-                        just_rotated: false,
                         path: n_path,
                     });
                 }
                 &'#' | &'S' => (), // it makes no sense to go over S again
                 c => panic!("Unexpected char {c}"),
             }
-            if !s.just_rotated {
-                queue.insert(State {
+            if !s.just_turned {
+                let left = State {
                     cost: s.cost + COST_ROTATE,
-                    pos: s.pos,
                     dir: s.dir.rotated_left(90),
-                    just_rotated: true,
-                    path: s.path.clone(),
-                });
-                queue.insert(State {
-                    cost: s.cost + COST_ROTATE,
-                    pos: s.pos,
-                    dir: s.dir.rotated_right(90),
-                    just_rotated: true,
-                    path: s.path,
-                });
+                    just_turned: true,
+                    ..s
+                };
+                let right = State {
+                    dir: -left.dir,
+                    ..left.clone()
+                };
+                queue.insert(left);
+                queue.insert(right);
             }
         }
     }
@@ -136,7 +133,7 @@ mod tests {
     use grid2d::Size;
 
     // Implement part functions for testing macros.
-    fn part_1(grid: &Parsed) -> usize {
+    fn part_1(grid: &Parsed) -> I {
         part_1_it(&mut solve(grid).peekable())
     }
 
