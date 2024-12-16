@@ -282,8 +282,14 @@ but it's not exactly hard.
 
 ## Day 16
 
-I shot myself in the foot
-by switching to a `BTreeMap` for part 2
+The first path-finding task of the year.
+I shot myself in the foot multiple times this day.
+First by switching to a `BTreeMap` for part 2
 when I should have remained with a set
 because otherwise the part would be de-duplicated,
 which is exactly what you don't want for part 2.
+Second by forgetting half of Dijkstra
+and not implementing a cache
+of the lowest cost to a certain point so far
+to abandon paths that are already longer.
+The latter took me way too much time to remember/figure out.
