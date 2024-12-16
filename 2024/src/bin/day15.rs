@@ -100,7 +100,6 @@ fn move_wide(grid: &mut Grid2D<char>, robot: P, dir: P) -> bool {
 
 fn move_simple(grid: &mut Grid2D<char>, robot: P, dir: &P) -> bool {
     let Some(free_i) = (1i32..)
-        .into_iter()
         .map_while(|i| {
             grid.get(&(robot + dir * i))
                 .filter(|c| c != &&'#')

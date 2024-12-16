@@ -160,7 +160,7 @@ mod tests {
     #[test_case(&[97, 13, 75, 29, 47] => false ; "violates several rules")]
     fn test_is_ordered(update: &[u8]) -> bool {
         let (rules, _) = parse_input(TEST_INPUT);
-        is_ordered(&rules, &update)
+        is_ordered(&rules, update)
     }
 
     #[test_case(&[75, 97, 47, 61, 53] => vec![97, 75, 47, 61, 53])]
@@ -168,6 +168,6 @@ mod tests {
     #[test_case(&[97, 13, 75, 29, 47] => vec![97, 75, 47, 29, 13])]
     fn test_order(update: &[u8]) -> Vec<u8> {
         let (rules, _) = parse_input(TEST_INPUT);
-        order(&rules, &update)
+        order(&rules, update)
     }
 }

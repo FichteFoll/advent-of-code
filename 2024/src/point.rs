@@ -367,13 +367,13 @@ mod point2 {
         }
 
         pub fn rotated_right(&self, by: i32) -> Self {
-            let mut new = self.clone();
+            let mut new = *self;
             new.rotate_left(360 - by);
             new
         }
 
         pub fn rotated_left(&self, by: i32) -> Self {
-            let mut new = self.clone();
+            let mut new = *self;
             new.rotate_left(by);
             new
         }

@@ -79,7 +79,6 @@ fn is_maybe_xmastree(robots: &[(Point<2>, Point<2>)]) -> bool {
     let robot_set: HashSet<_> = robots.iter().map(|(p, _)| *p).collect();
     robot_set.iter().any(|tip| {
         (1..10) // arbitrary number
-            .into_iter()
             .flat_map(|offset| {
                 [
                     tip + &Point([offset, offset]),
@@ -100,7 +99,7 @@ fn print_robots(robots: &[(P, P)], size: &P) {
             };
             print!("{c}");
         }
-        println!("");
+        println!();
     }
 }
 
