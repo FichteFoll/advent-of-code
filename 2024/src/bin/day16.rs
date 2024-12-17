@@ -56,7 +56,8 @@ fn part_2_it<T: Iterator<Item = ItItem>>(it: T) -> usize {
         .len()
 }
 
-fn solve(grid: &Parsed) -> impl Iterator<Item = ItItem> {
+// Use the experimental `gen` feature because why not.
+gen fn solve(grid: &Parsed) -> ItItem {
     // Basically Dijkstra.
     let start_pos = grid.position(|c| c == &'S').unwrap();
     let start = State {
@@ -69,53 +70,50 @@ fn solve(grid: &Parsed) -> impl Iterator<Item = ItItem> {
     let mut queue: BTreeSet<State> = [start].into();
     let mut min_map: HashMap<(P, P), I> = Default::default();
     let mut result = None;
-    // Use the experimental `gen` block feature because why not.
-    gen move {
-        while let Some(s) = queue.pop_first() {
-            let min_entry = min_map.entry((s.pos, s.dir)).or_insert(I::MAX);
-            if *min_entry < s.cost {
-                continue;
+    while let Some(s) = queue.pop_first() {
+        let min_entry = min_map.entry((s.pos, s.dir)).or_insert(I::MAX);
+        if *min_entry < s.cost {
+            continue;
+        }
+        *min_entry = s.cost;
+        if result.is_some_and(|r| r < s.cost) {
+            break;
+        }
+        if s.pos == end_pt {
+            // print_path(grid, &s.path);
+            result = Some(s.cost);
+            yield (s.cost, s.path);
+            continue;
+        }
+        let n_pos = s.pos + s.dir;
+        match grid.get(&n_pos).unwrap() {
+            &'.' | &'E' => {
+                let mut n_path = s.path.clone();
+                n_path.push(n_pos);
+                queue.insert(State {
+                    cost: s.cost + COST_MOVE,
+                    just_turned: false,
+                    pos: n_pos,
+                    dir: s.dir,
+                    path: n_path,
+                });
             }
-            *min_entry = s.cost;
-            if result.is_some_and(|r| r < s.cost) {
-                break;
-            }
-            if s.pos == end_pt {
-                // print_path(grid, &s.path);
-                result = Some(s.cost);
-                yield (s.cost, s.path);
-                continue;
-            }
-            let n_pos = s.pos + s.dir;
-            match grid.get(&n_pos).unwrap() {
-                &'.' | &'E' => {
-                    let mut n_path = s.path.clone();
-                    n_path.push(n_pos);
-                    queue.insert(State {
-                        cost: s.cost + COST_MOVE,
-                        just_turned: false,
-                        pos: n_pos,
-                        dir: s.dir,
-                        path: n_path,
-                    });
-                }
-                &'#' | &'S' => (), // it makes no sense to go over S again
-                c => panic!("Unexpected char {c}"),
-            }
-            if !s.just_turned {
-                let left = State {
-                    cost: s.cost + COST_ROTATE,
-                    dir: s.dir.rotated_left(90),
-                    just_turned: true,
-                    ..s
-                };
-                let right = State {
-                    dir: -left.dir,
-                    ..left.clone()
-                };
-                queue.insert(left);
-                queue.insert(right);
-            }
+            &'#' | &'S' => (), // it makes no sense to go over S again
+            c => panic!("Unexpected char {c}"),
+        }
+        if !s.just_turned {
+            let left = State {
+                cost: s.cost + COST_ROTATE,
+                dir: s.dir.rotated_left(90),
+                just_turned: true,
+                ..s
+            };
+            let right = State {
+                dir: -left.dir,
+                ..left.clone()
+            };
+            queue.insert(left);
+            queue.insert(right);
         }
     }
 }
