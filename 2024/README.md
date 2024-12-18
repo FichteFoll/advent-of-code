@@ -293,3 +293,27 @@ and not implementing a cache
 of the lowest cost to a certain point so far
 to abandon paths that are already longer.
 The latter took me way too much time to remember/figure out.
+
+# Day 17
+
+This was a decently tough day.
+Not the first part,
+as that was a pretty simple custom instruction set unit,
+but for the second one
+it fist took me a short while
+to first implement it in brute-force code,
+only to then realize
+that this will likely not compute
+in the forseeable future.
+
+Fortunately, the actual instructions were fairly simple
+and we've had much worse tasks like this in the past,
+so I solved part 2 through reverse engineering the code,
+some *tiny little* brute force,
+and Python,
+because I am much faster prototyping there.
+The solution is most likely *not* applicable for each input
+since I analyzed this specifically for mine,
+but it's not like this matters for such a task.
+It is very easy
+to make tiny errors during this process, though.
