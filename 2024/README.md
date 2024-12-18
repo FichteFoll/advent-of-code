@@ -43,7 +43,7 @@ while sharing some common code
 like macros
 to reduce boilerplate
 and some other useful utilities
-like an N-dimentional coordinate structure.
+like an N-dimensional coordinate structure.
 
 You can run them via
 ```sh
@@ -192,7 +192,7 @@ because it actually has a practical application
 and visualizes the problems of fragmentation.
 I considered using a `Vec` for each cell
 but then figured I could be smarter by treating files like blocks.
-Unfortunately, my enum choice made the code rather unwieldly
+Unfortunately, my enum choice made the code rather unwieldy
 and required lots of pattern matching.
 I'd like to optimize that
 but probably won't find the time.
@@ -304,7 +304,7 @@ it fist took me a short while
 to first implement it in brute-force code,
 only to then realize
 that this will likely not compute
-in the forseeable future.
+in the foreseeable future.
 
 Fortunately, the actual instructions were fairly simple
 and we've had much worse tasks like this in the past,
