@@ -43,15 +43,30 @@ mod parse {
 }
 
 fn part_1(parsed: &Parsed) -> String {
-    (0..).scan(parsed.clone(), |com, _| com.step())
-        .flatten()
+    stringify(&compute(parsed.clone()))
+}
+
+fn part_2(parsed: &Parsed) -> I {
+    let expected: Vec<_> = parsed.program.iter().map(|n| *n as I).collect();
+    (0 as I..)
+        .find(|i| {
+            // println!("{i}");
+            let mut com = parsed.clone();
+            com.reg[0] = *i;
+            compute(com) == expected
+        })
+        .unwrap()
+}
+
+fn compute(com: Computer) -> Vec<I> {
+    (0..).scan(com, |com, _| com.step()).flatten().collect()
+}
+
+fn stringify(prog: &[I]) -> String {
+    prog.into_iter()
         .map(|n| format!("{n}"))
         .intersperse(",".to_owned())
         .collect()
-}
-
-fn part_2(_parsed: &Parsed) -> String {
-    todo!()
 }
 
 impl Computer {
@@ -113,12 +128,29 @@ mod tests {
         Program: 0,1,5,4,3,0\n\
         ";
 
+    const TEST_INPUT_2: &str = "\
+        Register A: 2024\n\
+        Register B: 0\n\
+        Register C: 0\n\
+        \n\
+        Program: 0,3,5,4,3,0\n\
+        ";
+
     test!(part_1() == "4,6,3,5,6,3,5,2,1,0");
-    // test!(part_2() == 0);
+    test!(TEST_INPUT_2, part_2() == 117440);
     bench_parse!(
         |x: &Parsed| (x.reg, x.program.len()),
         ([66245665, 0, 0], 16)
     );
     bench!(part_1() == "1,4,6,1,6,4,3,0,3");
-    // bench!(part_2() == 0);
+    // This was determined via reverse engineering.
+    // See ../notes/day17.md
+    // bench!(part_2() == 265061364597659);
+
+    #[test]
+    fn test_input_2_outputs_itself() {
+        let mut com = parse_input(TEST_INPUT_2);
+        com.reg[0] = 117440;
+        assert_eq!(part_1(&com), "0,3,5,4,3,0");
+    }
 }
