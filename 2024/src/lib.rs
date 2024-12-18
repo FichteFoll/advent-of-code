@@ -29,12 +29,12 @@ pub fn read_file(day: usize) -> String {
 // requires `DAY` & `parse_input`
 #[macro_export]
 macro_rules! main {
-    () => {
+    ($($param: expr),*) => {
         fn main() {
             let input = read_file(DAY);
             let parsed = parse_input(&input);
-            println!("Part 1: {}", part_1(&parsed));
-            println!("Part 2: {}", part_2(&parsed));
+            println!("Part 1: {}", part_1(&parsed$(, $param)*));
+            println!("Part 2: {}", part_2(&parsed$(, $param)*));
         }
     };
 }
