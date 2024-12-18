@@ -317,3 +317,17 @@ since I analyzed this specifically for mine,
 but it's not like this matters for such a task.
 It is very easy
 to make tiny errors during this process, though.
+
+# Day 18
+
+The second path-finding task,
+this time utilizing A\*
+to (hopefully) skip some unnecessary steps.
+I made an annoying off-by-one error
+when specifying/respecting the grid size,
+which caused my otherwise-correct implementation
+to never find a solution.
+
+Part 2 is just brute-force,
+but it only runs for 1.4 seconds
+and that is fine in my book for day 18.
