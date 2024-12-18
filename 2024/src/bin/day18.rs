@@ -28,11 +28,17 @@ fn parse_input(input: &str) -> Parsed {
 
 fn part_1(parsed: &Parsed, size: Size, n_items: usize) -> I {
     let obstacles: HashSet<_> = parsed.iter().cloned().take(n_items).collect();
-    find_path(&obstacles, size)
+    find_path(&obstacles, size).expect("No solution found")
 }
 
-fn part_2(_parsed: &Parsed, _size: Size, _n_items: usize) -> usize {
-    todo!()
+fn part_2(parsed: &Parsed, size: Size, min_n_items: usize) -> P {
+    (min_n_items..parsed.len())
+        .filter_map(|n_items| {
+            let obstacles: HashSet<_> = parsed.iter().cloned().take(n_items).collect();
+            find_path(&obstacles, size).map(|_| parsed[n_items])
+        })
+        .last()
+        .expect("No solution found")
 }
 
 #[derive(Ord, PartialOrd, PartialEq, Eq, Debug)]
@@ -42,7 +48,7 @@ struct State {
     pos: P,
 }
 
-fn find_path(obstacles: &HashSet<P>, size: Size) -> I {
+fn find_path(obstacles: &HashSet<P>, size: Size) -> Option<I> {
     let end = Point([size.0 as i32 - 1, size.1 as i32 - 1]);
     let mut cache: HashMap<P, I> = Default::default();
     let mut queue: BTreeSet<State> = [State {
@@ -53,7 +59,7 @@ fn find_path(obstacles: &HashSet<P>, size: Size) -> I {
     .into();
     while let Some(s) = queue.pop_first() {
         if s.pos == end {
-            return s.steps.0;
+            return Some(s.steps.0);
         }
         let entry = cache.entry(s.pos).or_insert(I::MAX);
         if *entry <= s.steps.0 {
@@ -73,7 +79,7 @@ fn find_path(obstacles: &HashSet<P>, size: Size) -> I {
             });
         queue.extend(next);
     }
-    panic!("No solution found")
+    None
 }
 
 #[cfg(test)]
@@ -110,8 +116,9 @@ mod tests {
         ";
 
     test!(part_1(Size(7, 7), 12) == 22);
-    // test!(part_2() == 0);
+    test!(part_2(Size(7, 7), 12) == Point([6, 1]));
     bench_parse!(Vec::len, 3450);
-    bench!(part_1() == 304);
-    // bench!(part_2() == 0);
+    bench!(part_1(Size(71, 71), 1024) == 304);
+    // Takes about 1.4s, which is not comfortably benchable.
+    // bench!(part_2(Size(71, 71), 1024) == Point([50, 28]));
 }
