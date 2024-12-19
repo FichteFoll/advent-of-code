@@ -3,7 +3,7 @@
 use std::collections::VecDeque;
 
 use aoc2024::*;
-use collections::HashSet;
+use collections::{HashMap, HashSet};
 use parse::parse_input;
 
 const DAY: usize = 19;
@@ -44,8 +44,33 @@ fn part_1((towels, patterns): &Parsed) -> usize {
         .count()
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2((towels, patterns): &Parsed) -> usize {
+    let mut suff_cache: HashMap<&str, usize> = Default::default();
+    patterns
+        .iter()
+        .map(|&ptrn| num_solutions(&mut suff_cache, &towels, ptrn))
+        .sum()
+}
+
+fn num_solutions<'a>(
+    suff_cache: &mut HashMap<&'a str, usize>,
+    towels: &[&str],
+    suffix: &'a str,
+) -> usize {
+    let res = if suffix.is_empty() {
+        1
+    } else {
+        towels
+            .iter()
+            .filter_map(|twl| suffix.strip_prefix(twl))
+            .map(|n_suffix| match suff_cache.get(n_suffix) {
+                Some(&n) => n,
+                _ => num_solutions(suff_cache, towels, n_suffix),
+            })
+            .sum()
+    };
+    suff_cache.insert(suffix, res);
+    res
 }
 
 #[cfg(test)]
@@ -67,8 +92,8 @@ mod tests {
         ";
 
     test!(part_1() == 6);
-    // test!(part_2() == 0);
+    test!(part_2() == 16);
     bench_parse!(|p: &Parsed| (p.0.len(), p.1.len()), (447, 400));
     bench!(part_1() == 333);
-    // bench!(part_2() == 0);
+    bench!(part_2() == 678536865274732);
 }
