@@ -331,3 +331,20 @@ to never find a solution.
 Part 2 is just brute-force,
 but it only runs for 1.4 seconds
 and that is fine in my book for day 18.
+
+# Day 19
+
+The task sounds simple at first,
+but in isolation it's kind of interesting.
+However, the problem is basically
+a combination of several patterns we've had so far,
+so it's pretty much just copying those.
+I tried to think
+about some non-obvious ways to implement it
+and to golf a bit,
+but there isn't that much to optimize here.
+
+My part 1 solution is not optimal
+because it is a BFS without a solution cache,
+but I think it presents a neat contrast
+to part 2's DFS.
