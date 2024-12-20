@@ -20,35 +20,31 @@ fn parse_input(input: &str) -> Parsed {
     input.lines().map(|line| line.chars()).collect()
 }
 
-fn part_1(grid: &Parsed, minimum_saved: I) -> usize {
-    let mut solutions = find_paths_with_cheats(grid, minimum_saved);
-    assert!(!solutions.is_empty());
-    dbg!(&solutions.len());
-    let reference = solutions.remove(&vec![]).unwrap();
-    solutions
-        .into_values()
-        .filter(|&length| minimum_saved <= reference - length)
-        .count()
+fn part_1(grid: &Parsed, min_saved: I) -> usize {
+    count_paths_with_cheats(grid, min_saved, 2)
 }
 
-fn part_2(_parsed: &Parsed, _unused: usize) -> usize {
-    todo!()
+fn part_2(grid: &Parsed, min_saved: I) -> usize {
+    count_paths_with_cheats(grid, min_saved, 20)
 }
 
 #[derive(Ord, PartialOrd, PartialEq, Eq, Debug)]
 struct State {
     // prioritize the no-cheats solution as an early cut-off point
-    cheats: Vec<P>,
+    cheated: usize,
     min_steps: I,
     steps: Reverse<I>,
+    // rest is irrelevant for ordering
     pos: P,
+    cheats: Vec<P>,
 }
 
-fn find_paths_with_cheats(grid: &Parsed, minimum_saved: I) -> HashMap<Vec<P>, I> {
+fn count_paths_with_cheats(grid: &Parsed, min_saved: I, allowed_cheats: usize) -> usize {
     let end = grid.position(|c| c == &'E').unwrap();
     let start = grid.position(|c| c == &'S').unwrap();
     let mut cache: HashMap<(P, Vec<P>), I> = Default::default();
     let mut queue: BTreeSet<State> = [State {
+        cheated: 0,
         min_steps: start.manhattan_to(&end),
         steps: Reverse(0),
         pos: start,
@@ -72,35 +68,53 @@ fn find_paths_with_cheats(grid: &Parsed, minimum_saved: I) -> HashMap<Vec<P>, I>
             continue;
         }
         if let Some(&shortest_no_cheats) = cache.get(&no_cheats_key)
-            && shortest_no_cheats < s.min_steps + minimum_saved
+            && shortest_no_cheats < s.min_steps + min_saved
         {
             continue;
         }
-        let can_cheat = s.cheats.len() == 0;
-        let is_cheating = s.cheats.len() == 1;
-        let next = s.pos.direct_neighbors().into_iter().filter_map(|pos| {
-            let is_wall = grid.get(&pos)? == &'#';
-            let mut cheats = s.cheats.clone();
-            if is_wall && !can_cheat {
-                return None;
-            }
-            if is_cheating || is_wall {
-                cheats.push(pos);
-            }
-            Some(State {
-                min_steps: s.steps.0 + 1 + pos.manhattan_to(&end),
-                steps: Reverse(s.steps.0 + 1),
-                pos,
-                cheats,
-            })
-        });
-        queue.extend(next);
+        queue.extend(successor_states(s, grid, allowed_cheats, end));
     }
     dbg!(cache.len());
+    let reference = cache.remove(&no_cheats_key).unwrap();
     cache
         .into_iter()
-        .filter_map(|((pt, c), v)| (pt == end).then_some((c, v)))
-        .collect()
+        .filter_map(|((pt, _), v)| (pt == end).then_some(v))
+        .filter(|&length| min_saved <= reference - length)
+        .count()
+}
+
+fn successor_states(
+    s: State,
+    grid: &Grid2D<char>,
+    allowed_cheats: usize,
+    end: Point<2>,
+) -> impl Iterator<Item = State> {
+    let can_cheat = s.cheats.len() == 0;
+    s.pos.direct_neighbors().into_iter().filter_map(move |pos| {
+        let mut is_cheating = s.cheats.len() == 1;
+        let is_wall = grid.get(&pos)? == &'#';
+        let mut cheats = s.cheats.clone();
+        match (is_wall, can_cheat, is_cheating) {
+            (_, _, true) if s.cheated == allowed_cheats => return None,
+            (true, true, _) => {
+                cheats.push(s.pos);
+                is_cheating = true;
+            }
+            (false, _, true) => {
+                cheats.push(pos);
+                is_cheating = false;
+            }
+            (true, false, false) => return None,
+            _ => (),
+        }
+        Some(State {
+            cheated: s.cheated + is_cheating as usize,
+            min_steps: s.steps.0 + 1 + pos.manhattan_to(&end),
+            steps: Reverse(s.steps.0 + 1),
+            pos,
+            cheats,
+        })
+    })
 }
 
 #[cfg(test)]
@@ -129,8 +143,8 @@ mod tests {
         ";
 
     test!(part_1(2) == 44);
-    // test!(part_2() == 0);
+    test!(part_2(50) == 285);
     bench_parse!(|p: &Parsed| p.size, Size(141, 141));
     // bench!(part_1(100) == 1327); // takes 1.5 minutes to compute
-    // bench!(part_2() == 0);
+    // bench!(part_2(100) == 0);
 }
