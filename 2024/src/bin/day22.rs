@@ -81,5 +81,5 @@ mod tests {
     test!(TEST_INPUT_2, part_2() == 23);
     bench_parse!(Vec::len, 2256);
     bench!(part_1() == 19241711734);
-    bench!(part_2() == 2058);
+    // bench!(part_2() == 2058); // takes 580ms, which needs 3 minutes to bench
 }
