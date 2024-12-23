@@ -24,26 +24,20 @@ fn part_1(parsed: &Parsed) -> I {
 }
 
 fn part_2(parsed: &Parsed) -> I {
-    parsed
+    let seq_map = parsed
         .iter()
         .map(|secret| {
-            // (Box::new(iter_secrets(*secret)) as Box<dyn Iterator<Item = I>>) // this is to get rust-analyzer to recognize the type
-            iter_secrets(*secret)
-                .take(2001)
-                .map(|n| n % 10)
+            let prices = iter_secrets(*secret).take(2001).map(|n| n % 10);
+            let diffs = prices.tuple_windows().map(|(a, b)| (b, b - a));
+            let seqs = diffs
                 .tuple_windows()
-                .map(|(a, b)| (b, b - a))
-                .tuple_windows()
-                .map(|(t1, t2, t3, t4)| ((t1.1, t2.1, t3.1, t4.1), t4.0))
-                .into_grouping_map()
-                .reduce(|acc, _, _| acc)
+                .map(|(t1, t2, t3, t4)| ((t1.1, t2.1, t3.1, t4.1), t4.0));
+            seqs.into_grouping_map().reduce(|acc, _, _| acc)
         })
         .flatten()
         .into_grouping_map()
-        .sum()
-        .into_values()
-        .max()
-        .unwrap()
+        .sum();
+    seq_map.into_values().max().unwrap()
 }
 
 gen fn iter_secrets(mut secret: I) -> I {
