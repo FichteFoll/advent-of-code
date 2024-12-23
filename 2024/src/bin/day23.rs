@@ -1,9 +1,10 @@
 #![feature(test)]
+#![feature(iter_intersperse)]
 
 use aoc2024::*;
 // FnvHashSet does not implement Hash
 use itertools::Itertools;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeSet, HashMap, HashSet, VecDeque};
 
 const DAY: usize = 23;
 
@@ -48,11 +49,33 @@ fn part_1(graph: &Parsed) -> usize {
         .into_iter()
         .filter(|triplet| triplet.into_iter().any(|c| c.starts_with('t')))
         .count()
-        / 3 // divide by three because we collect each tripled three times
+        / 3 // divide by three because we collect each triplet three times
 }
 
-fn part_2(_parsed: &Parsed) -> usize {
-    todo!()
+fn part_2(graph: &Parsed) -> String {
+    let mut queue: VecDeque<BTreeSet<_>> = graph.keys().map(|&c| [c].into()).collect();
+    let mut seen: HashSet<BTreeSet<_>> = Default::default();
+    let mut biggest: BTreeSet<_> = Default::default();
+    while let Some(current) = queue.pop_front() {
+        if !seen.insert(current.clone()) {
+            continue;
+        }
+        if current.len() > biggest.len() {
+            biggest = current.clone();
+        }
+        let connected: HashSet<_> = current.iter().flat_map(|&c| &graph[c]).cloned().collect();
+        let successors = connected
+            .into_iter()
+            .filter(|c| !current.contains(c))
+            .filter(|c| current.iter().all(|c2| graph[c2].contains(c)))
+            .map(|c| {
+                let mut new = current.clone();
+                new.insert(c);
+                new
+            });
+        queue.extend(successors);
+    }
+    Iterator::intersperse(biggest.into_iter(), ",").collect()
 }
 
 #[cfg(test)]
@@ -96,8 +119,8 @@ mod tests {
         ";
 
     test!(part_1() == 7);
-    // test!(part_2() == 0);
-    // bench_parse!(Vec::len, 0);
-    // bench!(part_1() == 0);
-    // bench!(part_2() == 0);
+    test!(part_2() == "co,de,ka,ta");
+    bench_parse!(HashMap::len, 520);
+    bench!(part_1() == 1154);
+    // bench!(part_2() == "aj,ds,gg,id,im,jx,kq,nj,ql,qr,ua,yh,zn"); // Takes 1.3s, which is noch benchable
 }
