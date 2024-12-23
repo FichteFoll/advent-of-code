@@ -31,7 +31,7 @@ fn part_2(parsed: &Parsed) -> I {
             let diffs = prices.tuple_windows().map(|(a, b)| (b, b - a));
             let seqs = diffs
                 .tuple_windows()
-                .map(|(t1, t2, t3, t4)| ((t1.1, t2.1, t3.1, t4.1), t4.0));
+                .map(|(t1, t2, t3, t4)| (key(&[t1.1, t2.1, t3.1, t4.1]), t4.0));
             seqs.into_grouping_map().reduce(|acc, _, _| acc)
         })
         .flatten()
@@ -50,6 +50,11 @@ gen fn iter_secrets(mut secret: I) -> I {
         secret ^= secret * 2048;
         secret %= MODULO;
     }
+}
+
+#[inline]
+fn key(arr: &[I]) -> I {
+    arr.iter().fold(0, |acc, &n| acc * 19 + n + 9)
 }
 
 #[cfg(test)]
@@ -75,5 +80,5 @@ mod tests {
     test!(TEST_INPUT_2, part_2() == 23);
     bench_parse!(Vec::len, 2256);
     bench!(part_1() == 19241711734);
-    // bench!(part_2() == 2058); // takes 580ms, which needs 3 minutes to bench
+    // bench!(part_2() == 2058); // takes 280ms, which needs 1.5 minutes to bench
 }
