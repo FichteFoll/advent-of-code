@@ -356,3 +356,12 @@ for getting to know `itertools` better.
 Fortunately it was also relatively easy to debug,
 because I missed that the example for part 2
 is not the same as for part 1.
+
+# Day 23
+
+Quite a standard graph problem,
+but not something I have had to implement until now,
+specifically part 2.
+Had to fiddle a bit with the implementation
+and it takes 1.3 seconds to complete,
+but that sounds good enough for a day 23 task.
