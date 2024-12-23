@@ -348,3 +348,11 @@ My part 1 solution is not optimal
 because it is a BFS without a solution cache,
 but I think it presents a neat contrast
 to part 2's DFS.
+
+# Day 22
+
+Kind of a fun task
+for getting to know `itertools` better.
+Fortunately it was also relatively easy to debug,
+because I missed that the example for part 2
+is not the same as for part 1.
