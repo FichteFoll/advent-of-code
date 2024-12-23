@@ -6,6 +6,7 @@ use std::{cmp::Reverse, collections::BTreeSet};
 use aoc2024::*;
 use collections::HashMap;
 use grid2d::Grid2D;
+use itertools::Itertools;
 use point::Point;
 
 const DAY: usize = 20;
@@ -50,7 +51,11 @@ enum Cheat {
 
 impl Cheat {
     fn is_done(&self) -> bool {
-        if let Cheat::Done(..) = self { true } else { false }
+        if let Cheat::Done(..) = self {
+            true
+        } else {
+            false
+        }
     }
 }
 
@@ -77,7 +82,7 @@ fn count_paths_with_cheats(grid: &Parsed, min_saved: I, allowed_cheats: usize) -
             continue;
         }
         if let Some(&shortest) = cache.get(&(end, s.cheat))
-            && shortest < s.min_steps
+            && shortest < s.steps.0 // TODO why does < vs <= make such a difference
         {
             continue;
         }
@@ -86,22 +91,33 @@ fn count_paths_with_cheats(grid: &Parsed, min_saved: I, allowed_cheats: usize) -
         {
             continue;
         }
-        queue.extend(successor_states(s, grid, allowed_cheats, end));
+        queue.extend(successor_states(grid, allowed_cheats, end, s));
     }
     dbg!(cache.len());
     let reference = cache.remove(&no_cheats_key).unwrap();
     cache
         .into_iter()
+        // .filter_map(|((pt, c), v)| (pt == end && c.is_done()).then_some(v))
+        // .filter(|&length| reference - length >= min_saved)
+        // .count()
         .filter_map(|((pt, c), v)| (pt == end && c.is_done()).then_some(v))
-        .filter(|&length| min_saved <= reference - length)
-        .count()
+        .map(|length| reference - length)
+        .filter(|saved| *saved >= min_saved)
+        .counts()
+        .into_iter()
+        .sorted_unstable_by_key(|(k, _)| *k)
+        .map(|(k, v)| {
+            println!("{v} cheats that save {k} picoseconds");
+            v
+        })
+        .sum()
 }
 
 fn successor_states(
-    s: State,
     grid: &Grid2D<char>,
     allowed_cheats: usize,
     end: Point<2>,
+    s: State,
 ) -> impl Iterator<Item = State> {
     s.pos.direct_neighbors().into_iter().flat_map(move |pos| {
         let Some(tile) = grid.get(&pos) else {
