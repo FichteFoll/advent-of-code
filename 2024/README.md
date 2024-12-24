@@ -349,6 +349,22 @@ because it is a BFS without a solution cache,
 but I think it presents a neat contrast
 to part 2's DFS.
 
+# Day 20
+
+Yet another path-finding task
+with a small twist to make it more interesting.
+The twist *is* interesting,
+albeit horribly worded
+and easy to misunderstand,
+but I guess most complex problems in software
+eventually result in path-finding.
+The wording caused me to re-implement several parts
+and I needed several debugging sessions
+and an external tip
+to eventually solve part 2.
+After that, it was comparatively easy
+but I just didn't think of it.
+
 # Day 22
 
 Kind of a fun task
