@@ -381,3 +381,14 @@ specifically part 2.
 Had to fiddle a bit with the implementation
 and it takes 1.3 seconds to complete,
 but that sounds good enough for a day 23 task.
+
+# Day 25
+
+The majority of this task is parsing,
+so it was comparatively boring,
+but I suppose it works as a fade-out.
+
+At the time of writing,
+I still need to do day 21 and 24,
+because I simply skipped them due to lack of time.
+I will do those next.
