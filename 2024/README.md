@@ -365,6 +365,10 @@ to eventually solve part 2.
 After that, it was comparatively easy
 but I just didn't think of it.
 
+# Day 21
+
+Skipped due to time constraints.
+
 # Day 22
 
 Kind of a fun task
@@ -381,6 +385,19 @@ specifically part 2.
 Had to fiddle a bit with the implementation
 and it takes 1.3 seconds to complete,
 but that sounds good enough for a day 23 task.
+
+# Day 24
+
+I started this after the 25th.
+The first part is fairly straight forward,
+while the second is more of a puzzle.
+I made some assumptions about the machine form
+(i.e. that it uses a consistent pattern for each output)
+that I did not want to verify individually,
+but unfortunately my initial attempt at an otherwise automated solution failed.
+
+I have not yet decided whether I will continue working on it
+because I'm experiencing some burnout after 25 days.
 
 # Day 25
 
