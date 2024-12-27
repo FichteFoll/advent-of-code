@@ -2,7 +2,33 @@
 
 ## Summary
 
-to be added later (hopefully)
+This years puzzles had quite an interesting difficulty curve,
+starting of with harder tasks on weekdays
+and easier ones on the weekend
+where it used to be the other way around in the past years
+and which also made more sense.
+Even in the later days,
+any given day could be a tough one
+with the surrounding ones being comparatively easy.
+Overall, there were a couple tricky ones,
+many involving path-finding
+and a few
+
+On the weekend of the 20th I ran out of time
+for the first day
+and did not find any time for the second either,
+so I skipped that entirely,
+but I got back on track afterwards.
+After solving the 25th I continued working on the tasks I skipped,
+but those (un-)fortunately turned out to be
+probably the most tricky ones this year
+and after spending a few hours on one of them,
+I decided to abandon the rest of it
+because after almost 26 days
+I figured I could use a longer break.
+Besides that,
+I also had some other things planned for the holidays
+with higher priority.
 
 
 ## Procedure
@@ -92,7 +118,7 @@ Now, it's not that `helix` doesn't support mouse inputs,
 but I specifically wanted to learn the keyboard interactions.
 
 Regarding the actual task,
-I started with an iterational approach
+I started with an iterative approach
 which worked fine for part 1
 but ran into problems for part 2,
 because you need to do some form of backtracking
@@ -396,8 +422,14 @@ I made some assumptions about the machine form
 that I did not want to verify individually,
 but unfortunately my initial attempt at an otherwise automated solution failed.
 
-I have not yet decided whether I will continue working on it
-because I'm experiencing some burnout after 25 days.
+~~I have not yet decided whether I will continue working on it
+because I'm experiencing some burnout after 25 days.~~
+I will not continue working on this.
+I still have an idea I could implement,
+but I don't understand yet why my first attempt doesn't solve it.
+I could also solve it manually,
+but that seems really cumbersome and unfun,
+so I'd rather not solve it at all.
 
 # Day 25
 
