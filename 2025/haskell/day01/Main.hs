@@ -24,4 +24,7 @@ part1 = length . filter (== 0) . scanl (\a (c, n) -> op c a n `mod` 100) 50
     op 'R' = (+)
 
 part2 :: Input -> Int
-part2 _ = 0
+part2 = length . filter (== 0) . map (`mod` 100) . concat . scanl (\a (c, n) -> take n $ tail $ iterate (op c) (last a)) [50]
+  where
+    op 'L' = pred
+    op 'R' = succ
