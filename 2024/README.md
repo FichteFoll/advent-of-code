@@ -2,7 +2,7 @@
 
 ## Summary
 
-This years puzzles had quite an interesting difficulty curve,
+This year's puzzles had quite an interesting difficulty curve,
 starting of with harder tasks on weekdays
 and easier ones on the weekend
 where it used to be the other way around in the past years
