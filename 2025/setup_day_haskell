@@ -1,0 +1,83 @@
+#!/bin/zsh
+
+set +e
+
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+
+today=$(date +%d)
+day=${1-$today}
+
+mkdir -pv haskell/day$day
+cd haskell/day$day
+
+if [ -e Main.hs ]; then
+    echo "Main.hs already exists"
+else
+    <<EOF > Main.hs
+{-# OPTIONS_GHC -W #-}
+
+module Main (main, parse, part1, part2) where
+
+type Input = [String]
+
+main :: IO ()
+main = do
+  input <- parse <$> getContents
+  putStrLn $ "Part 1: " ++ show (part1 input)
+  putStrLn $ "Part 2: " ++ show (part2 input)
+
+parse :: String -> Input
+parse = lines
+
+part1 :: Input -> Int
+part1 _ = 0
+
+part2 :: Input -> Int
+part2 _ = 0
+EOF
+    echo "Main.hs created"
+fi
+
+if [ -e MainSpec.hs ]; then
+    echo "MainSpec.hs already exists"
+else
+    <<EOF > MainSpec.hs
+module MainSpec (main) where
+
+import Test.Hspec
+import Main hiding (main)
+
+exampleText
+  = unlines
+    [
+    ]
+
+main :: IO ()
+main = do
+  input <- parse <$> readFile "../../input/day$day.txt"
+  let exampleInput = parse exampleText
+
+  hspec $ do
+    describe "parse" $ do
+      it "parses example input (length)" $
+        length exampleInput \`shouldBe\` 0
+
+      it "parses real input (length)" $
+        length input \`shouldBe\` 0
+
+    -- describe "part1" $ do
+    --   it "computes accepted result for example input" $
+    --     part1 exampleInput \`shouldBe\` 0
+
+    --   it "computes accepted result" $
+    --     part1 input \`shouldBe\` 0
+
+    -- describe "part2" $ do
+    --   it "computes accepted result for example input" $
+    --     part2 exampleInput \`shouldBe\` 0
+
+    --   it "computes accepted result" $
+    --     part2 input \`shouldBe\` 0
+EOF
+    echo "MainSpec.hs created"
+fi

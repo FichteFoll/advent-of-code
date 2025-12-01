@@ -1,0 +1,5 @@
+# exclude Haskell binaries
+Main
+MainSpec
+Bench
+*.hi

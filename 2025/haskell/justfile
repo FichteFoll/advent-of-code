@@ -1,0 +1,28 @@
+default:
+  @just --list
+
+# Run script for DAY with input
+run DAY:
+    runhaskell day{{DAY}}/Main.hs < ../input/day{{DAY}}.txt
+
+# Build script for DAY with optimizations and run with input
+build_opt_run DAY:
+    cd day{{DAY}} && ghc -dynamic -O2 Main.hs && time ./Main < ../../input/day{{DAY}}.txt
+
+# Run tests for DAY
+test DAY:
+    cd day{{DAY}} && runhaskell MainSpec.hs
+
+# Run tests for DAY
+test_opt DAY:
+    cd day{{DAY}} && ghc -dynamic -O2 -main-is MainSpec MainSpec.hs && time ./MainSpec
+
+# Run benchmarks for DAY with input
+bench DAY:
+    #!/usr/bin/env bash
+    set -euxo pipefail
+    cd day{{DAY}}
+    ln -s ../Bench.hs Bench.hs
+    trap 'rm Bench.hs' EXIT
+    ghc -dynamic -O2 -main-is Bench Bench.hs
+    ./Bench < ../../input/day{{DAY}}.txt

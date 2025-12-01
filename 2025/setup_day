@@ -1,0 +1,45 @@
+#!/bin/zsh
+
+# NOTE
+# Retrieve session token via browser console
+# https://github.com/wimglenn/advent-of-code-wim/issues/1
+# or via `aocd-token > ~/.config/aocd/token`.
+
+set +e
+
+cd "$( dirname "${BASH_SOURCE[0]}" )"
+
+lang=${1:?language parameter is unset}
+today=$(date +%d)
+day=${2-$today}
+input=input/day$day.txt
+
+if [ -e ".venv" ]; then
+    source ./.venv/bin/activate
+else
+    echo "No virtual environment found at '.venv'. Creating …"
+    python -m venv .venv
+    source ./.venv/bin/activate
+    pip install -U advent-of-code-data
+fi
+
+if [ -s "$input" ]; then
+    echo "$input already exists"
+elif command -v aocd >/dev/null; then
+    mkdir -pv input
+    # fetch the puzzle input via https://github.com/wimglenn/advent-of-code-data
+    aocd $day > "$input"
+    if [ ! -s "$input" ]; then
+        echo "creating input failed!"
+        exit 1
+        rm "$input"
+    else
+        # add trailing newline if necessary
+        sed -i -e '$a\' "$input"
+        echo "$input created"
+    fi
+else
+    echo "aocd not found; skipping input file creation"
+fi
+
+./setup_day_$lang $day
