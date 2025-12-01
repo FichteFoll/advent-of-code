@@ -18,13 +18,16 @@ parse :: String -> Input
 parse = map (second read <<< (head &&& tail)) . lines
 
 part1 :: Input -> Int
-part1 = length . filter (== 0) . scanl (\a (c, n) -> op c a n `mod` 100) 50
+part1 = count . scanl (\a (c, n) -> op c a n) 50
   where
     op 'L' = (-)
     op 'R' = (+)
 
 part2 :: Input -> Int
-part2 = length . filter (== 0) . map (`mod` 100) . concat . scanl (\a (c, n) -> take n $ tail $ iterate (op c) (last a)) [50]
+part2 = count . concat . scanl (\a (c, n) -> take n $ tail $ iterate (op c) $ last a) [50]
   where
     op 'L' = pred
     op 'R' = succ
+
+count :: [Int] -> Int
+count = length . filter (== 0) . map (`mod` 100)
