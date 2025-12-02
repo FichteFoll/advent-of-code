@@ -3,9 +3,7 @@
 
 module Main (main, parse, part1, part2) where
 
-import Control.Arrow ((&&&), Arrow (second), (<<<))
-
-type Input = [(Char, Int)]
+type Input = [Int]
 
 
 main :: IO ()
@@ -15,19 +13,16 @@ main = do
   putStrLn $ "Part 2: " ++ show (part2 input)
 
 parse :: String -> Input
-parse = map (second read <<< (head &&& tail)) . lines
+parse = map (liftA2 ($) (op . head) (read . tail)) . lines
+  where
+    op 'L' = negate
+    op 'R' = id
 
 part1 :: Input -> Int
-part1 = count . scanl (\a (c, n) -> op c a n) 50
-  where
-    op 'L' = (-)
-    op 'R' = (+)
+part1 = count . scanl (+) 50
 
 part2 :: Input -> Int
-part2 = count . concat . scanl (\a (c, n) -> take n $ tail $ iterate (op c) $ last a) [50]
-  where
-    op 'L' = pred
-    op 'R' = succ
+part2 = count . concat . scanl (\a n -> take (abs n) $ tail $ iterate (+ signum n) $ last a) [50]
 
 count :: [Int] -> Int
-count = length . filter (== 0) . map (`mod` 100)
+count = length . filter ((== 0) . flip mod 100)
