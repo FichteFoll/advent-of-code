@@ -43,3 +43,18 @@ main = do
 
       it "computes accepted result" $
         part2 input `shouldBe` 6558
+
+      let testP2 inp res = it ("computes expected result for " ++ show inp) $ do
+            part2 inp `shouldBe` res
+
+      testP2 [-50] 1
+      testP2 [50] 1
+      testP2 [-150] 2
+      testP2 [-100, -50] 2
+      testP2 [150] 2
+      testP2 [250] 3
+      testP2 [-100] 1
+      testP2 [-100, 100] 2
+      testP2 [-50, -50, 50, 50] 2
+      testP2 [-50, 1] 1
+      testP2 [50, -1] 1
