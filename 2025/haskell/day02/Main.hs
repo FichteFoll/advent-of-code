@@ -2,6 +2,7 @@
 
 module Main (main, parse, part1, part2) where
 
+import Control.Arrow
 import Data.List.Extra (splitOn)
 import Data.Tuple.Extra (both)
 import Data.List.Split (chunksOf)
@@ -25,22 +26,32 @@ part2 :: Input -> Int
 part2 = solve isInvalid2
 
 solve :: (Num a, Foldable t, Enum a) => (a -> Bool) -> t (a, a) -> a
-solve check = sum . concatMap (filter check . (\t -> [fst t .. snd t]))
+solve check = sum . concatMap (filter check . uncurry enumFromTo)
 
 isInvalid1 :: Int -> Bool
-isInvalid1 n = even l && uncurry (==) (splitAt (l `div` 2) s)
-  where
-    s = show n
-    l = length s
+isInvalid1 = show >>> max 2 . (`div` 2) . length &&& id >>> splitsEqually
+-- isInvalid1 =
+--   show
+--   >>> (even . length &&& halvesEqual)
+--   >>> uncurry (&&)
+--   where halvesEqual = ((`div` 2) . length &&& id) >>> uncurry splitAt >>> uncurry (==)
 
 isInvalid2 :: Int -> Bool
-isInvalid2 n
-  = or
-    [ True
-    | d <- [1..(l `div` 2)]
-    , l `mod` d == 0
-    , length (nub $ chunksOf d s) == 1
-    ]
+isInvalid2 =
+  show
+  >>> id &&& enumFromTo 1 . (`div` 2) . length  -- (s, ds)
+  >>> first (flip $ curry splitsEqually)
+  >>> uncurry any
+
+splitsEqually :: (Int, String) -> Bool -- (d, s)
+splitsEqually =
+  second (length &&& id) -- (d, (l, s))
+  >>> second fst &&& second snd -- ((d, l), (d, s))
+  >>> checkDivides *** checkChunks
+  >>> uncurry (&&)
   where
-    s = show n
-    l = length s
+    checkDivides :: (Int, Int) -> Bool
+    checkDivides = uncurry (flip mod) >>> (== 0)
+
+    checkChunks :: (Int, String) -> Bool
+    checkChunks = uncurry chunksOf >>> nub >>> length >>> (== 1)
