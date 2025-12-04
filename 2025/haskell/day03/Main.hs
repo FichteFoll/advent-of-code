@@ -2,8 +2,7 @@
 
 module Main (main, parse, part1, part2) where
 
-import Data.Char (ord)
-import Data.Maybe
+import Data.Char (digitToInt)
 
 type Input = [[Int]]
 
@@ -14,7 +13,7 @@ main = do
   putStrLn $ "Part 2: " ++ show (part2 input)
 
 parse :: String -> Input
-parse = map (map (\c -> ord c - ord '0')) . lines
+parse = map (map digitToInt) . lines
 
 part1 :: Input -> Int
 part1 = solve 2
@@ -22,16 +21,10 @@ part1 = solve 2
 part2 :: Input -> Int
 part2 = solve 12
 
-solve count = sum . map (foldl1 (\a b -> a * 10 + b) . batteryPack count)
+solve count = sum . map (maxJolt count)
   where
-    nums = [9, 8 .. 1]
-
-    batteryPack :: Int -> [Int] -> [Int]
-    batteryPack rest xs = head $ mapMaybe (batteryPack' rest xs) nums
-
-    batteryPack' :: Int -> [Int] -> Int -> Maybe [Int]
-    batteryPack' 0 _ _ = Just []
-    batteryPack' _ [] _ = Nothing
-    batteryPack' rest (x:xs) n
-      | n == x = fmap (x:) $ listToMaybe $ mapMaybe (batteryPack' (pred rest) xs) nums
-      | otherwise = batteryPack' rest xs n
+    maxJolt :: Int -> [Int] -> Int
+    maxJolt 0 _ = 0
+    maxJolt rest xs = 10 ^ pred rest * d + maxJolt (pred rest) xs'
+      where d = maximum $ take (length xs - rest + 1) xs
+            xs' = tail $ dropWhile (/= d) xs
