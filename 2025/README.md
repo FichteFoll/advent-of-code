@@ -94,4 +94,17 @@ The following may contain spoilers.
 
 ### Day 01
 
-TODO
+This was a fun task for the first day,
+allowing me to struggle with what I remember from Haskell
+from two years ago
+while simultaneously supporting a simple bruteforce solution
+and a "smart" solution for part 2
+that can really get your gears grinding.
+
+### Day 02
+
+Another bruteforceable task
+that provided several avenues for solving,
+albeit working on a string was probably easiest.
+I then spent an unreasonable amount of time
+trying to create a point-free version for my initial list comprehension.
