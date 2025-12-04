@@ -108,3 +108,16 @@ that provided several avenues for solving,
 albeit working on a string was probably easiest.
 I then spent an unreasonable amount of time
 trying to create a point-free version for my initial list comprehension.
+
+### Day 03
+
+Took me a bit longer
+than I would have expected
+to translate the algorithm I had in my head into code,
+but ultimately this wasn't exactly a difficult task
+once you understood the instructions.
+In my initial solution,
+I didn't think of leaving enough characters for the next recursion
+to definitely reach a solution,
+which is why I used `Maybe` a lot.
+I refactored the code later to make use of this trick.
