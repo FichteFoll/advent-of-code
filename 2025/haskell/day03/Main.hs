@@ -17,24 +17,21 @@ parse :: String -> Input
 parse = map (map (\c -> ord c - ord '0')) . lines
 
 part1 :: Input -> Int
-part1 = sum . map ((\(a, b) -> a * 10 + b) . batteryPair)
+part1 = solve 2
+
+part2 :: Input -> Int
+part2 = solve 12
+
+solve count = sum . map (foldl1 (\a b -> a * 10 + b) . batteryPack count)
   where
     nums = [9, 8 .. 1]
 
-    batteryPair :: [Int] -> (Int, Int)
-    batteryPair xs = head $ mapMaybe (batteryPair' xs) nums
+    batteryPack :: Int -> [Int] -> [Int]
+    batteryPack rest xs = head $ mapMaybe (batteryPack' rest xs) nums
 
-    batteryPair' :: [Int] -> Int -> Maybe (Int, Int)
-    batteryPair' [] _ = Nothing
-    batteryPair' (x:xs) n
-      | n == x = fmap (x,) $ listToMaybe $ mapMaybe (findSecond xs) nums
-      | otherwise = batteryPair' xs n
-
-    findSecond :: [Int] -> Int -> Maybe Int
-    findSecond [] _ = Nothing
-    findSecond (x:xs) n
-      | n == x = Just x
-      | otherwise = findSecond xs n
-
-part2 :: Input -> Int
-part2 _ = 0
+    batteryPack' :: Int -> [Int] -> Int -> Maybe [Int]
+    batteryPack' 0 _ _ = Just []
+    batteryPack' _ [] _ = Nothing
+    batteryPack' rest (x:xs) n
+      | n == x = fmap (x:) $ listToMaybe $ mapMaybe (batteryPack' (pred rest) xs) nums
+      | otherwise = batteryPack' rest xs n
