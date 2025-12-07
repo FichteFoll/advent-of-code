@@ -16,10 +16,10 @@ main = do
   putStrLn $ "Part 2: " ++ show (part2 input)
 
 parse :: String -> Input
-parse = head . posWhereEq 'S' . head &&& map (posWhereEq '^') <<< lines
+parse = head . posWhereEq 'S' . head &&& filter (not . null) . map (posWhereEq '^') . tail <<< lines
 
 part1 :: Input -> Int
-part1 (startPos, grid) = fst $ foldl lineStep (0, IS.singleton startPos) $ map IS.fromDistinctAscList $ tail grid
+part1 (startPos, grid) = fst $ foldl lineStep (0, IS.singleton startPos) $ map IS.fromDistinctAscList grid
   where
     lineStep (c, beams) splitters = (c + IS.size intersections, IS.union unchanged split)
       where
@@ -28,7 +28,7 @@ part1 (startPos, grid) = fst $ foldl lineStep (0, IS.singleton startPos) $ map I
         split = liftA2 IS.union (IS.mapMonotonic pred) (IS.mapMonotonic succ) intersections
 
 part2 :: Input -> Int
-part2 (startPos, grid) = sum $ M.elems $ foldl lineStep (M.singleton startPos 1) $ map S.fromList $ tail grid
+part2 (startPos, grid) = sum $ M.elems $ foldl lineStep (M.singleton startPos 1) $ map S.fromList grid
   where
     lineStep timelineMap splitters = M.unionWith (+) unchanged split
       where

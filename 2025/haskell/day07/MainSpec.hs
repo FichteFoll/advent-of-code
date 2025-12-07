@@ -33,10 +33,10 @@ main = do
   hspec $ do
     describe "parse" $ do
       it "parses example input (length)" $
-        second length exampleInput `shouldBe` (7, 16)
+        second length exampleInput `shouldBe` (7, 7)
 
       it "parses real input (length)" $
-        second length input `shouldBe` (70, 142)
+        second length input `shouldBe` (70, 70)
 
     describe "part1" $ do
       it "computes accepted result for example input" $
