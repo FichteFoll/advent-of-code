@@ -121,3 +121,9 @@ I didn't think of leaving enough characters for the next recursion
 to definitely reach a solution,
 which is why I used `Maybe` a lot.
 I refactored the code later to make use of this trick.
+
+### Day 07
+
+Once you got the logic down,
+it's mostly folding through the lines.
+`IntSet` and `IntMap` yield speedups of 5-10×.
