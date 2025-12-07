@@ -2,12 +2,11 @@
 
 module Main (main, parse, part1, part2) where
 
-import qualified Data.IntSet as IS
-import qualified Data.Set as S
-import qualified Data.Map.Strict as M
+import qualified Data.IntSet as S
+import qualified Data.IntMap.Strict as M
 import Control.Arrow
 
-type Input = (Int, [[Int]])
+type Input = (Int, [S.IntSet])
 
 main :: IO ()
 main = do
@@ -16,21 +15,23 @@ main = do
   putStrLn $ "Part 2: " ++ show (part2 input)
 
 parse :: String -> Input
-parse = head . posWhereEq 'S' . head &&& filter (not . null) . map (posWhereEq '^') . tail <<< lines
+parse
+  = head . posWhereEq 'S' . head
+  &&& map S.fromDistinctAscList . filter (not . null) . map (posWhereEq '^') . tail
+  <<< lines
 
 part1 :: Input -> Int
-part1 (startPos, grid) = fst $ foldl lineStep (0, IS.singleton startPos) $ map IS.fromDistinctAscList grid
-  where
-    lineStep (c, beams) splitters = (c + IS.size intersections, IS.union unchanged split)
-      where
-        intersections = IS.intersection beams splitters
-        unchanged = beams IS.\\ intersections
-        split = liftA2 IS.union (IS.mapMonotonic pred) (IS.mapMonotonic succ) intersections
+part1 = fst . solve
 
 part2 :: Input -> Int
-part2 (startPos, grid) = sum $ M.elems $ foldl lineStep (M.singleton startPos 1) $ map S.fromList grid
+part2 = sum . M.elems . snd . solve
+
+-- We can compute both solutions in a single iteration.
+-- Part 1 could be optimized if done separately, but this saves code.
+solve :: (Foldable t, Num a) => (M.Key, t S.IntSet) -> (Int, M.IntMap a)
+solve (startPos, grid) = foldl lineStep (0, M.singleton startPos 1) grid
   where
-    lineStep timelineMap splitters = M.unionWith (+) unchanged split
+    lineStep (c, timelineMap) splitters = (c + S.size intersections, M.unionWith (+) unchanged split)
       where
         beamSet = M.keysSet timelineMap
         intersections = S.intersection beamSet splitters
