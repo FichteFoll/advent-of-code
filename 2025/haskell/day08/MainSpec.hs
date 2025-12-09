@@ -42,10 +42,10 @@ main = do
 
     describe "part1" $ do
       it "computes accepted result for example input" $
-        part1 10 exampleInput `shouldBe` 40
+        part1' 10 exampleInput `shouldBe` 40
 
       it "computes accepted result" $
-        part1 1000 input `shouldBe` 102816
+        part1' 1000 input `shouldBe` 102816
 
     describe "part2" $ do
       it "computes accepted result for example input" $

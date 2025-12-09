@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -W #-}
 
-module Main (main, parse, part1, part2) where
+module Main (main, parse, part1', part2) where
 
 import Data.Function (on)
 import Data.List.Extra (splitOn, sortOn)
@@ -15,14 +15,15 @@ type Input = [Point]
 main :: IO ()
 main = do
   input <- parse <$> getContents
-  putStrLn $ "Part 1: " ++ show (part1 1000 input)
+  putStrLn $ "Part 1: " ++ show (part1 input)
   putStrLn $ "Part 2: " ++ show (part2 input)
 
 parse :: String -> Input
 parse = map ((\[x,y,z] -> V3 x y z) . map read . splitOn ",") . lines
 
-part1 :: Int -> Input -> Int
-part1 n pts = product $ take 3 $ sortOn negate $ map length $ circuitIter pts (distances pts) !! n
+part1 :: Input -> Int
+part1 = part1' 1000
+part1' n pts = product $ take 3 $ sortOn negate $ map length $ circuitIter pts (distances pts) !! n
 
 part2 :: Input -> Int
 part2 pts = sum $ (* V3 1 0 0) $ uncurry (*) $ dists !! i
