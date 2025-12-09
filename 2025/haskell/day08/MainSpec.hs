@@ -47,9 +47,9 @@ main = do
       it "computes accepted result" $
         part1 1000 input `shouldBe` 102816
 
-    -- describe "part2" $ do
-    --   it "computes accepted result for example input" $
-    --     part2 exampleInput `shouldBe` 0
+    describe "part2" $ do
+      it "computes accepted result for example input" $
+        part2 exampleInput `shouldBe` 25272
 
-    --   it "computes accepted result" $
-    --     part2 input `shouldBe` 0
+      it "computes accepted result" $
+        part2 input `shouldBe` 100011612
