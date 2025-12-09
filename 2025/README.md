@@ -127,3 +127,13 @@ I refactored the code later to make use of this trick.
 Once you got the logic down,
 it's mostly folding through the lines.
 `IntSet` and `IntMap` yield speedups of 5-10×.
+
+### Day 08
+
+This was a neat task
+where I mostly had to fight with Haskell types,
+not knowing the functions whose features I wanted,
+and going down a Lenses rabbit hole,
+even though I ended up not actually using any.
+I do feel like we're rather tame on the difficulty still,
+but I expect one of the following days to be a filter day.
