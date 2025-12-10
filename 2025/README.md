@@ -137,3 +137,15 @@ and going down a Lenses rabbit hole,
 even though I ended up not actually using any.
 I do feel like we're rather tame on the difficulty still,
 but I expect one of the following days to be a filter day.
+
+### Day 09
+
+This was was tricky.
+Part 1 was basically free,
+but part 2 had me thinking in circles,
+misunderstanding (and forgetting) the task description
+and overcomplicating the soluction a lot,
+until I eventually found a performant solution
+with the help of someone else.
+Definitely the hardest problem so far.
+That's what I get for jinxing.
