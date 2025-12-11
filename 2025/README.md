@@ -149,3 +149,16 @@ until I eventually found a performant solution
 with the help of someone else.
 Definitely the hardest problem so far.
 That's what I get for jinxing.
+
+## Day 11
+
+Every year has a task with graph traversal
+and this year is no different.
+Although all these problems are similar in nature,
+I still enjoy implementing path-finding algorithms every now and then –
+especially so if it's not always in the same language –
+and compared to the 2D grids,
+graphs puzzles are usually more interesting.
+
+Also, I mis-typed "svr" as "srv" twice
+because who the fuck uses "svr"?
