@@ -34,7 +34,8 @@ walk start graph = walk' (M.singleton "out" $ V4 1 0 0 0) start M.! start
       where
         cache' = foldl walk' cache leaves
         leaves = graph M.! pos
-    merge pos state@(V4 none dac fft both)
-      | pos == "fft" = V4 0 0 none (dac + both)
-      | pos == "dac" = V4 0 none 0 (fft + both)
+    -- Remember: There are no cycles.
+    merge pos state@(V4 none dac fft _)
+      | pos == "fft" = V4 0 0 none dac
+      | pos == "dac" = V4 0 none 0 fft
       | otherwise = state
