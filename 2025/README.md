@@ -122,6 +122,15 @@ to definitely reach a solution,
 which is why I used `Maybe` a lot.
 I refactored the code later to make use of this trick.
 
+### Day 04
+
+Typical early grid task with neighbor checking.
+The most difficult part was
+not making stupid errors in the implementation.
+
+Due to time constraints
+I did this day after the initial 12 days.
+
 ### Day 07
 
 Once you got the logic down,
