@@ -15,10 +15,8 @@ main = do
   putStrLn $ "Part 2: " ++ show (part2 input)
 
 parse :: String -> Input
-parse grid = (dim, S.fromList [V2 x y | (i, c) <- zip [0 ..] $ concat rows, c == '@', let (y, x) = i `divMod` dim])
-  where
-    rows = lines grid
-    dim = length rows
+parse grid = (length rows, S.fromList [V2 x y | (y, row) <- zip [0 ..] rows, (x, c) <- zip [0 ..] row, c == '@'])
+  where rows = lines grid
 
 part1 :: Input -> Int
 part1 = length . findRemovables . snd
