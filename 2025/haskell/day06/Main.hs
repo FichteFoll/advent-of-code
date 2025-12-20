@@ -15,17 +15,17 @@ main = do
   putStrLn $ "Part 2: " ++ show (part2 input)
 
 parse :: String -> Input
-parse = map transpose . splitWhen (all (== ' ')) . transpose . lines
+parse = map (liftA2 (:) last init . transpose) . splitWhen (all (== ' ')) . transpose . lines
 
 part1 :: Input -> Int
 part1 = solve (map read)
 
 part2 :: Input -> Int
-part2 = solve (map (read . reverse) . transpose)
+part2 = solve (map read . transpose)
 
-solve :: Foldable t => ([String] -> t Int) -> [[String]] -> Int
-solve parseBlock = sum . map (calcLine . reverse)
+solve :: ([String] -> [Int]) -> [[String]] -> Int
+solve parseNums = sum . map calcLine
   where
-    calcLine (ops:ns) = foldl1 (f ops) $ parseBlock ns
-    f ('*':_) = (*)
-    f ('+':_) = (+)
+    calcLine (opLine:ns) = foldl1 (op opLine) $ parseNums ns
+    op ('*':_) = (*)
+    op ('+':_) = (+)
