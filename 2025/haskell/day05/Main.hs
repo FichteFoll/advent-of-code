@@ -4,7 +4,8 @@ module Main (main, parse, part1, part2) where
 
 import Control.Arrow
 import Data.Tuple.Extra (both)
-import Data.Ix (inRange)
+import Data.Ix (inRange, rangeSize)
+import Data.List (sortOn)
 
 type Input = ([(Int, Int)], [Int])
 
@@ -25,4 +26,10 @@ part1 :: Input -> Int
 part1 (ranges, ns) = length $ filter (flip any ranges . flip inRange) ns
 
 part2 :: Input -> Int
-part2 _ = 0
+part2 = sum . map rangeSize . foldl insertRange [] . sortOn fst . fst
+
+insertRange :: [(Int, Int)] -> (Int, Int) -> [(Int, Int)]
+insertRange [] r = [r]
+insertRange (r@(a,b):rs) r'@(a',b')
+  | inRange r a' = insertRange rs (min a a', max b b')
+  | otherwise = r : insertRange rs r'
