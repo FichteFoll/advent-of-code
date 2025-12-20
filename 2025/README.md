@@ -141,6 +141,16 @@ Not much else to say.
 Due to time constraints
 I did this day after the initial 12 days.
 
+### Day 06
+
+This was mostly mental gymnastics
+to get the various lists of chars sorted in your head,
+but thanks to Haskell's `transpose`
+the implementation is actually really simple.
+
+Due to time constraints
+I did this day after the initial 12 days.
+
 ### Day 07
 
 Once you got the logic down,
