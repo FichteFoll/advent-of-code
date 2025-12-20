@@ -131,6 +131,16 @@ not making stupid errors in the implementation.
 Due to time constraints
 I did this day after the initial 12 days.
 
+### Day 05
+
+I feel like we've had a similar task in previous years,
+yet I still tripped over
+not sorting the ranges for part 2 initially.
+Not much else to say.
+
+Due to time constraints
+I did this day after the initial 12 days.
+
 ### Day 07
 
 Once you got the logic down,
