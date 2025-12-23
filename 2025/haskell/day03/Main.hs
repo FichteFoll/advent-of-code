@@ -2,9 +2,9 @@
 
 module Main (main, parse, part1, part2) where
 
-import Data.Char (digitToInt)
+import Data.List.Extra (dropEnd)
 
-type Input = [[Int]]
+type Input = [String]
 
 main :: IO ()
 main = do
@@ -13,18 +13,19 @@ main = do
   putStrLn $ "Part 2: " ++ show (part2 input)
 
 parse :: String -> Input
-parse = map (map digitToInt) . lines
+parse = lines
 
 part1 :: Input -> Int
-part1 = solve 2
+part1 = solve 1
 
 part2 :: Input -> Int
-part2 = solve 12
+part2 = solve 11
 
-solve count = sum . map (maxJolt count)
-  where
-    maxJolt :: Int -> [Int] -> Int
-    maxJolt 0 _ = 0
-    maxJolt rest xs = 10 ^ pred rest * d + maxJolt (pred rest) xs'
-      where d = maximum $ take (length xs - rest + 1) xs
-            xs' = tail $ dropWhile (/= d) xs
+solve :: Int -> Input -> Int
+solve count = sum . map (read . maxJolt count)
+
+maxJolt :: Int -> String -> String
+maxJolt (-1) _ = ""
+maxJolt rest xs = c : maxJolt (pred rest) xs'
+  where c = maximum $ dropEnd rest xs
+        xs' = tail $ dropWhile (/= c) xs
